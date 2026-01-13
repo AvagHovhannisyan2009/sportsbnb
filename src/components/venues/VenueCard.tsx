@@ -1,0 +1,85 @@
+import { Link } from "react-router-dom";
+import { MapPin, Star, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+interface VenueCardProps {
+  id: string;
+  name: string;
+  image: string;
+  location: string;
+  sports: string[];
+  price: number;
+  rating: number;
+  reviewCount: number;
+  available: boolean;
+}
+
+const VenueCard = ({
+  id,
+  name,
+  image,
+  location,
+  sports,
+  price,
+  rating,
+  reviewCount,
+  available,
+}: VenueCardProps) => {
+  return (
+    <Link to={`/venue/${id}`} className="group block">
+      <div className="bg-card rounded-xl overflow-hidden border border-border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="relative aspect-[4/3] overflow-hidden">
+          <img
+            src={image}
+            alt={name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          {available ? (
+            <Badge className="absolute top-3 right-3 bg-primary/90 text-primary-foreground">
+              <Clock className="h-3 w-3 mr-1" />
+              Available
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="absolute top-3 right-3">
+              Fully booked
+            </Badge>
+          )}
+        </div>
+        <div className="p-4">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+              {name}
+            </h3>
+            <div className="flex items-center gap-1 text-sm shrink-0">
+              <Star className="h-4 w-4 fill-primary text-primary" />
+              <span className="font-medium text-foreground">{rating}</span>
+              <span className="text-muted-foreground">({reviewCount})</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+            <MapPin className="h-4 w-4" />
+            <span className="line-clamp-1">{location}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {sports.slice(0, 3).map((sport) => (
+              <Badge key={sport} variant="secondary" className="text-xs font-normal">
+                {sport}
+              </Badge>
+            ))}
+            {sports.length > 3 && (
+              <Badge variant="secondary" className="text-xs font-normal">
+                +{sports.length - 3}
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-lg font-semibold text-foreground">${price}</span>
+            <span className="text-sm text-muted-foreground">/ hour</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+export default VenueCard;
