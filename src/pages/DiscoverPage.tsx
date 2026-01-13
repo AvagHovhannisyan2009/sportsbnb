@@ -1,0 +1,183 @@
+import { useState } from "react";
+import { Search, Filter, MapPin, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import VenueCard from "@/components/venues/VenueCard";
+import { venues, sportTypes } from "@/data/mockData";
+import Layout from "@/components/layout/Layout";
+
+const DiscoverPage = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSport, setSelectedSport] = useState<string>("");
+  const [selectedPrice, setSelectedPrice] = useState<string>("");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const filteredVenues = venues.filter((venue) => {
+    const matchesSearch =
+      venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.location.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSport = !selectedSport || venue.sports.includes(selectedSport);
+    const matchesPrice =
+      !selectedPrice ||
+      (selectedPrice === "low" && venue.price < 40) ||
+      (selectedPrice === "medium" && venue.price >= 40 && venue.price < 55) ||
+      (selectedPrice === "high" && venue.price >= 55);
+
+    return matchesSearch && matchesSport && matchesPrice;
+  });
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedSport("");
+    setSelectedPrice("");
+  };
+
+  const hasActiveFilters = searchQuery || selectedSport || selectedPrice;
+
+  return (
+    <Layout>
+      <div className="bg-background min-h-screen">
+        {/* Search Header */}
+        <div className="bg-card border-b border-border sticky top-16 z-40">
+          <div className="container py-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search venues or locations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-12"
+                />
+              </div>
+              
+              <div className="hidden md:flex items-center gap-3">
+                <Select value={selectedSport} onValueChange={setSelectedSport}>
+                  <SelectTrigger className="w-[160px] h-12">
+                    <SelectValue placeholder="Sport type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sportTypes.map((sport) => (
+                      <SelectItem key={sport} value={sport}>
+                        {sport}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedPrice} onValueChange={setSelectedPrice}>
+                  <SelectTrigger className="w-[160px] h-12">
+                    <SelectValue placeholder="Price range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Under $40/hr</SelectItem>
+                    <SelectItem value="medium">$40 - $55/hr</SelectItem>
+                    <SelectItem value="high">$55+/hr</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    <X className="h-4 w-4 mr-1" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+              
+              <Button
+                variant="outline"
+                className="md:hidden"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+                {hasActiveFilters && (
+                  <Badge className="ml-2 h-5 w-5 p-0 justify-center">
+                    {[searchQuery, selectedSport, selectedPrice].filter(Boolean).length}
+                  </Badge>
+                )}
+              </Button>
+            </div>
+            
+            {/* Mobile Filters */}
+            {showFilters && (
+              <div className="md:hidden pt-4 flex flex-col gap-3">
+                <Select value={selectedSport} onValueChange={setSelectedSport}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Sport type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sportTypes.map((sport) => (
+                      <SelectItem key={sport} value={sport}>
+                        {sport}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedPrice} onValueChange={setSelectedPrice}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Price range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Under $40/hr</SelectItem>
+                    <SelectItem value="medium">$40 - $55/hr</SelectItem>
+                    <SelectItem value="high">$55+/hr</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {hasActiveFilters && (
+                  <Button variant="ghost" onClick={clearFilters}>
+                    <X className="h-4 w-4 mr-1" />
+                    Clear all filters
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Results */}
+        <div className="container py-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Discover Venues</h1>
+              <p className="text-muted-foreground">
+                {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"} available
+              </p>
+            </div>
+          </div>
+
+          {filteredVenues.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredVenues.map((venue) => (
+                <VenueCard key={venue.id} {...venue} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No venues found</h3>
+              <p className="text-muted-foreground mb-4">
+                Try adjusting your filters or search query
+              </p>
+              <Button variant="outline" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default DiscoverPage;
