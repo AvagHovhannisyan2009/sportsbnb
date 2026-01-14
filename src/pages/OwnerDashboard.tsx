@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerVenues, getVenueImage } from "@/hooks/useVenues";
+import { StripeConnectBanner } from "@/components/stripe/StripeConnectBanner";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
@@ -91,6 +92,11 @@ const OwnerDashboard = () => {
                 </Button>
               </Link>
             </div>
+          </div>
+
+          {/* Stripe Connect Banner */}
+          <div className="mb-6">
+            <StripeConnectBanner />
           </div>
 
           {/* Stats */}

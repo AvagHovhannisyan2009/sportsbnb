@@ -7,6 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-BOOKING-CHECKOUT] ${step}${detailsStr}`);
+};
+
 interface BookingRequest {
   venueId: string;
   venueName: string;
@@ -24,17 +29,46 @@ serve(async (req) => {
 
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } }
   );
 
   try {
+    logStep("Function started");
+
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
     const { venueId, venueName, venueLocation, price, bookingDate, bookingTime, dateLabel }: BookingRequest = await req.json();
+    logStep("Booking request received", { venueId, venueName, price, bookingDate, bookingTime });
+
+    // Get venue owner's Stripe account
+    const { data: venue, error: venueError } = await supabaseClient
+      .from('venues')
+      .select('owner_id')
+      .eq('id', venueId)
+      .single();
+
+    if (venueError) throw new Error(`Failed to fetch venue: ${venueError.message}`);
+    logStep("Venue fetched", { ownerId: venue.owner_id });
+
+    // Get owner's Stripe Connect account
+    const { data: ownerProfile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('stripe_account_id, stripe_onboarding_completed')
+      .eq('user_id', venue.owner_id)
+      .single();
+
+    if (profileError) throw new Error(`Failed to fetch owner profile: ${profileError.message}`);
+    
+    if (!ownerProfile.stripe_account_id || !ownerProfile.stripe_onboarding_completed) {
+      throw new Error("Venue owner has not completed bank account setup. This venue cannot accept bookings yet.");
+    }
+    logStep("Owner Stripe account found", { stripeAccountId: ownerProfile.stripe_account_id });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -46,8 +80,18 @@ serve(async (req) => {
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
     }
+    logStep("Customer lookup complete", { customerId: customerId || "new customer" });
 
-    // Create checkout session with dynamic price and payment_intent_data
+    // Calculate amounts: 90% to owner, 10% platform fee
+    const totalAmountCents = Math.round(price * 100);
+    const platformFeeCents = Math.round(totalAmountCents * 0.10); // 10% platform fee
+    logStep("Amount calculation", { 
+      totalAmountCents, 
+      platformFeeCents, 
+      ownerReceives: totalAmountCents - platformFeeCents 
+    });
+
+    // Create checkout session with destination charge (90% to owner)
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -59,13 +103,17 @@ serve(async (req) => {
               name: `Venue Booking: ${venueName}`,
               description: `${dateLabel} at ${bookingTime} - ${venueLocation}`,
             },
-            unit_amount: Math.round(price * 100), // Convert to cents
+            unit_amount: totalAmountCents,
           },
           quantity: 1,
         },
       ],
       mode: "payment",
       payment_intent_data: {
+        application_fee_amount: platformFeeCents,
+        transfer_data: {
+          destination: ownerProfile.stripe_account_id,
+        },
         metadata: {
           userId: user.id,
           venueId,
@@ -73,6 +121,8 @@ serve(async (req) => {
           bookingDate,
           bookingTime,
           price: price.toString(),
+          ownerId: venue.owner_id,
+          ownerStripeAccount: ownerProfile.stripe_account_id,
         },
       },
       success_url: `${req.headers.get("origin")}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
@@ -85,8 +135,11 @@ serve(async (req) => {
         bookingTime,
         price: price.toString(),
         userEmail: user.email,
+        ownerId: venue.owner_id,
       },
     });
+
+    logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -94,7 +147,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Checkout error:", error);
+    logStep("ERROR", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
