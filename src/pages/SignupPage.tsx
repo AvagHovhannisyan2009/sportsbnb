@@ -163,11 +163,12 @@ const SignupPage = () => {
     }
 
     toast.success("Account created successfully!");
-    // Redirect to appropriate onboarding flow with replace to prevent back navigation issues
+    // Redirect to appropriate page with replace to prevent back navigation issues
     if (userType === "player") {
       navigate("/onboarding/player", { replace: true });
     } else {
-      navigate("/onboarding/owner", { replace: true });
+      // Owners go directly to dashboard, they can add venues from there
+      navigate("/owner-dashboard", { replace: true });
     }
     setIsLoading(false);
   };
