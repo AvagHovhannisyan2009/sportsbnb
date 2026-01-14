@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, Filter, MapPin, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,14 +14,34 @@ import VenueCard from "@/components/venues/VenueCard";
 import { sportTypes } from "@/data/mockData";
 import Layout from "@/components/layout/Layout";
 import { useVenues, getVenueImage } from "@/hooks/useVenues";
+import { useAuth } from "@/hooks/useAuth";
 
 const DiscoverPage = () => {
+  const { profile } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("");
   const [selectedPrice, setSelectedPrice] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: venues = [], isLoading } = useVenues();
+
+  // Get unique cities from venues
+  const cities = useMemo(() => {
+    const citySet = new Set(venues.map(v => v.city).filter(Boolean));
+    return Array.from(citySet).sort();
+  }, [venues]);
+
+  // Auto-set city from user profile on first load
+  useState(() => {
+    if (profile?.city && !selectedCity) {
+      const profileCity = profile.city.toLowerCase();
+      const matchingCity = cities.find(c => c.toLowerCase() === profileCity);
+      if (matchingCity) {
+        setSelectedCity(matchingCity);
+      }
+    }
+  });
 
   const filteredVenues = venues.filter((venue) => {
     const location = venue.address || venue.city;
@@ -34,17 +54,19 @@ const DiscoverPage = () => {
       (selectedPrice === "low" && venue.price_per_hour < 40) ||
       (selectedPrice === "medium" && venue.price_per_hour >= 40 && venue.price_per_hour < 55) ||
       (selectedPrice === "high" && venue.price_per_hour >= 55);
+    const matchesCity = !selectedCity || venue.city === selectedCity;
 
-    return matchesSearch && matchesSport && matchesPrice;
+    return matchesSearch && matchesSport && matchesPrice && matchesCity;
   });
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedSport("");
     setSelectedPrice("");
+    setSelectedCity("");
   };
 
-  const hasActiveFilters = searchQuery || selectedSport || selectedPrice;
+  const hasActiveFilters = searchQuery || selectedSport || selectedPrice || selectedCity;
 
   return (
     <Layout>
@@ -64,6 +86,20 @@ const DiscoverPage = () => {
               </div>
               
               <div className="hidden md:flex items-center gap-3">
+                <Select value={selectedCity} onValueChange={setSelectedCity}>
+                  <SelectTrigger className="w-[160px] h-12">
+                    <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="City" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cities.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <Select value={selectedSport} onValueChange={setSelectedSport}>
                   <SelectTrigger className="w-[160px] h-12">
                     <SelectValue placeholder="Sport type" />
@@ -105,7 +141,7 @@ const DiscoverPage = () => {
                 Filters
                 {hasActiveFilters && (
                   <Badge className="ml-2 h-5 w-5 p-0 justify-center">
-                    {[searchQuery, selectedSport, selectedPrice].filter(Boolean).length}
+                    {[searchQuery, selectedSport, selectedPrice, selectedCity].filter(Boolean).length}
                   </Badge>
                 )}
               </Button>
