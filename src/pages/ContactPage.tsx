@@ -25,7 +25,7 @@ const ContactPage = () => {
     {
       icon: Mail,
       label: "Email",
-      value: "support@sportsbnb.com",
+      value: "support@sportsbnb.org",
     },
     {
       icon: Phone,
