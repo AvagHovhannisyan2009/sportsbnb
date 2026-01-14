@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Upload, X, Loader2, Trash2 } from "lucide-react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { ArrowLeft, Upload, X, Loader2, Trash2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -295,7 +295,14 @@ const EditVenuePage = () => {
                 <p className="text-muted-foreground">Update your venue details</p>
               </div>
             </div>
-            <AlertDialog>
+            <div className="flex gap-2">
+              <Link to={`/venue/${id}/availability`}>
+                <Button variant="outline" size="sm">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Hours & Availability
+                </Button>
+              </Link>
+              <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm">
                   <Trash2 className="h-4 w-4 mr-2" />
@@ -321,6 +328,7 @@ const EditVenuePage = () => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

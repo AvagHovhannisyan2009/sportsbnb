@@ -1,22 +1,48 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { MapPin, Star, Clock, Users, Wifi, Car, Droplets, CheckCircle, ArrowLeft, Calendar } from "lucide-react";
+import { MapPin, Star, Clock, Users, Wifi, Car, Droplets, CheckCircle, ArrowLeft, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/layout/Layout";
 import BookingDialog from "@/components/booking/BookingDialog";
+import ReviewForm from "@/components/reviews/ReviewForm";
+import ReviewList from "@/components/reviews/ReviewList";
 import { useAuth } from "@/hooks/useAuth";
-import { venues, timeSlots } from "@/data/mockData";
+import { useVenueById, getVenueImage } from "@/hooks/useVenues";
+import { useVenueReviews, useUserReviewForVenue, useDeleteReview } from "@/hooks/useReviews";
+import { useVenueHours, useBlockedDates, DAYS_OF_WEEK } from "@/hooks/useAvailability";
+import { timeSlots } from "@/data/mockData";
+import { toast } from "sonner";
+import { format, addDays } from "date-fns";
 
 const VenueDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const venue = venues.find((v) => v.id === id);
+  
+  const { data: venue, isLoading: venueLoading } = useVenueById(id);
+  const { data: reviews = [], isLoading: reviewsLoading } = useVenueReviews(id);
+  const { data: userReview } = useUserReviewForVenue(id, user?.id);
+  const { data: venueHours = [] } = useVenueHours(id);
+  const { data: blockedDates = [] } = useBlockedDates(id);
+  const deleteReview = useDeleteReview();
+
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
+  if (venueLoading) {
+    return (
+      <Layout>
+        <div className="container py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!venue) {
     return (
@@ -38,15 +64,61 @@ const VenueDetailsPage = () => {
     Wifi: <Wifi className="h-5 w-5" />,
   };
 
-  const dates = [
-    { label: "Today", value: "today" },
-    { label: "Tomorrow", value: "tomorrow" },
-    { label: "Sat, Jan 18", value: "sat" },
-    { label: "Sun, Jan 19", value: "sun" },
-    { label: "Mon, Jan 20", value: "mon" },
-  ];
+  // Generate next 5 days for date selection
+  const dates = Array.from({ length: 5 }, (_, i) => {
+    const date = addDays(new Date(), i);
+    const dayOfWeek = date.getDay();
+    const venueHour = venueHours.find(h => h.day_of_week === dayOfWeek);
+    const dateStr = format(date, "yyyy-MM-dd");
+    const isBlocked = blockedDates.some(b => b.blocked_date === dateStr);
+    const isClosed = venueHour?.is_closed || isBlocked;
+    
+    return {
+      label: i === 0 ? "Today" : i === 1 ? "Tomorrow" : format(date, "EEE, MMM d"),
+      value: dateStr,
+      disabled: isClosed,
+      dayOfWeek,
+    };
+  });
 
-  const availableSlots = timeSlots.slice(6, 14);
+  // Get available time slots based on venue hours
+  const getAvailableSlots = () => {
+    if (!selectedDate) return [];
+    const selectedDateObj = dates.find(d => d.value === selectedDate);
+    if (!selectedDateObj) return [];
+    
+    const venueHour = venueHours.find(h => h.day_of_week === selectedDateObj.dayOfWeek);
+    if (!venueHour || venueHour.is_closed) return timeSlots.slice(6, 14); // Default hours if not set
+    
+    // Filter time slots based on venue hours
+    return timeSlots.filter(slot => {
+      const slotTime = slot.replace(" AM", "").replace(" PM", "");
+      const [slotHour] = slotTime.split(":");
+      let hour = parseInt(slotHour);
+      if (slot.includes("PM") && hour !== 12) hour += 12;
+      if (slot.includes("AM") && hour === 12) hour = 0;
+      
+      const openHour = parseInt(venueHour.open_time.split(":")[0]);
+      const closeHour = parseInt(venueHour.close_time.split(":")[0]);
+      
+      return hour >= openHour && hour < closeHour;
+    });
+  };
+
+  const availableSlots = getAvailableSlots();
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!id) return;
+    try {
+      await deleteReview.mutateAsync({ reviewId, venueId: id });
+      toast.success("Review deleted");
+    } catch (error) {
+      toast.error("Failed to delete review");
+    }
+  };
+
+  const venueImage = getVenueImage(venue);
+  const location = venue.address || venue.city;
 
   return (
     <Layout>
@@ -67,7 +139,7 @@ const VenueDetailsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="aspect-[4/3] rounded-xl overflow-hidden">
               <img
-                src={venue.image}
+                src={venueImage}
                 alt={venue.name}
                 className="w-full h-full object-cover"
               />
@@ -76,7 +148,7 @@ const VenueDetailsPage = () => {
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden bg-muted">
                   <img
-                    src={venue.image}
+                    src={venueImage}
                     alt={`${venue.name} view ${i}`}
                     className="w-full h-full object-cover opacity-80"
                   />
@@ -98,7 +170,7 @@ const VenueDetailsPage = () => {
                       {sport}
                     </Badge>
                   ))}
-                  {venue.indoor && (
+                  {venue.is_indoor && (
                     <Badge variant="outline">Indoor</Badge>
                   )}
                 </div>
@@ -106,12 +178,12 @@ const VenueDetailsPage = () => {
                 <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    <span>{venue.location}</span>
+                    <span>{location}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-primary text-primary" />
                     <span className="font-medium text-foreground">{venue.rating}</span>
-                    <span>({venue.reviewCount} reviews)</span>
+                    <span>({venue.review_count} reviews)</span>
                   </div>
                 </div>
               </div>
@@ -119,30 +191,59 @@ const VenueDetailsPage = () => {
               <Separator />
 
               {/* Description */}
-              <div>
-                <h2 className="text-xl font-semibold text-foreground mb-4">About this venue</h2>
-                <p className="text-muted-foreground leading-relaxed">{venue.description}</p>
-              </div>
+              {venue.description && (
+                <>
+                  <div>
+                    <h2 className="text-xl font-semibold text-foreground mb-4">About this venue</h2>
+                    <p className="text-muted-foreground leading-relaxed">{venue.description}</p>
+                  </div>
+                  <Separator />
+                </>
+              )}
 
-              <Separator />
+              {/* Operating Hours */}
+              {venueHours.length > 0 && (
+                <>
+                  <div>
+                    <h2 className="text-xl font-semibold text-foreground mb-4">Operating Hours</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {DAYS_OF_WEEK.map((day, index) => {
+                        const hour = venueHours.find(h => h.day_of_week === index);
+                        return (
+                          <div key={day} className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">{day}</span>
+                            <span className="font-medium text-foreground">
+                              {hour?.is_closed ? "Closed" : hour ? `${hour.open_time} - ${hour.close_time}` : "—"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
 
               {/* Amenities */}
-              <div>
-                <h2 className="text-xl font-semibold text-foreground mb-4">Amenities</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {venue.amenities.map((amenity) => (
-                    <div
-                      key={amenity}
-                      className="flex items-center gap-3 text-muted-foreground"
-                    >
-                      {amenityIcons[amenity] || <CheckCircle className="h-5 w-5" />}
-                      <span>{amenity}</span>
+              {venue.amenities.length > 0 && (
+                <>
+                  <div>
+                    <h2 className="text-xl font-semibold text-foreground mb-4">Amenities</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {venue.amenities.map((amenity) => (
+                        <div
+                          key={amenity}
+                          className="flex items-center gap-3 text-muted-foreground"
+                        >
+                          {amenityIcons[amenity] || <CheckCircle className="h-5 w-5" />}
+                          <span>{amenity}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
+                  </div>
+                  <Separator />
+                </>
+              )}
 
               {/* Availability */}
               <div>
@@ -157,9 +258,14 @@ const VenueDetailsPage = () => {
                         key={date.value}
                         variant={selectedDate === date.value ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setSelectedDate(date.value)}
+                        onClick={() => {
+                          setSelectedDate(date.value);
+                          setSelectedTime(null);
+                        }}
+                        disabled={date.disabled}
                       >
                         {date.label}
+                        {date.disabled && " (Closed)"}
                       </Button>
                     ))}
                   </div>
@@ -169,20 +275,85 @@ const VenueDetailsPage = () => {
                 {selectedDate && (
                   <div>
                     <h3 className="text-sm font-medium text-foreground mb-3">Select time</h3>
-                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                      {availableSlots.map((slot) => (
-                        <Button
-                          key={slot}
-                          variant={selectedTime === slot ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedTime(slot)}
-                          className="text-sm"
-                        >
-                          {slot}
-                        </Button>
-                      ))}
-                    </div>
+                    {availableSlots.length > 0 ? (
+                      <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                        {availableSlots.map((slot) => (
+                          <Button
+                            key={slot}
+                            variant={selectedTime === slot ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSelectedTime(slot)}
+                            className="text-sm"
+                          >
+                            {slot}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">No available slots for this date</p>
+                    )}
                   </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Reviews Section */}
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-foreground">
+                    Reviews ({reviews.length})
+                  </h2>
+                  {user && !userReview && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowReviewForm(!showReviewForm)}
+                    >
+                      Write a Review
+                    </Button>
+                  )}
+                </div>
+
+                {showReviewForm && user && !userReview && (
+                  <Card className="mb-6">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Write Your Review</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ReviewForm
+                        venueId={venue.id}
+                        userId={user.id}
+                        onSuccess={() => setShowReviewForm(false)}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {userReview && (
+                  <Card className="mb-6 border-primary/20">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Your Review</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ReviewForm
+                        venueId={venue.id}
+                        userId={user!.id}
+                        existingReview={userReview}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {reviewsLoading ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" />
+                  </div>
+                ) : (
+                  <ReviewList
+                    reviews={reviews}
+                    currentUserId={user?.id}
+                    onDelete={handleDeleteReview}
+                  />
                 )}
               </div>
             </div>
@@ -191,7 +362,7 @@ const VenueDetailsPage = () => {
             <div className="lg:col-span-1">
               <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-3xl font-bold text-foreground">${venue.price}</span>
+                  <span className="text-3xl font-bold text-foreground">${venue.price_per_hour}</span>
                   <span className="text-muted-foreground">/ hour</span>
                 </div>
 
@@ -214,7 +385,7 @@ const VenueDetailsPage = () => {
                     <Separator />
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-foreground">Total</span>
-                      <span className="text-xl font-bold text-foreground">${venue.price}</span>
+                      <span className="text-xl font-bold text-foreground">${venue.price_per_hour}</span>
                     </div>
                   </div>
                 ) : (
@@ -249,8 +420,8 @@ const VenueDetailsPage = () => {
                     venue={{
                       id: venue.id,
                       name: venue.name,
-                      location: venue.location,
-                      price: venue.price,
+                      location: location,
+                      price: venue.price_per_hour,
                     }}
                     selectedDate={selectedDate}
                     selectedDateLabel={dates.find((d) => d.value === selectedDate)?.label || ""}
