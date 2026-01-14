@@ -44,9 +44,11 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <span className="text-lg font-bold text-primary-foreground">S</span>
-            </div>
+            <img 
+              src="/favicon.png" 
+              alt="Sportsbnb" 
+              className="h-10 w-10 rounded-lg"
+            />
             <span className="text-xl font-semibold text-foreground">Sportsbnb</span>
           </Link>
 
