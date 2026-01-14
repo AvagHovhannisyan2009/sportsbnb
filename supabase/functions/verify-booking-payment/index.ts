@@ -30,12 +30,20 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Retrieve the checkout session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    // Retrieve the checkout session with payment intent
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["payment_intent"],
+    });
 
     if (session.payment_status !== "paid") {
       throw new Error("Payment not completed");
     }
+
+    // Get payment intent ID for refunds
+    const paymentIntent = session.payment_intent as Stripe.PaymentIntent;
+    const paymentIntentId = typeof session.payment_intent === "string" 
+      ? session.payment_intent 
+      : paymentIntent?.id;
 
     // Check if booking already exists for this session
     const { data: existingBooking } = await supabaseClient
@@ -54,7 +62,9 @@ serve(async (req) => {
       });
     }
 
-    // Create the booking
+    const totalPrice = parseFloat(session.metadata?.price || "0");
+
+    // Create the booking with payment_intent_id
     const { data: booking, error: bookingError } = await supabaseClient
       .from("bookings")
       .insert({
@@ -64,8 +74,9 @@ serve(async (req) => {
         booking_date: session.metadata?.bookingDate || "",
         booking_time: session.metadata?.bookingTime || "",
         duration_hours: 1,
-        total_price: parseFloat(session.metadata?.price || "0"),
+        total_price: totalPrice,
         status: "confirmed",
+        payment_intent_id: paymentIntentId,
       })
       .select()
       .single();
@@ -73,6 +84,35 @@ serve(async (req) => {
     if (bookingError) {
       console.error("Booking insert error:", bookingError);
       throw new Error("Failed to create booking");
+    }
+
+    // Send confirmation email
+    const userEmail = session.metadata?.userEmail || user.email;
+    if (userEmail) {
+      try {
+        const emailResponse = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-booking-confirmation`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            },
+            body: JSON.stringify({
+              email: userEmail,
+              venueName: session.metadata?.venueName,
+              bookingDate: session.metadata?.bookingDate,
+              bookingTime: session.metadata?.bookingTime,
+              totalPrice: totalPrice,
+              bookingId: booking.id,
+            }),
+          }
+        );
+        console.log("Email confirmation sent:", await emailResponse.json());
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+        // Don't throw - booking is still successful
+      }
     }
 
     return new Response(JSON.stringify({ booking }), {

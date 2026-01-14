@@ -1,14 +1,26 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Clock, MapPin, Star, Users } from "lucide-react";
+import { Calendar, Clock, MapPin, Star, Users, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { venues, games } from "@/data/mockData";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface Booking {
   id: string;
@@ -18,6 +30,7 @@ interface Booking {
   booking_time: string;
   total_price: number;
   status: string;
+  payment_intent_id?: string;
 }
 
 const PlayerDashboard = () => {
@@ -25,6 +38,7 @@ const PlayerDashboard = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoadingBookings, setIsLoadingBookings] = useState(true);
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -59,6 +73,27 @@ const PlayerDashboard = () => {
       fetchBookings();
     }
   }, [user]);
+
+  const handleCancelBooking = async (bookingId: string) => {
+    setCancellingBookingId(bookingId);
+    try {
+      const { data, error } = await supabase.functions.invoke("refund-booking", {
+        body: { bookingId },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Booking cancelled. $${data.amount.toFixed(2)} refunded.`);
+        setBookings(bookings.filter((b) => b.id !== bookingId));
+      }
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      toast.error("Failed to cancel booking. Please try again.");
+    } finally {
+      setCancellingBookingId(null);
+    }
+  };
 
   const joinedGames = games.slice(0, 2);
   const savedVenues = venues.slice(2, 5);
@@ -144,9 +179,44 @@ const PlayerDashboard = () => {
                             />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-foreground mb-1 truncate">
-                              {booking.venue_name}
-                            </h3>
+                            <div className="flex items-start justify-between">
+                              <h3 className="font-semibold text-foreground mb-1 truncate">
+                                {booking.venue_name}
+                              </h3>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                                    disabled={cancellingBookingId === booking.id}
+                                  >
+                                    {cancellingBookingId === booking.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <X className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will cancel your booking at {booking.venue_name} and issue a full refund of ${booking.total_price.toFixed(2)}. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleCancelBooking(booking.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Cancel & Refund
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
                               <MapPin className="h-3 w-3" />
                               <span className="truncate">{getVenueLocation(booking.venue_id)}</span>

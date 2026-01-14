@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           duration_hours: number
           id: string
+          payment_intent_id: string | null
           status: string
           total_price: number
           updated_at: string
@@ -34,6 +35,7 @@ export type Database = {
           created_at?: string
           duration_hours?: number
           id?: string
+          payment_intent_id?: string | null
           status?: string
           total_price: number
           updated_at?: string
@@ -47,6 +49,7 @@ export type Database = {
           created_at?: string
           duration_hours?: number
           id?: string
+          payment_intent_id?: string | null
           status?: string
           total_price?: number
           updated_at?: string
