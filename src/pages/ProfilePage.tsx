@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { User, Bell, CreditCard, Shield, LogOut, Camera, MapPin, Check, Loader2, ExternalLink, Receipt, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import TwoFactorAuth from "@/components/security/TwoFactorAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1019,6 +1020,9 @@ const ProfilePage = () => {
                   </Button>
                 </CardContent>
               </Card>
+
+              {/* Two-Factor Authentication */}
+              <TwoFactorAuth />
 
               <Card className="border-destructive/20">
                 <CardHeader>
