@@ -1,8 +1,6 @@
 import Layout from "@/components/layout/Layout";
-
 const TermsOfServicePage = () => {
-  return (
-    <Layout>
+  return <Layout>
       <div className="container py-12 md:py-16">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">Terms of Service</h1>
@@ -87,15 +85,13 @@ const TermsOfServicePage = () => {
               <p className="text-muted-foreground">
                 For questions about these terms, contact us at{" "}
                 <a href="mailto:legal@sportsbnb.com" className="text-primary hover:underline">
-                  legal@sportsbnb.com
+                  support@sportsbnb.org
                 </a>
               </p>
             </section>
           </div>
         </div>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default TermsOfServicePage;
