@@ -3,92 +3,103 @@ import venueTennis from "@/assets/venue-tennis.jpg";
 import venueBasketball from "@/assets/venue-basketball.jpg";
 import venueSwimming from "@/assets/venue-swimming.jpg";
 
-export const venues = [
-  {
-    id: "1",
-    name: "Downtown Sports Complex",
-    image: venueFootball,
-    location: "123 Main St, New York",
-    sports: ["Football", "Basketball", "Tennis"],
-    price: 45,
-    rating: 4.8,
-    reviewCount: 124,
-    available: true,
-    description: "A modern sports complex in the heart of downtown with state-of-the-art facilities.",
-    amenities: ["Parking", "Showers", "Lockers", "Equipment Rental", "Cafe"],
-    indoor: true,
-  },
-  {
-    id: "2",
-    name: "Riverside Tennis Club",
-    image: venueTennis,
-    location: "456 River Road, Brooklyn",
-    sports: ["Tennis"],
-    price: 35,
-    rating: 4.9,
-    reviewCount: 89,
-    available: true,
-    description: "Premium tennis courts with professional-grade surfaces and lighting.",
-    amenities: ["Parking", "Pro Shop", "Coaching", "Showers"],
-    indoor: true,
-  },
-  {
-    id: "3",
-    name: "Central Basketball Arena",
-    image: venueBasketball,
-    location: "789 Central Ave, Manhattan",
-    sports: ["Basketball"],
-    price: 50,
-    rating: 4.7,
-    reviewCount: 156,
-    available: false,
-    description: "Full-size indoor basketball court with premium hardwood flooring.",
-    amenities: ["Parking", "Locker Rooms", "Scoreboard", "Bleachers"],
-    indoor: true,
-  },
-  {
-    id: "4",
-    name: "Olympic Aquatic Center",
-    image: venueSwimming,
-    location: "321 Olympic Way, Queens",
-    sports: ["Swimming"],
-    price: 25,
-    rating: 4.6,
-    reviewCount: 203,
-    available: true,
-    description: "Olympic-size swimming pool with dedicated lanes for training and leisure.",
-    amenities: ["Lockers", "Showers", "Sauna", "Pool Gear Rental"],
-    indoor: true,
-  },
-  {
-    id: "5",
-    name: "Greenfield Football Grounds",
-    image: venueFootball,
-    location: "555 Green Lane, Bronx",
-    sports: ["Football", "Rugby"],
-    price: 60,
-    rating: 4.5,
-    reviewCount: 78,
-    available: true,
-    description: "Professional-grade outdoor football field with natural grass.",
-    amenities: ["Parking", "Changing Rooms", "Floodlights"],
-    indoor: false,
-  },
-  {
-    id: "6",
-    name: "Elite Training Facility",
-    image: venueBasketball,
-    location: "888 Elite Blvd, Jersey City",
-    sports: ["Basketball", "Volleyball", "Badminton"],
-    price: 55,
-    rating: 4.9,
-    reviewCount: 112,
-    available: true,
-    description: "Multi-purpose indoor facility perfect for team training and matches.",
-    amenities: ["Parking", "Gym", "Physical Therapy", "Cafe", "Pro Shop"],
-    indoor: true,
-  },
+const venueTemplates = [
+  { namePrefix: "Downtown", sports: ["Football", "Basketball", "Tennis"], indoor: true },
+  { namePrefix: "Riverside", sports: ["Tennis"], indoor: true },
+  { namePrefix: "Central", sports: ["Basketball"], indoor: true },
+  { namePrefix: "Olympic", sports: ["Swimming"], indoor: true },
+  { namePrefix: "Greenfield", sports: ["Football", "Rugby"], indoor: false },
+  { namePrefix: "Elite", sports: ["Basketball", "Volleyball", "Badminton"], indoor: true },
+  { namePrefix: "Sunset", sports: ["Tennis", "Badminton"], indoor: false },
+  { namePrefix: "Metro", sports: ["Football", "Basketball"], indoor: true },
+  { namePrefix: "Lakeside", sports: ["Swimming", "Volleyball"], indoor: false },
+  { namePrefix: "Urban", sports: ["Basketball", "Gym"], indoor: true },
+  { namePrefix: "Premier", sports: ["Football"], indoor: false },
+  { namePrefix: "Pacific", sports: ["Swimming"], indoor: true },
+  { namePrefix: "Highland", sports: ["Tennis", "Basketball"], indoor: true },
+  { namePrefix: "Coastal", sports: ["Volleyball", "Swimming"], indoor: false },
+  { namePrefix: "Summit", sports: ["Gym", "Basketball"], indoor: true },
 ];
+
+const venueTypes = [
+  "Sports Complex", "Tennis Club", "Basketball Arena", "Aquatic Center",
+  "Football Grounds", "Training Facility", "Recreation Center", "Athletic Club",
+  "Fitness Hub", "Sports Arena", "Community Center", "Sports Pavilion"
+];
+
+const neighborhoods = [
+  "Manhattan", "Brooklyn", "Queens", "Bronx", "Jersey City", "Hoboken",
+  "Newark", "Staten Island", "Long Island City", "Astoria", "Williamsburg",
+  "Harlem", "Chelsea", "SoHo", "Tribeca", "Upper East Side", "Upper West Side",
+  "Midtown", "Financial District", "Park Slope"
+];
+
+const streets = [
+  "Main St", "Oak Ave", "Park Blvd", "River Road", "Central Ave", "Olympic Way",
+  "Sports Lane", "Victory Dr", "Champion Rd", "Athletic Way", "Stadium Blvd",
+  "Field Ave", "Court St", "Arena Rd", "Training Way", "Fitness Blvd"
+];
+
+const amenitySets = [
+  ["Parking", "Showers", "Lockers", "Equipment Rental", "Cafe"],
+  ["Parking", "Pro Shop", "Coaching", "Showers"],
+  ["Parking", "Locker Rooms", "Scoreboard", "Bleachers"],
+  ["Lockers", "Showers", "Sauna", "Pool Gear Rental"],
+  ["Parking", "Changing Rooms", "Floodlights"],
+  ["Parking", "Gym", "Physical Therapy", "Cafe", "Pro Shop"],
+  ["Showers", "Lockers", "Equipment Rental"],
+  ["Parking", "Cafe", "First Aid", "Water Fountains"],
+  ["Locker Rooms", "Showers", "Coaching", "Equipment Rental"],
+  ["Parking", "Pro Shop", "Cafe", "Bleachers", "Scoreboard"],
+];
+
+const descriptions = [
+  "A modern sports facility with state-of-the-art equipment and professional-grade surfaces.",
+  "Premium courts with excellent lighting and climate control for year-round play.",
+  "Full-size arena with top-quality flooring and spectator seating.",
+  "Professional-grade facility with dedicated lanes for training and recreation.",
+  "Well-maintained outdoor grounds with natural grass and excellent drainage.",
+  "Multi-purpose facility perfect for team training, matches, and individual workouts.",
+  "Community-focused venue offering affordable rates and flexible booking options.",
+  "Elite training environment used by professional athletes and serious enthusiasts.",
+  "Family-friendly facility with programs for all ages and skill levels.",
+  "Recently renovated venue with modern amenities and accessibility features.",
+];
+
+const images = [venueFootball, venueTennis, venueBasketball, venueSwimming];
+
+const generateVenues = () => {
+  const venues = [];
+  
+  for (let i = 1; i <= 100; i++) {
+    const template = venueTemplates[i % venueTemplates.length];
+    const venueType = venueTypes[i % venueTypes.length];
+    const neighborhood = neighborhoods[i % neighborhoods.length];
+    const street = streets[i % streets.length];
+    const amenities = amenitySets[i % amenitySets.length];
+    const description = descriptions[i % descriptions.length];
+    const image = images[i % images.length];
+    
+    venues.push({
+      id: String(i),
+      name: `${template.namePrefix} ${venueType}`,
+      image,
+      location: `${100 + i} ${street}, ${neighborhood}`,
+      sports: template.sports,
+      price: 20 + (i % 60),
+      rating: Number((4.0 + (i % 10) / 10).toFixed(1)),
+      reviewCount: 20 + (i * 7) % 200,
+      available: i % 5 !== 0,
+      description,
+      amenities,
+      indoor: template.indoor,
+    });
+  }
+  
+  return venues;
+};
+
+export const venues = generateVenues();
 
 export const games = [
   {
