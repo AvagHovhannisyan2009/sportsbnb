@@ -47,7 +47,7 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // Create checkout session with dynamic price
+    // Create checkout session with dynamic price and payment_intent_data
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -65,6 +65,16 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
+      payment_intent_data: {
+        metadata: {
+          userId: user.id,
+          venueId,
+          venueName,
+          bookingDate,
+          bookingTime,
+          price: price.toString(),
+        },
+      },
       success_url: `${req.headers.get("origin")}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/venue/${venueId}`,
       metadata: {
@@ -74,6 +84,7 @@ serve(async (req) => {
         bookingDate,
         bookingTime,
         price: price.toString(),
+        userEmail: user.email,
       },
     });
 
