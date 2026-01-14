@@ -10,6 +10,8 @@ import GamesPage from "./pages/GamesPage";
 import VenueDetailsPage from "./pages/VenueDetailsPage";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import OwnerDashboard from "./pages/OwnerDashboard";
+import AddVenuePage from "./pages/AddVenuePage";
+import EditVenuePage from "./pages/EditVenuePage";
 import SignupPage from "./pages/SignupPage";
 import LoginPage from "./pages/LoginPage";
 import AboutPage from "./pages/AboutPage";
@@ -38,6 +40,8 @@ const App = () => (
             <Route path="/venue/:id" element={<VenueDetailsPage />} />
             <Route path="/dashboard" element={<PlayerDashboard />} />
             <Route path="/owner-dashboard" element={<OwnerDashboard />} />
+            <Route path="/add-venue" element={<AddVenuePage />} />
+            <Route path="/venue/:id/edit" element={<EditVenuePage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/onboarding/player" element={<PlayerOnboarding />} />
