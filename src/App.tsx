@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import DiscoverPage from "./pages/DiscoverPage";
 import GamesPage from "./pages/GamesPage";
@@ -40,24 +41,24 @@ const App = () => (
             <Route path="/" element={<Layout showMobileNav={false}><HomePage /></Layout>} />
             <Route path="/discover" element={<DiscoverPage />} />
             <Route path="/games" element={<GamesPage />} />
-            <Route path="/create-game" element={<CreateGamePage />} />
+            <Route path="/create-game" element={<ProtectedRoute><CreateGamePage /></ProtectedRoute>} />
             <Route path="/game/:id" element={<GameDetailsPage />} />
             <Route path="/venue/:id" element={<VenueDetailsPage />} />
-            <Route path="/dashboard" element={<PlayerDashboard />} />
-            <Route path="/owner-dashboard" element={<OwnerDashboard />} />
-            <Route path="/add-venue" element={<AddVenuePage />} />
-            <Route path="/venue/:id/edit" element={<EditVenuePage />} />
-            <Route path="/venue/:id/availability" element={<VenueAvailabilityPage />} />
+            <Route path="/dashboard" element={<ProtectedRoute><PlayerDashboard /></ProtectedRoute>} />
+            <Route path="/owner-dashboard" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
+            <Route path="/add-venue" element={<ProtectedRoute><AddVenuePage /></ProtectedRoute>} />
+            <Route path="/venue/:id/edit" element={<ProtectedRoute><EditVenuePage /></ProtectedRoute>} />
+            <Route path="/venue/:id/availability" element={<ProtectedRoute><VenueAvailabilityPage /></ProtectedRoute>} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/onboarding/player" element={<PlayerOnboarding />} />
-            <Route path="/onboarding/owner" element={<OwnerOnboarding />} />
-            <Route path="/list-venue" element={<OwnerOnboarding />} />
+            <Route path="/onboarding/player" element={<ProtectedRoute><PlayerOnboarding /></ProtectedRoute>} />
+            <Route path="/onboarding/owner" element={<ProtectedRoute><OwnerOnboarding /></ProtectedRoute>} />
+            <Route path="/list-venue" element={<ProtectedRoute><OwnerOnboarding /></ProtectedRoute>} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/faq" element={<FAQPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/booking-success" element={<BookingSuccessPage />} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
