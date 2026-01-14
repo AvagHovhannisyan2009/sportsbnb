@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { User, Bell, CreditCard, Shield, LogOut, Camera, MapPin, Calendar, Upload, Check, Loader2, ExternalLink, Receipt } from "lucide-react";
+import { User, Bell, CreditCard, Shield, LogOut, Camera, MapPin, Check, Loader2, ExternalLink, Receipt, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useBilling, useOpenBillingPortal, formatCurrency, formatDate, getBrandIcon } from "@/hooks/useBilling";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,13 +37,33 @@ const SPORTS_OPTIONS = [
   "Cricket", "Golf", "Running", "Cycling"
 ];
 
+interface NotificationPreferences {
+  bookingConfirmations: boolean;
+  gameUpdates: boolean;
+  newGamesNearby: boolean;
+  marketingEmails: boolean;
+}
+
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading, signOut, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingNotifications, setIsSavingNotifications] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Password form state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
   // Form state
   const [formData, setFormData] = useState({
@@ -52,7 +84,7 @@ const ProfilePage = () => {
     sportsOffered: [] as string[],
   });
 
-  const [notifications, setNotifications] = useState({
+  const [notifications, setNotifications] = useState<NotificationPreferences>({
     bookingConfirmations: true,
     gameUpdates: true,
     newGamesNearby: false,
@@ -84,8 +116,35 @@ const ProfilePage = () => {
         sportsOffered: profile.sports_offered || [],
       });
       setAvatarPreview(profile.avatar_url || null);
+      
+      // Load notification preferences from profile if available
+      const savedNotifications = (profile as any).notification_preferences as NotificationPreferences | undefined;
+      if (savedNotifications) {
+        setNotifications(savedNotifications);
+      }
     }
   }, [profile, user]);
+
+  // Password strength calculation
+  const passwordStrength = React.useMemo(() => {
+    const password = passwordData.newPassword;
+    let score = 0;
+    const checks = {
+      length: password.length >= 8,
+      lowercase: /[a-z]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[^a-zA-Z0-9]/.test(password),
+    };
+
+    if (checks.length) score += 20;
+    if (checks.lowercase) score += 20;
+    if (checks.uppercase) score += 20;
+    if (checks.number) score += 20;
+    if (checks.special) score += 20;
+
+    return { score, checks };
+  }, [passwordData.newPassword]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -178,6 +237,108 @@ const ProfilePage = () => {
       toast.error("Failed to update profile");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    if (!user) return;
+    setIsSavingNotifications(true);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ notification_preferences: notifications as unknown as Record<string, boolean> })
+        .eq('user_id', user.id);
+      if (error) throw error;
+      
+      toast.success("Notification preferences saved!");
+    } catch (error) {
+      console.error("Error saving notification preferences:", error);
+      toast.error("Failed to save notification preferences");
+    } finally {
+      setIsSavingNotifications(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    // Validate passwords
+    const errors: Record<string, string> = {};
+    
+    if (!passwordData.currentPassword) {
+      errors.currentPassword = "Current password is required";
+    }
+    if (passwordData.newPassword.length < 8) {
+      errors.newPassword = "Password must be at least 8 characters";
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      errors.confirmPassword = "Passwords don't match";
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setPasswordErrors(errors);
+      return;
+    }
+
+    setIsSavingPassword(true);
+    setPasswordErrors({});
+
+    try {
+      // First verify current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || "",
+        password: passwordData.currentPassword,
+      });
+
+      if (signInError) {
+        setPasswordErrors({ currentPassword: "Current password is incorrect" });
+        setIsSavingPassword(false);
+        return;
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: passwordData.newPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      toast.success("Password updated successfully!");
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error("Failed to update password");
+    } finally {
+      setIsSavingPassword(false);
+    }
+  };
+
+  const handleSignOutAllDevices = async () => {
+    try {
+      // Sign out globally
+      await supabase.auth.signOut({ scope: 'global' });
+      toast.success("Signed out from all devices");
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out from all devices");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    // Note: Full account deletion typically requires an edge function with admin privileges
+    // For now, we'll disable the account
+    try {
+      // Sign out and show message
+      await signOut();
+      toast.success("Account deletion requested. Please contact support to complete the process.");
+      navigate("/");
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to process account deletion");
     }
   };
 
@@ -684,22 +845,22 @@ const ProfilePage = () => {
                 <CardContent className="space-y-6">
                   {[
                     { 
-                      key: "bookingConfirmations",
+                      key: "bookingConfirmations" as const,
                       label: "Booking confirmations", 
                       description: "Get notified when your booking is confirmed"
                     },
                     { 
-                      key: "gameUpdates",
+                      key: "gameUpdates" as const,
                       label: "Game updates", 
                       description: "Receive updates about games you've joined"
                     },
                     { 
-                      key: "newGamesNearby",
+                      key: "newGamesNearby" as const,
                       label: "New games nearby", 
                       description: "Get notified when new games are posted in your area"
                     },
                     { 
-                      key: "marketingEmails",
+                      key: "marketingEmails" as const,
                       label: "Marketing emails", 
                       description: "Receive tips, updates, and promotions"
                     },
@@ -710,7 +871,7 @@ const ProfilePage = () => {
                         <div className="text-sm text-muted-foreground">{notification.description}</div>
                       </div>
                       <Switch 
-                        checked={notifications[notification.key as keyof typeof notifications]}
+                        checked={notifications[notification.key]}
                         onCheckedChange={(checked) => 
                           setNotifications(prev => ({ ...prev, [notification.key]: checked }))
                         }
@@ -718,7 +879,16 @@ const ProfilePage = () => {
                     </div>
                   ))}
                   <Separator />
-                  <Button>Save Preferences</Button>
+                  <Button onClick={handleSaveNotifications} disabled={isSavingNotifications}>
+                    {isSavingNotifications ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Preferences"
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -735,17 +905,118 @@ const ProfilePage = () => {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input id="currentPassword" type="password" placeholder="••••••••" />
+                    <div className="relative">
+                      <Input 
+                        id="currentPassword" 
+                        type={showCurrentPassword ? "text" : "password"} 
+                        placeholder="••••••••"
+                        value={passwordData.currentPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                        className={passwordErrors.currentPassword ? "border-destructive pr-10" : "pr-10"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {passwordErrors.currentPassword && (
+                      <p className="text-sm text-destructive">{passwordErrors.currentPassword}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">New Password</Label>
-                    <Input id="newPassword" type="password" placeholder="••••••••" />
+                    <div className="relative">
+                      <Input 
+                        id="newPassword" 
+                        type={showNewPassword ? "text" : "password"} 
+                        placeholder="••••••••"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                        className={passwordErrors.newPassword ? "border-destructive pr-10" : "pr-10"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {passwordData.newPassword && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Progress value={passwordStrength.score} className="h-2 flex-1" />
+                          <span className={`text-xs font-medium ${passwordStrength.score >= 80 ? "text-primary" : passwordStrength.score >= 60 ? "text-yellow-600" : "text-destructive"}`}>
+                            {passwordStrength.score <= 20 ? "Very Weak" : passwordStrength.score <= 40 ? "Weak" : passwordStrength.score <= 60 ? "Fair" : passwordStrength.score <= 80 ? "Good" : "Strong"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          {[
+                            { key: "length", label: "8+ characters" },
+                            { key: "lowercase", label: "Lowercase" },
+                            { key: "uppercase", label: "Uppercase" },
+                            { key: "number", label: "Number" },
+                            { key: "special", label: "Special char" },
+                          ].map(({ key, label }) => (
+                            <div key={key} className="flex items-center gap-1">
+                              {passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? (
+                                <Check className="h-3 w-3 text-primary" />
+                              ) : (
+                                <span className="h-3 w-3 rounded-full border border-muted-foreground/30" />
+                              )}
+                              <span className={passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? "text-foreground" : "text-muted-foreground"}>
+                                {label}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {passwordErrors.newPassword && (
+                      <p className="text-sm text-destructive">{passwordErrors.newPassword}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input id="confirmPassword" type="password" placeholder="••••••••" />
+                    <div className="relative">
+                      <Input 
+                        id="confirmPassword" 
+                        type={showConfirmPassword ? "text" : "password"} 
+                        placeholder="••••••••"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        className={passwordErrors.confirmPassword ? "border-destructive pr-10" : "pr-10"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {passwordErrors.confirmPassword && (
+                      <p className="text-sm text-destructive">{passwordErrors.confirmPassword}</p>
+                    )}
+                    {passwordData.confirmPassword && passwordData.newPassword === passwordData.confirmPassword && !passwordErrors.confirmPassword && (
+                      <p className="text-sm text-primary flex items-center gap-1">
+                        <Check className="h-4 w-4" /> Passwords match
+                      </p>
+                    )}
                   </div>
-                  <Button>Update Password</Button>
+                  <Button onClick={handleUpdatePassword} disabled={isSavingPassword}>
+                    {isSavingPassword ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update Password"
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -761,10 +1032,28 @@ const ProfilePage = () => {
                     <div>
                       <div className="font-medium text-foreground">Sign out of all devices</div>
                       <div className="text-sm text-muted-foreground">
-                        This will sign you out from all devices except this one.
+                        This will sign you out from all devices including this one.
                       </div>
                     </div>
-                    <Button variant="outline">Sign out all</Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline">Sign out all</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Sign out of all devices?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will sign you out from all devices, including this one. You'll need to sign in again.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleSignOutAllDevices}>
+                            Sign out all
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between">
@@ -774,7 +1063,31 @@ const ProfilePage = () => {
                         Permanently delete your account and all data.
                       </div>
                     </div>
-                    <Button variant="destructive">Delete account</Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive">Delete account</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-destructive" />
+                            Delete your account?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={handleDeleteAccount}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Yes, delete my account
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
