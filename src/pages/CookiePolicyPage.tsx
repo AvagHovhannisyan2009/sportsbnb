@@ -89,7 +89,7 @@ const CookiePolicyPage = () => {
               <h2 className="text-xl font-semibold text-foreground">6. Contact Us</h2>
               <p className="text-muted-foreground">
                 If you have questions about our use of cookies, please contact us at{" "}
-                <a href="mailto:privacy@sportsbnb.com" className="text-primary hover:underline">support@sportsbnb.org</a>
+                <a className="text-primary hover:underline" href="mailto:support@sportsbnb.org">support@sportsbnb.org</a>
               </p>
             </section>
           </div>
