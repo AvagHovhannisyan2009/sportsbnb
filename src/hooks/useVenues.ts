@@ -18,6 +18,9 @@ export interface Venue {
   review_count: number;
   created_at: string;
   updated_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  location_confirmed?: boolean;
 }
 
 // Default images for venues without custom images

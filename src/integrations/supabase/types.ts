@@ -393,6 +393,9 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           is_indoor: boolean | null
+          latitude: number | null
+          location_confirmed: boolean | null
+          longitude: number | null
           name: string
           owner_id: string
           price_per_hour: number
@@ -411,6 +414,9 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_indoor?: boolean | null
+          latitude?: number | null
+          location_confirmed?: boolean | null
+          longitude?: number | null
           name: string
           owner_id: string
           price_per_hour?: number
@@ -429,6 +435,9 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_indoor?: boolean | null
+          latitude?: number | null
+          location_confirmed?: boolean | null
+          longitude?: number | null
           name?: string
           owner_id?: string
           price_per_hour?: number

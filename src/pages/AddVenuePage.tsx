@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Upload, X, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Upload, X, Loader2, AlertTriangle, FileEdit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { StripeConnectBanner } from "@/components/stripe/StripeConnectBanner";
+import { LocationPicker } from "@/components/venues/LocationPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -51,6 +52,9 @@ const AddVenuePage = () => {
     amenities: [] as string[],
     pricePerHour: "30",
     isIndoor: true,
+    latitude: null as number | null,
+    longitude: null as number | null,
+    locationConfirmed: false,
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -155,7 +159,19 @@ const AddVenuePage = () => {
     }
   };
 
-  const validateForm = (): boolean => {
+  const handleLocationConfirm = (lat: number, lng: number, confirmed: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat || null,
+      longitude: lng || null,
+      locationConfirmed: confirmed,
+    }));
+    if (confirmed) {
+      setValidationErrors(prev => ({ ...prev, location: '' }));
+    }
+  };
+
+  const validateForm = (isDraft: boolean = false): boolean => {
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
@@ -182,20 +198,26 @@ const AddVenuePage = () => {
       errors.images = `Please upload at least ${MIN_PHOTOS} photos. Currently: ${imageFiles.length} photo(s).`;
     }
 
-    if (!canListVenues) {
-      errors.stripe = "You must link your bank account before listing a venue";
+    // Location confirmation is required for all submissions
+    if (!formData.locationConfirmed) {
+      errors.location = "Please confirm the venue location on the map";
+    }
+
+    // Only check bank account if not saving as draft
+    if (!isDraft && !canListVenues) {
+      errors.stripe = "You must link your bank account before publishing a venue";
     }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, saveAsDraft: boolean = false) => {
     e.preventDefault();
     
     if (!user) return;
     
-    if (!validateForm()) {
+    if (!validateForm(saveAsDraft)) {
       toast.error("Please fix the errors before submitting");
       return;
     }
@@ -210,7 +232,8 @@ const AddVenuePage = () => {
         return;
       }
 
-      // Venue is NOT active until owner completes full Stripe verification (ID + bank)
+      // If no bank account linked, save as draft (is_active: false)
+      // If bank account linked, venue will still start inactive until identity verification completes
       const { error } = await supabase
         .from('venues')
         .insert({
@@ -225,6 +248,9 @@ const AddVenuePage = () => {
           is_indoor: formData.isIndoor,
           is_active: false, // Always start as inactive - will be activated after full verification
           image_url: imageUrls[0], // Primary image
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          location_confirmed: formData.locationConfirmed,
         });
 
       if (error) throw error;
@@ -232,7 +258,11 @@ const AddVenuePage = () => {
       queryClient.invalidateQueries({ queryKey: ["owner-venues"] });
       queryClient.invalidateQueries({ queryKey: ["venues"] });
       
-      toast.success("Venue saved! It will become visible to players once your identity verification is complete.");
+      if (saveAsDraft || !canListVenues) {
+        toast.success("Venue saved as draft! Link your bank account to make it visible to players.");
+      } else {
+        toast.success("Venue saved! It will become visible to players once your identity verification is complete.");
+      }
       navigate("/owner-dashboard");
     } catch (error) {
       console.error("Error adding venue:", error);
@@ -272,22 +302,22 @@ const AddVenuePage = () => {
             <StripeConnectBanner />
           </div>
 
-          {!canListVenues ? (
-            <Card className="p-8 text-center">
-              <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Bank Account Required</h2>
-              <p className="text-muted-foreground mb-4">
-                You must link your bank account before you can list venues. 
-                This ensures you can receive payouts when players book your venue.
-              </p>
-            </Card>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Requirements Notice */}
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Quality Requirements:</strong> All venues must have a detailed description (100+ characters), at least 3 photos of your facility, and your identity must be verified before going live. This ensures trust and safety for all players.
+          <form onSubmit={(e) => handleSubmit(e, !canListVenues)} className="space-y-6">
+            {/* Draft Notice if no bank account */}
+            {!canListVenues && (
+              <Alert className="border-amber-500/50 bg-amber-500/10">
+                <FileEdit className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-700 dark:text-amber-400">
+                  <strong>Draft Mode:</strong> Since you haven't linked your bank account yet, your venue will be saved as a draft and won't be visible to players. Link your bank account to publish it.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Requirements Notice */}
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Quality Requirements:</strong> All venues must have a detailed description (100+ characters), at least 3 photos of your facility, confirm the location on map, and verify your identity before going live.
                 </AlertDescription>
               </Alert>
 
@@ -336,44 +366,31 @@ const AddVenuePage = () => {
                     )}
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City *</Label>
-                      <Input
-                        id="city"
-                        placeholder="e.g., New York"
-                        value={formData.city}
-                        onChange={(e) => {
-                          setFormData({ ...formData, city: e.target.value });
-                          setValidationErrors(prev => ({ ...prev, city: '' }));
-                        }}
-                        maxLength={100}
-                        className={validationErrors.city ? 'border-destructive' : ''}
-                      />
-                      {validationErrors.city && (
-                        <p className="text-sm text-destructive">{validationErrors.city}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address *</Label>
-                      <Input
-                        id="address"
-                        placeholder="Full street address"
-                        value={formData.address}
-                        onChange={(e) => {
-                          setFormData({ ...formData, address: e.target.value });
-                          setValidationErrors(prev => ({ ...prev, address: '' }));
-                        }}
-                        maxLength={200}
-                        className={validationErrors.address ? 'border-destructive' : ''}
-                      />
-                      {validationErrors.address && (
-                        <p className="text-sm text-destructive">{validationErrors.address}</p>
-                      )}
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
+
+              {/* Location Picker with Map */}
+              <LocationPicker
+                address={formData.address}
+                city={formData.city}
+                onAddressChange={(address) => {
+                  setFormData(prev => ({ ...prev, address }));
+                  setValidationErrors(prev => ({ ...prev, address: '' }));
+                }}
+                onCityChange={(city) => {
+                  setFormData(prev => ({ ...prev, city }));
+                  setValidationErrors(prev => ({ ...prev, city: '' }));
+                }}
+                onLocationConfirm={handleLocationConfirm}
+                latitude={formData.latitude}
+                longitude={formData.longitude}
+                locationConfirmed={formData.locationConfirmed}
+                validationErrors={{
+                  address: validationErrors.address,
+                  city: validationErrors.city,
+                  location: validationErrors.location,
+                }}
+              />
 
               {/* Image Upload - Multiple */}
               <Card className={validationErrors.images ? 'border-destructive' : ''}>
@@ -557,14 +574,18 @@ const AddVenuePage = () => {
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       {uploadingImages ? "Uploading photos..." : "Saving..."}
                     </>
-                  ) : (
+                  ) : canListVenues ? (
                     "Add Venue"
+                  ) : (
+                    <>
+                      <FileEdit className="h-4 w-4 mr-2" />
+                      Save as Draft
+                    </>
                   )}
                 </Button>
               </div>
             </form>
-          )}
-        </div>
+          </div>
       </div>
     </Layout>
   );
