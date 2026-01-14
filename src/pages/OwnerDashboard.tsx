@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, DollarSign, TrendingUp, Users, Plus, Settings, MapPin, Clock, MoreHorizontal } from "lucide-react";
+import { Calendar, DollarSign, TrendingUp, Users, Plus, Settings, MapPin, Clock, MoreHorizontal, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { venues } from "@/data/mockData";
+import { useOwnerVenues, getVenueImage } from "@/hooks/useVenues";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
@@ -33,8 +33,8 @@ const OwnerDashboard = () => {
       </Layout>
     );
   }
-  
-  const myVenues = venues.slice(0, 3);
+
+  const { data: myVenues = [], isLoading: venuesLoading } = useOwnerVenues(user?.id);
 
   const upcomingReservations = [
     {
@@ -218,6 +218,9 @@ const OwnerDashboard = () => {
                       </div>
                     );
                   })}
+                  {myVenues.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No venues yet</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -232,42 +235,58 @@ const OwnerDashboard = () => {
               </Link>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myVenues.map((venue) => (
-                <Card key={venue.id} className="overflow-hidden">
-                  <div className="aspect-[16/9] relative">
-                    <img
-                      src={venue.image}
-                      alt={venue.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-3 right-3">
-                      <Button variant="secondary" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-foreground mb-1">{venue.name}</h3>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                      <MapPin className="h-3 w-3" />
-                      <span className="truncate">{venue.location}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm">
-                        <span className="font-medium text-foreground">${venue.price}</span>
-                        <span className="text-muted-foreground">/hr</span>
-                      </div>
-                      <Link to={`/venue/${venue.id}/edit`}>
-                        <Button variant="outline" size="sm">
-                          Edit
+            {venuesLoading ? (
+              <div className="text-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" />
+              </div>
+            ) : myVenues.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {myVenues.map((venue) => (
+                  <Card key={venue.id} className="overflow-hidden">
+                    <div className="aspect-[16/9] relative">
+                      <img
+                        src={getVenueImage(venue)}
+                        alt={venue.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-3 right-3">
+                        <Button variant="secondary" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      </Link>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-foreground mb-1">{venue.name}</h3>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                        <MapPin className="h-3 w-3" />
+                        <span className="truncate">{venue.address || venue.city}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="font-medium text-foreground">${venue.price_per_hour}</span>
+                          <span className="text-muted-foreground">/hr</span>
+                        </div>
+                        <Link to={`/venue/${venue.id}/edit`}>
+                          <Button variant="outline" size="sm">
+                            Edit
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground mb-4">You haven't added any venues yet.</p>
+                <Link to="/add-venue">
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Your First Venue
+                  </Button>
+                </Link>
+              </Card>
+            )}
           </div>
         </div>
       </div>
