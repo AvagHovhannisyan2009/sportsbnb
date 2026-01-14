@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AdminRoute } from "@/components/admin/AdminRoute";
 import HomePage from "./pages/HomePage";
 import DiscoverPage from "./pages/DiscoverPage";
 import GamesPage from "./pages/GamesPage";
@@ -13,6 +14,7 @@ import GameDetailsPage from "./pages/GameDetailsPage";
 import VenueDetailsPage from "./pages/VenueDetailsPage";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import OwnerDashboard from "./pages/OwnerDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import AddVenuePage from "./pages/AddVenuePage";
 import EditVenuePage from "./pages/EditVenuePage";
 import VenueAvailabilityPage from "./pages/VenueAvailabilityPage";
@@ -65,6 +67,7 @@ const App = () => (
             <Route path="/cookies" element={<CookiePolicyPage />} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

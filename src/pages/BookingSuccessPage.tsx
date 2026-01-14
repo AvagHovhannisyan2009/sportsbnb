@@ -69,23 +69,23 @@ const BookingSuccessPage = () => {
   return (
     <Layout>
       <div className="container py-16">
-        <div className="max-w-md mx-auto text-center">
+        <div className="max-w-lg mx-auto text-center">
           <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="h-10 w-10 text-primary" />
           </div>
 
           <h1 className="text-3xl font-bold text-foreground mb-3">Booking Confirmed!</h1>
           <p className="text-muted-foreground mb-8">
-            Your payment was successful and your venue has been booked.
+            Your payment was successful and your venue has been booked. A confirmation email has been sent.
           </p>
 
           {bookingDetails && (
             <div className="bg-card rounded-xl border border-border p-6 mb-8 text-left">
-              <h2 className="font-semibold text-foreground mb-4">{bookingDetails.venueName}</h2>
-              <div className="space-y-3 text-sm">
+              <h2 className="font-semibold text-foreground text-lg mb-4">{bookingDetails.venueName}</h2>
+              <div className="space-y-3">
                 <div className="flex items-center gap-3 text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{new Date(bookingDetails.bookingDate).toLocaleDateString("en-US", {
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <span className="text-foreground font-medium">{new Date(bookingDetails.bookingDate).toLocaleDateString("en-US", {
                     weekday: "long",
                     year: "numeric",
                     month: "long",
@@ -93,9 +93,12 @@ const BookingSuccessPage = () => {
                   })}</span>
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  <span>{bookingDetails.bookingTime}</span>
+                  <Clock className="h-5 w-5 text-primary" />
+                  <span className="text-foreground font-medium">{bookingDetails.bookingTime}</span>
                 </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground">Booking ID: <span className="font-mono text-foreground">{searchParams.get("session_id")?.slice(-8).toUpperCase()}</span></p>
               </div>
             </div>
           )}
