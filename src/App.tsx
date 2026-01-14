@@ -25,6 +25,9 @@ import ProfilePage from "./pages/ProfilePage";
 import PlayerOnboarding from "./pages/PlayerOnboarding";
 import OwnerOnboarding from "./pages/OwnerOnboarding";
 import BookingSuccessPage from "./pages/BookingSuccessPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
+import CookiePolicyPage from "./pages/CookiePolicyPage";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/layout/Layout";
 
@@ -57,6 +60,9 @@ const App = () => (
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/faq" element={<FAQPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
+            <Route path="/cookies" element={<CookiePolicyPage />} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
