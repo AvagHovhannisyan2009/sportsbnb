@@ -91,6 +91,106 @@ export type Database = {
         }
         Relationships: []
       }
+      game_participants: {
+        Row: {
+          game_id: string
+          id: string
+          joined_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          game_id: string
+          id?: string
+          joined_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          game_id?: string
+          id?: string
+          joined_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_participants_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_hours: number
+          game_date: string
+          game_time: string
+          host_id: string
+          id: string
+          is_public: boolean | null
+          location: string
+          max_players: number
+          price_per_player: number | null
+          skill_level: string
+          sport: string
+          status: string
+          title: string
+          updated_at: string
+          venue_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_hours?: number
+          game_date: string
+          game_time: string
+          host_id: string
+          id?: string
+          is_public?: boolean | null
+          location: string
+          max_players?: number
+          price_per_player?: number | null
+          skill_level?: string
+          sport: string
+          status?: string
+          title: string
+          updated_at?: string
+          venue_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_hours?: number
+          game_date?: string
+          game_time?: string
+          host_id?: string
+          id?: string
+          is_public?: boolean | null
+          location?: string
+          max_players?: number
+          price_per_player?: number | null
+          skill_level?: string
+          sport?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

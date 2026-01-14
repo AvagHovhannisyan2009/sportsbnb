@@ -1,0 +1,386 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Loader2, Calendar, Clock, MapPin, Users, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import Layout from "@/components/layout/Layout";
+import { useAuth } from "@/hooks/useAuth";
+import { useCreateGame } from "@/hooks/useGames";
+import { useVenues } from "@/hooks/useVenues";
+import { sportTypes, timeSlots } from "@/data/mockData";
+import { toast } from "sonner";
+import { format, addDays } from "date-fns";
+
+const CreateGamePage = () => {
+  const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
+  const { data: venues = [] } = useVenues();
+  const createGame = useCreateGame();
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    sport: "",
+    skillLevel: "all",
+    location: "",
+    venueId: "",
+    gameDate: "",
+    gameTime: "",
+    durationHours: "1",
+    maxPlayers: "10",
+    pricePerPlayer: "0",
+  });
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/login");
+    }
+  }, [user, authLoading, navigate]);
+
+  // Generate date options for the next 30 days
+  const dateOptions = Array.from({ length: 30 }, (_, i) => {
+    const date = addDays(new Date(), i);
+    return {
+      value: format(date, "yyyy-MM-dd"),
+      label: i === 0 ? "Today" : i === 1 ? "Tomorrow" : format(date, "EEE, MMM d"),
+    };
+  });
+
+  const handleVenueSelect = (venueId: string) => {
+    const venue = venues.find(v => v.id === venueId);
+    if (venue) {
+      setFormData(prev => ({
+        ...prev,
+        venueId,
+        location: venue.address || venue.city,
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user) return;
+
+    if (!formData.title.trim() || !formData.sport || !formData.gameDate || !formData.gameTime) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!formData.location.trim()) {
+      toast.error("Please enter a location or select a venue");
+      return;
+    }
+
+    try {
+      await createGame.mutateAsync({
+        host_id: user.id,
+        title: formData.title.trim(),
+        description: formData.description.trim() || undefined,
+        sport: formData.sport,
+        skill_level: formData.skillLevel,
+        location: formData.location.trim(),
+        venue_id: formData.venueId || undefined,
+        game_date: formData.gameDate,
+        game_time: formData.gameTime,
+        duration_hours: parseInt(formData.durationHours),
+        max_players: parseInt(formData.maxPlayers),
+        price_per_player: parseFloat(formData.pricePerPlayer) || 0,
+      });
+
+      toast.success("Game created successfully!");
+      navigate("/games");
+    } catch (error) {
+      console.error("Error creating game:", error);
+      toast.error("Failed to create game");
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <Layout>
+        <div className="container py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="bg-background min-h-screen">
+        <div className="container py-8 max-w-2xl">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Create a Game</h1>
+              <p className="text-muted-foreground">Find players for your next match</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Game Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Game Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Game Title *</Label>
+                  <Input
+                    id="title"
+                    placeholder="e.g., Sunday Football Match"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    maxLength={100}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Tell players about the game, rules, what to bring..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="min-h-24"
+                    maxLength={500}
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Sport *</Label>
+                    <Select
+                      value={formData.sport}
+                      onValueChange={(value) => setFormData({ ...formData, sport: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select sport" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sportTypes.map((sport) => (
+                          <SelectItem key={sport} value={sport}>
+                            {sport}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Skill Level</Label>
+                    <Select
+                      value={formData.skillLevel}
+                      onValueChange={(value) => setFormData({ ...formData, skillLevel: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All levels welcome</SelectItem>
+                        <SelectItem value="beginner">Beginner</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Location */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Location
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {venues.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Select a Venue (optional)</Label>
+                    <Select value={formData.venueId} onValueChange={handleVenueSelect}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose from listed venues" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {venues.map((venue) => (
+                          <SelectItem key={venue.id} value={venue.id}>
+                            {venue.name} - {venue.city}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location Address *</Label>
+                  <Input
+                    id="location"
+                    placeholder="Enter location or address"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    maxLength={200}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Date & Time */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Date & Time
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Date *</Label>
+                    <Select
+                      value={formData.gameDate}
+                      onValueChange={(value) => setFormData({ ...formData, gameDate: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select date" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dateOptions.map((date) => (
+                          <SelectItem key={date.value} value={date.value}>
+                            {date.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Time *</Label>
+                    <Select
+                      value={formData.gameTime}
+                      onValueChange={(value) => setFormData({ ...formData, gameTime: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {timeSlots.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Duration</Label>
+                  <Select
+                    value={formData.durationHours}
+                    onValueChange={(value) => setFormData({ ...formData, durationHours: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 hour</SelectItem>
+                      <SelectItem value="2">2 hours</SelectItem>
+                      <SelectItem value="3">3 hours</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Players & Cost */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Players & Cost
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Max Players</Label>
+                    <Select
+                      value={formData.maxPlayers}
+                      onValueChange={(value) => setFormData({ ...formData, maxPlayers: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[2, 4, 6, 8, 10, 12, 14, 16, 20, 22].map((num) => (
+                          <SelectItem key={num} value={String(num)}>
+                            {num} players
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Cost per Player ($)</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="0 for free"
+                      value={formData.pricePerPlayer}
+                      onChange={(e) => setFormData({ ...formData, pricePerPlayer: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Submit */}
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate(-1)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createGame.isPending} className="flex-1">
+                {createGame.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Game"
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default CreateGamePage;

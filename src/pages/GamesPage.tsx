@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, Filter, X, Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Filter, X, Plus, Loader2, Calendar, MapPin, Users, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,25 +11,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import GameCard from "@/components/games/GameCard";
-import { games, sportTypes } from "@/data/mockData";
+import { sportTypes } from "@/data/mockData";
 import Layout from "@/components/layout/Layout";
-import { Link } from "react-router-dom";
+import { useGames, type Game } from "@/hooks/useGames";
+import { useAuth } from "@/hooks/useAuth";
+import { format } from "date-fns";
+
+const GameCard = ({ game }: { game: Game }) => {
+  const spotsLeft = game.max_players - (game.participant_count || 0);
+  const isFull = spotsLeft <= 0;
+
+  const levelColors: Record<string, string> = {
+    beginner: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    intermediate: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    advanced: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+    all: "bg-primary/10 text-primary",
+  };
+
+  return (
+    <div className="bg-card rounded-xl border border-border p-5 hover:shadow-md transition-all duration-200">
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="secondary">{game.sport}</Badge>
+            <Badge className={levelColors[game.skill_level] || levelColors.all}>
+              {game.skill_level === "all" ? "All levels" : game.skill_level}
+            </Badge>
+          </div>
+          <h3 className="font-semibold text-foreground text-lg">{game.title}</h3>
+        </div>
+        <div className="text-right shrink-0">
+          <div className={`text-lg font-semibold ${isFull ? "text-muted-foreground" : "text-primary"}`}>
+            {spotsLeft} spots
+          </div>
+          <div className="text-sm text-muted-foreground">of {game.max_players} left</div>
+        </div>
+      </div>
+
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4" />
+          <span>{game.location}</span>
+        </div>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            <span>{format(new Date(game.game_date), "MMM d, yyyy")}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            <span>{game.game_time}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Users className="h-4 w-4" />
+          <span>Hosted by {game.host?.full_name || "Anonymous"}</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Link to={`/game/${game.id}`} className="flex-1">
+          <Button variant={isFull ? "secondary" : "default"} className="w-full" disabled={isFull}>
+            {isFull ? "Full" : "Join Game"}
+          </Button>
+        </Link>
+        <Link to={`/game/${game.id}`}>
+          <Button variant="outline">Details</Button>
+        </Link>
+      </div>
+    </div>
+  );
+};
 
 const GamesPage = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const filteredGames = games.filter((game) => {
-    const matchesSearch =
-      game.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      game.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSport = !selectedSport || game.sport === selectedSport;
-    const matchesLevel = !selectedLevel || game.level === selectedLevel;
-
-    return matchesSearch && matchesSport && matchesLevel;
+  const { data: games = [], isLoading } = useGames({
+    sport: selectedSport || undefined,
+    level: selectedLevel || undefined,
+    search: searchQuery || undefined,
   });
 
   const clearFilters = () => {
@@ -38,6 +104,14 @@ const GamesPage = () => {
   };
 
   const hasActiveFilters = searchQuery || selectedSport || selectedLevel;
+
+  const handleCreateGame = () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    navigate("/create-game");
+  };
 
   return (
     <Layout>
@@ -89,12 +163,10 @@ const GamesPage = () => {
                   </Button>
                 )}
                 
-                <Link to="/create-game">
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Game
-                  </Button>
-                </Link>
+                <Button onClick={handleCreateGame}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Game
+                </Button>
               </div>
               
               <Button
@@ -147,12 +219,10 @@ const GamesPage = () => {
                   </Button>
                 )}
                 
-                <Link to="/create-game">
-                  <Button className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Game
-                  </Button>
-                </Link>
+                <Button className="w-full" onClick={handleCreateGame}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Game
+                </Button>
               </div>
             )}
           </div>
@@ -164,15 +234,20 @@ const GamesPage = () => {
             <div>
               <h1 className="text-2xl font-bold text-foreground mb-1">Open Games</h1>
               <p className="text-muted-foreground">
-                {filteredGames.length} {filteredGames.length === 1 ? "game" : "games"} looking for players
+                {games.length} {games.length === 1 ? "game" : "games"} looking for players
               </p>
             </div>
           </div>
 
-          {filteredGames.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading games...</p>
+            </div>
+          ) : games.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredGames.map((game) => (
-                <GameCard key={game.id} {...game} />
+              {games.map((game) => (
+                <GameCard key={game.id} game={game} />
               ))}
             </div>
           ) : (
@@ -182,18 +257,21 @@ const GamesPage = () => {
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">No games found</h3>
               <p className="text-muted-foreground mb-4">
-                Try adjusting your filters or create your own game
+                {hasActiveFilters 
+                  ? "Try adjusting your filters or create your own game"
+                  : "Be the first to create a game and find players!"
+                }
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear filters
-                </Button>
-                <Link to="/create-game">
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Game
+                {hasActiveFilters && (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Clear filters
                   </Button>
-                </Link>
+                )}
+                <Button onClick={handleCreateGame}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Game
+                </Button>
               </div>
             </div>
           )}

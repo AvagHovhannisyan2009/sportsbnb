@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Clock, MapPin, Star, Users, X, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Star, Users, X, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +18,8 @@ import {
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { venues, games } from "@/data/mockData";
+import { useUserGames } from "@/hooks/useGames";
+import { useVenues, getVenueImage } from "@/hooks/useVenues";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -40,11 +41,13 @@ const PlayerDashboard = () => {
   const [isLoadingBookings, setIsLoadingBookings] = useState(true);
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
 
+  const { data: userGames, isLoading: gamesLoading } = useUserGames(user?.id);
+  const { data: allVenues = [] } = useVenues();
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
     }
-    // Check if onboarding is completed
     if (!authLoading && user && profile && !profile.onboarding_completed) {
       navigate("/onboarding/player");
     }
@@ -95,20 +98,21 @@ const PlayerDashboard = () => {
     }
   };
 
-  const joinedGames = games.slice(0, 2);
-  const savedVenues = venues.slice(2, 5);
+  // Combine hosted and joined games
+  const allUserGames = [
+    ...(userGames?.hosted || []).map(g => ({ ...g, isHost: true })),
+    ...(userGames?.joined || []).map(g => ({ ...g, isHost: false })),
+  ].sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime());
 
-  // Get venue image by ID
-  const getVenueImage = (venueId: string) => {
-    const venue = venues.find((v) => v.id === venueId);
-    return venue?.image || venues[0].image;
-  };
+  // Get upcoming games (future dates only)
+  const upcomingGames = allUserGames.filter(
+    g => new Date(g.game_date) >= new Date(new Date().toDateString()) && g.status === "open"
+  ).slice(0, 3);
 
-  // Get venue location by ID
-  const getVenueLocation = (venueId: string) => {
-    const venue = venues.find((v) => v.id === venueId);
-    return venue?.location || "Location unavailable";
-  };
+  // Get recent venues from user's bookings
+  const recentVenueIds = [...new Set(bookings.map(b => b.venue_id))];
+  const recentVenues = allVenues.filter(v => recentVenueIds.includes(v.id)).slice(0, 3);
+  const savedVenues = recentVenues.length > 0 ? recentVenues : allVenues.slice(0, 3);
 
   if (authLoading) {
     return (
@@ -120,6 +124,8 @@ const PlayerDashboard = () => {
     );
   }
 
+  const totalGames = (userGames?.hosted?.length || 0) + (userGames?.joined?.length || 0);
+
   return (
     <Layout>
       <div className="bg-background min-h-screen">
@@ -127,7 +133,7 @@ const PlayerDashboard = () => {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Welcome back{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ""}!
+              Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
             </h1>
             <p className="text-muted-foreground">Here's what's coming up for you.</p>
           </div>
@@ -136,9 +142,9 @@ const PlayerDashboard = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
               { label: "Upcoming Bookings", value: bookings.length.toString() },
-              { label: "Games Joined", value: "5" },
-              { label: "Total Hours Played", value: "24" },
-              { label: "Venues Visited", value: "8" },
+              { label: "Games", value: totalGames.toString() },
+              { label: "Games Hosted", value: (userGames?.hosted?.length || 0).toString() },
+              { label: "Games Joined", value: (userGames?.joined?.length || 0).toString() },
             ].map((stat) => (
               <Card key={stat.label}>
                 <CardContent className="pt-6">
@@ -163,17 +169,18 @@ const PlayerDashboard = () => {
                 {isLoadingBookings ? (
                   <Card>
                     <CardContent className="py-8 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" />
                       <p className="text-muted-foreground">Loading bookings...</p>
                     </CardContent>
                   </Card>
                 ) : bookings.length > 0 ? (
-                  bookings.map((booking) => (
+                  bookings.slice(0, 3).map((booking) => (
                     <Card key={booking.id}>
                       <CardContent className="p-4">
                         <div className="flex gap-4">
-                          <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0">
+                          <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-muted">
                             <img
-                              src={getVenueImage(booking.venue_id)}
+                              src={`https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=200&h=200&fit=crop`}
                               alt={booking.venue_name}
                               className="w-full h-full object-cover"
                             />
@@ -217,10 +224,6 @@ const PlayerDashboard = () => {
                                 </AlertDialogContent>
                               </AlertDialog>
                             </div>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                              <MapPin className="h-3 w-3" />
-                              <span className="truncate">{getVenueLocation(booking.venue_id)}</span>
-                            </div>
                             <div className="flex items-center gap-3 text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
@@ -232,6 +235,9 @@ const PlayerDashboard = () => {
                                 <Clock className="h-3 w-3" />
                                 <span>{booking.booking_time}</span>
                               </div>
+                            </div>
+                            <div className="mt-1 text-sm font-medium text-foreground">
+                              ${booking.total_price}
                             </div>
                           </div>
                         </div>
@@ -251,7 +257,7 @@ const PlayerDashboard = () => {
               </div>
             </div>
 
-            {/* Joined Games */}
+            {/* Your Games */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-foreground">Your Games</h2>
@@ -261,76 +267,126 @@ const PlayerDashboard = () => {
               </div>
 
               <div className="space-y-4">
-                {joinedGames.map((game) => (
-                  <Card key={game.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4 mb-3">
-                        <div>
-                          <Badge variant="secondary" className="mb-2">{game.sport}</Badge>
-                          <h3 className="font-semibold text-foreground">{game.title}</h3>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Users className="h-4 w-4" />
-                          <span>{game.spotsTaken}/{game.spotsTotal}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{game.date}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{game.time}</span>
-                        </div>
+                {gamesLoading ? (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" />
+                      <p className="text-muted-foreground">Loading games...</p>
+                    </CardContent>
+                  </Card>
+                ) : upcomingGames.length > 0 ? (
+                  upcomingGames.map((game) => (
+                    <Link key={game.id} to={`/game/${game.id}`}>
+                      <Card className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="secondary">{game.sport}</Badge>
+                                {game.isHost && (
+                                  <Badge variant="outline">Hosting</Badge>
+                                )}
+                              </div>
+                              <h3 className="font-semibold text-foreground">{game.title}</h3>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Users className="h-4 w-4" />
+                              <span>{game.max_players}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>{format(new Date(game.game_date), "EEE, MMM d")}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{game.game_time}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                            <MapPin className="h-3 w-3" />
+                            <span className="truncate">{game.location}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))
+                ) : (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <p className="text-muted-foreground mb-4">No upcoming games</p>
+                      <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                        <Link to="/games">
+                          <Button size="sm" variant="outline">Find games</Button>
+                        </Link>
+                        <Link to="/create-game">
+                          <Button size="sm">
+                            <Plus className="h-4 w-4 mr-1" />
+                            Create game
+                          </Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                )}
               </div>
             </div>
           </div>
 
-          {/* Saved Venues */}
+          {/* Recommended Venues */}
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Saved Venues</h2>
+              <h2 className="text-xl font-semibold text-foreground">
+                {recentVenues.length > 0 ? "Your Recent Venues" : "Recommended Venues"}
+              </h2>
               <Link to="/discover" className="text-sm text-primary hover:underline">
                 See all
               </Link>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
-              {savedVenues.map((venue) => (
-                <Link key={venue.id} to={`/venue/${venue.id}`}>
-                  <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex gap-3">
-                        <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0">
-                          <img
-                            src={venue.image}
-                            alt={venue.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="font-medium text-foreground text-sm mb-1 truncate">
-                            {venue.name}
-                          </h3>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
-                            <Star className="h-3 w-3 fill-primary text-primary" />
-                            <span>{venue.rating}</span>
+            {savedVenues.length > 0 ? (
+              <div className="grid md:grid-cols-3 gap-4">
+                {savedVenues.map((venue) => (
+                  <Link key={venue.id} to={`/venue/${venue.id}`}>
+                    <Card className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex gap-3">
+                          <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+                            <img
+                              src={getVenueImage(venue)}
+                              alt={venue.name}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                          <div className="text-sm font-medium text-foreground">
-                            ${venue.price}/hr
+                          <div className="min-w-0">
+                            <h3 className="font-medium text-foreground text-sm mb-1 truncate">
+                              {venue.name}
+                            </h3>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
+                              <Star className="h-3 w-3 fill-primary text-primary" />
+                              <span>{venue.rating}</span>
+                            </div>
+                            <div className="text-sm font-medium text-foreground">
+                              ${venue.price_per_hour}/hr
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <p className="text-muted-foreground mb-4">No venues available yet</p>
+                  <Link to="/discover">
+                    <Button size="sm">Explore venues</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
