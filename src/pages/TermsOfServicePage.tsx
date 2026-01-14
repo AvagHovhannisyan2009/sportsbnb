@@ -84,7 +84,7 @@ const TermsOfServicePage = () => {
               <h2 className="text-xl font-semibold text-foreground">9. Contact</h2>
               <p className="text-muted-foreground">
                 For questions about these terms, contact us at{" "}
-                <a className="text-primary hover:underline" href="mailto:support@sportsbnb.com">
+                <a className="text-primary hover:underline" href="mailto:support@sportsbnb.org">
                   support@sportsbnb.org
                 </a>
               </p>
