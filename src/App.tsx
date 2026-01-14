@@ -12,6 +12,7 @@ import PlayerDashboard from "./pages/PlayerDashboard";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import AddVenuePage from "./pages/AddVenuePage";
 import EditVenuePage from "./pages/EditVenuePage";
+import VenueAvailabilityPage from "./pages/VenueAvailabilityPage";
 import SignupPage from "./pages/SignupPage";
 import LoginPage from "./pages/LoginPage";
 import AboutPage from "./pages/AboutPage";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/owner-dashboard" element={<OwnerDashboard />} />
             <Route path="/add-venue" element={<AddVenuePage />} />
             <Route path="/venue/:id/edit" element={<EditVenuePage />} />
+            <Route path="/venue/:id/availability" element={<VenueAvailabilityPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/onboarding/player" element={<PlayerOnboarding />} />
