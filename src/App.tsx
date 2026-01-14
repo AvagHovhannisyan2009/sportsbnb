@@ -7,6 +7,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import HomePage from "./pages/HomePage";
 import DiscoverPage from "./pages/DiscoverPage";
 import GamesPage from "./pages/GamesPage";
+import CreateGamePage from "./pages/CreateGamePage";
+import GameDetailsPage from "./pages/GameDetailsPage";
 import VenueDetailsPage from "./pages/VenueDetailsPage";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import OwnerDashboard from "./pages/OwnerDashboard";
@@ -38,6 +40,8 @@ const App = () => (
             <Route path="/" element={<Layout showMobileNav={false}><HomePage /></Layout>} />
             <Route path="/discover" element={<DiscoverPage />} />
             <Route path="/games" element={<GamesPage />} />
+            <Route path="/create-game" element={<CreateGamePage />} />
+            <Route path="/game/:id" element={<GameDetailsPage />} />
             <Route path="/venue/:id" element={<VenueDetailsPage />} />
             <Route path="/dashboard" element={<PlayerDashboard />} />
             <Route path="/owner-dashboard" element={<OwnerDashboard />} />
