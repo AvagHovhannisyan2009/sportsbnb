@@ -18,6 +18,7 @@ import FAQPage from "./pages/FAQPage";
 import ProfilePage from "./pages/ProfilePage";
 import PlayerOnboarding from "./pages/PlayerOnboarding";
 import OwnerOnboarding from "./pages/OwnerOnboarding";
+import BookingSuccessPage from "./pages/BookingSuccessPage";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/layout/Layout";
 
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/booking-success" element={<BookingSuccessPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
