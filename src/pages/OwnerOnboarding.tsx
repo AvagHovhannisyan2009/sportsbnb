@@ -19,7 +19,7 @@ const SPORTS_OPTIONS = [
 
 const OwnerOnboarding = () => {
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -38,11 +38,19 @@ const OwnerOnboarding = () => {
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
+      return;
     }
+    
+    // Redirect to dashboard if onboarding is already completed
+    if (!authLoading && profile?.onboarding_completed && profile?.user_type === 'owner') {
+      navigate("/owner-dashboard");
+      return;
+    }
+    
     if (user?.email) {
       setFormData(prev => ({ ...prev, email: user.email || "" }));
     }
-  }, [user, authLoading, navigate]);
+  }, [user, profile, authLoading, navigate]);
 
   const totalSteps = 4;
   const progress = (currentStep / totalSteps) * 100;
@@ -125,6 +133,9 @@ const OwnerOnboarding = () => {
         throw venueError;
       }
 
+      // Refresh profile to get updated onboarding status
+      await refreshProfile();
+      
       toast.success("Venue profile completed and venue listed!");
       navigate("/owner-dashboard");
     } catch (error) {
@@ -135,7 +146,7 @@ const OwnerOnboarding = () => {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || (!authLoading && profile?.onboarding_completed && profile?.user_type === 'owner')) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>
