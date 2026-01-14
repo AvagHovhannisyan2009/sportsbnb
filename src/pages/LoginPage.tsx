@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,12 @@ import { ArrowLeft, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useAuth } from "@/hooks/useAuth";
+import { getGenericAuthError } from "@/lib/authErrors";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -19,6 +22,13 @@ const LoginPage = () => {
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [totpCode, setTotpCode] = useState("");
   const [isVerifyingMfa, setIsVerifyingMfa] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +40,7 @@ const LoginPage = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericAuthError(error, 'login'));
       setIsLoading(false);
       return;
     }
@@ -125,10 +135,19 @@ const LoginPage = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericAuthError(error, 'login'));
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">

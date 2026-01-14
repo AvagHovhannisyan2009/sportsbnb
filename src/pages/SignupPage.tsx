@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { ArrowLeft, User, Building, Eye, EyeOff, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useAuth } from "@/hooks/useAuth";
+import { getGenericAuthError } from "@/lib/authErrors";
 
 const signupSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name is too long"),
@@ -22,6 +24,7 @@ const signupSchema = z.object({
 
 const SignupPage = () => {
   const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [userType, setUserType] = useState<"player" | "owner">("player");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,6 +36,13 @@ const SignupPage = () => {
     password: "",
     confirmPassword: "",
   });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   // Password strength calculation
   const passwordStrength = useMemo(() => {
@@ -144,7 +154,7 @@ const SignupPage = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericAuthError(error, 'signup'));
       setIsLoading(false);
       return;
     }
@@ -169,10 +179,19 @@ const SignupPage = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getGenericAuthError(error, 'signup'));
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const strengthInfo = getStrengthLabel(passwordStrength.score);
 
