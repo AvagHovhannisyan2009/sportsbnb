@@ -208,6 +208,8 @@ export type Database = {
           preferred_sports: string[] | null
           skill_level: string | null
           sports_offered: string[] | null
+          stripe_account_id: string | null
+          stripe_onboarding_completed: boolean | null
           updated_at: string
           user_id: string
           user_type: string
@@ -232,6 +234,8 @@ export type Database = {
           preferred_sports?: string[] | null
           skill_level?: string | null
           sports_offered?: string[] | null
+          stripe_account_id?: string | null
+          stripe_onboarding_completed?: boolean | null
           updated_at?: string
           user_id: string
           user_type?: string
@@ -256,6 +260,8 @@ export type Database = {
           preferred_sports?: string[] | null
           skill_level?: string | null
           sports_offered?: string[] | null
+          stripe_account_id?: string | null
+          stripe_onboarding_completed?: boolean | null
           updated_at?: string
           user_id?: string
           user_type?: string
