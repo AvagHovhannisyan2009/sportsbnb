@@ -35,7 +35,7 @@ const ContactPage = () => {
     {
       icon: MapPin,
       label: "Office",
-      value: "123 Sports Street, New York, NY 10001",
+      value: "Armenia, 0079, Yerevan, Nor Nork 5th Block, Artem Mikoyan St., 35 Building",
     },
   ];
 
