@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Calendar, Clock, MapPin } from "lucide-react";
+import { CheckCircle, Calendar, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -38,19 +38,9 @@ const BookingDialog = ({
 }: BookingDialogProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isBooking, setIsBooking] = useState(false);
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleConfirmBooking = async () => {
-    if (!user) {
-      toast.error("Please log in to book");
-      navigate("/login");
-      return;
-    }
-
-    setIsBooking(true);
-
-    // Calculate actual date from selectedDate value
+  const calculateBookingDate = (): string => {
     const today = new Date();
     let bookingDate: Date;
     
@@ -77,67 +67,47 @@ const BookingDialog = ({
       default:
         bookingDate = today;
     }
+    
+    return bookingDate.toISOString().split("T")[0];
+  };
 
-    const { error } = await supabase.from("bookings").insert({
-      user_id: user.id,
-      venue_id: venue.id,
-      venue_name: venue.name,
-      booking_date: bookingDate.toISOString().split("T")[0],
-      booking_time: selectedTime,
-      duration_hours: 1,
-      total_price: venue.price,
-    });
-
-    if (error) {
-      toast.error("Failed to create booking. Please try again.");
-      console.error("Booking error:", error);
-      setIsBooking(false);
+  const handleProceedToPayment = async () => {
+    if (!user) {
+      toast.error("Please log in to book");
+      navigate("/login");
       return;
     }
 
-    setIsBooking(false);
-    setIsConfirmed(true);
-    toast.success("Booking confirmed!");
+    setIsProcessing(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("create-booking-checkout", {
+        body: {
+          venueId: venue.id,
+          venueName: venue.name,
+          venueLocation: venue.location,
+          price: venue.price,
+          bookingDate: calculateBookingDate(),
+          bookingTime: selectedTime,
+          dateLabel: selectedDateLabel,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("Failed to start checkout. Please try again.");
+      setIsProcessing(false);
+    }
   };
 
   const handleClose = () => {
-    setIsConfirmed(false);
     onClose();
   };
-
-  const handleViewBookings = () => {
-    handleClose();
-    navigate("/dashboard");
-  };
-
-  if (isConfirmed) {
-    return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md">
-          <div className="flex flex-col items-center text-center py-6">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <CheckCircle className="h-8 w-8 text-primary" />
-            </div>
-            <DialogHeader>
-              <DialogTitle className="text-2xl">Booking Confirmed!</DialogTitle>
-              <DialogDescription className="text-base mt-2">
-                Your booking at {venue.name} has been confirmed for{" "}
-                {selectedDateLabel} at {selectedTime}.
-              </DialogDescription>
-            </DialogHeader>
-          </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={handleClose} className="flex-1">
-              Continue Browsing
-            </Button>
-            <Button onClick={handleViewBookings} className="flex-1">
-              View My Bookings
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -145,7 +115,7 @@ const BookingDialog = ({
         <DialogHeader>
           <DialogTitle>Confirm Your Booking</DialogTitle>
           <DialogDescription>
-            Review your booking details before confirming.
+            Review your booking details and proceed to secure payment.
           </DialogDescription>
         </DialogHeader>
 
@@ -179,20 +149,30 @@ const BookingDialog = ({
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={handleClose} className="flex-1">
+          <Button variant="outline" onClick={handleClose} className="flex-1" disabled={isProcessing}>
             Cancel
           </Button>
           <Button
-            onClick={handleConfirmBooking}
-            disabled={isBooking}
+            onClick={handleProceedToPayment}
+            disabled={isProcessing}
             className="flex-1"
           >
-            {isBooking ? "Processing..." : "Confirm Booking"}
+            {isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CreditCard className="h-4 w-4 mr-2" />
+                Pay ${venue.price}
+              </>
+            )}
           </Button>
         </DialogFooter>
 
         <p className="text-xs text-muted-foreground text-center">
-          Free cancellation up to 24 hours before your booking
+          Secure payment powered by Stripe. Free cancellation up to 24 hours before.
         </p>
       </DialogContent>
     </Dialog>
