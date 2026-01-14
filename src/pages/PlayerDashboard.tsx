@@ -22,7 +22,7 @@ interface Booking {
 
 const PlayerDashboard = () => {
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoadingBookings, setIsLoadingBookings] = useState(true);
 
@@ -30,7 +30,11 @@ const PlayerDashboard = () => {
     if (!authLoading && !user) {
       navigate("/login");
     }
-  }, [user, authLoading, navigate]);
+    // Check if onboarding is completed
+    if (!authLoading && user && profile && !profile.onboarding_completed) {
+      navigate("/onboarding/player");
+    }
+  }, [user, profile, authLoading, navigate]);
 
   useEffect(() => {
     const fetchBookings = async () => {

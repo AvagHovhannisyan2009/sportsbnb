@@ -41,10 +41,11 @@ const SignupPage = () => {
     }
 
     toast.success("Account created successfully!");
+    // Redirect to appropriate onboarding flow
     if (userType === "player") {
-      navigate("/dashboard");
+      navigate("/onboarding/player");
     } else {
-      navigate("/owner-dashboard");
+      navigate("/onboarding/owner");
     }
     setIsLoading(false);
   };
@@ -54,7 +55,7 @@ const SignupPage = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/onboarding/player`,
       },
     });
 

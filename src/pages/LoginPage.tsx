@@ -19,7 +19,7 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: formData.email,
       password: formData.password,
     });
@@ -31,7 +31,25 @@ const LoginPage = () => {
     }
 
     toast.success("Welcome back!");
-    navigate("/dashboard");
+    
+    // Check if user has completed onboarding
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_completed, user_type")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+
+      if (profile && !profile.onboarding_completed) {
+        navigate(profile.user_type === "owner" ? "/onboarding/owner" : "/onboarding/player");
+      } else if (profile?.user_type === "owner") {
+        navigate("/owner-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      navigate("/dashboard");
+    }
     setIsLoading(false);
   };
 

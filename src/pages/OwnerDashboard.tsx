@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Calendar, DollarSign, TrendingUp, Users, Plus, Settings, MapPin, Clock, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,9 +7,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import Layout from "@/components/layout/Layout";
+import { useAuth } from "@/hooks/useAuth";
 import { venues } from "@/data/mockData";
 
 const OwnerDashboard = () => {
+  const navigate = useNavigate();
+  const { user, profile, isLoading: authLoading } = useAuth();
+  
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/login");
+    }
+    // Check if onboarding is completed
+    if (!authLoading && user && profile && !profile.onboarding_completed) {
+      navigate("/onboarding/owner");
+    }
+  }, [user, profile, authLoading, navigate]);
+
+  if (authLoading) {
+    return (
+      <Layout>
+        <div className="container py-16 text-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </Layout>
+    );
+  }
+  
   const myVenues = venues.slice(0, 3);
 
   const upcomingReservations = [

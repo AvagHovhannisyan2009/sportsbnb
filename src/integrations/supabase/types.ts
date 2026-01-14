@@ -59,30 +59,72 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          business_name: string | null
+          city: string | null
           created_at: string
+          date_of_birth: string | null
+          email: string | null
           full_name: string | null
+          gender: string | null
           id: string
+          onboarding_completed: boolean
           phone: string | null
+          preferred_sports: string[] | null
+          skill_level: string | null
+          sports_offered: string[] | null
           updated_at: string
           user_id: string
+          user_type: string
+          username: string | null
+          venue_address: string | null
+          venue_description: string | null
+          venue_name: string | null
         }
         Insert: {
           avatar_url?: string | null
+          business_name?: string | null
+          city?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
+          onboarding_completed?: boolean
           phone?: string | null
+          preferred_sports?: string[] | null
+          skill_level?: string | null
+          sports_offered?: string[] | null
           updated_at?: string
           user_id: string
+          user_type?: string
+          username?: string | null
+          venue_address?: string | null
+          venue_description?: string | null
+          venue_name?: string | null
         }
         Update: {
           avatar_url?: string | null
+          business_name?: string | null
+          city?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
+          onboarding_completed?: boolean
           phone?: string | null
+          preferred_sports?: string[] | null
+          skill_level?: string | null
+          sports_offered?: string[] | null
           updated_at?: string
           user_id?: string
+          user_type?: string
+          username?: string | null
+          venue_address?: string | null
+          venue_description?: string | null
+          venue_name?: string | null
         }
         Relationships: []
       }
