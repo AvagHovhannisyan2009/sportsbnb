@@ -7,71 +7,60 @@ import venueFootball from "@/assets/venue-football.jpg";
 import venueTennis from "@/assets/venue-tennis.jpg";
 import venueBasketball from "@/assets/venue-basketball.jpg";
 import venueSwimming from "@/assets/venue-swimming.jpg";
-
 const HomePage = () => {
-  const { user, isLoading } = useAuth();
-  const howItWorks = [
-    {
-      icon: Search,
-      title: "Find Your Venue",
-      description: "Browse hundreds of sports facilities in your area with real-time availability.",
-    },
-    {
-      icon: Calendar,
-      title: "Book Instantly",
-      description: "Reserve your preferred time slot in seconds. No phone calls, no waiting.",
-    },
-    {
-      icon: Users,
-      title: "Play Together",
-      description: "Join open games, find teammates, or bring your own team to the court.",
-    },
-  ];
-
-  const forOwners = [
-    {
-      icon: Building,
-      title: "List Your Venue",
-      description: "Add your sports facility to reach thousands of active players.",
-    },
-    {
-      icon: Calendar,
-      title: "Manage Bookings",
-      description: "Control your schedule, set pricing, and track reservations in one place.",
-    },
-    {
-      icon: CheckCircle,
-      title: "Grow Revenue",
-      description: "Fill empty slots and maximize your facility utilization.",
-    },
-  ];
-
-  const benefits = [
-    "Real-time availability for instant booking",
-    "Secure payments and booking protection",
-    "Verified venues with reviews and ratings",
-    "Join games when you need teammates",
-    "Mobile-friendly for booking on the go",
-    "24/7 customer support",
-  ];
-
-  const featuredVenues = [
-    { name: "Football Fields", image: venueFootball, count: "120+ venues" },
-    { name: "Tennis Courts", image: venueTennis, count: "85+ venues" },
-    { name: "Basketball Courts", image: venueBasketball, count: "95+ venues" },
-    { name: "Swimming Pools", image: venueSwimming, count: "60+ venues" },
-  ];
-
-  return (
-    <div className="flex flex-col">
+  const {
+    user,
+    isLoading
+  } = useAuth();
+  const howItWorks = [{
+    icon: Search,
+    title: "Find Your Venue",
+    description: "Browse hundreds of sports facilities in your area with real-time availability."
+  }, {
+    icon: Calendar,
+    title: "Book Instantly",
+    description: "Reserve your preferred time slot in seconds. No phone calls, no waiting."
+  }, {
+    icon: Users,
+    title: "Play Together",
+    description: "Join open games, find teammates, or bring your own team to the court."
+  }];
+  const forOwners = [{
+    icon: Building,
+    title: "List Your Venue",
+    description: "Add your sports facility to reach thousands of active players."
+  }, {
+    icon: Calendar,
+    title: "Manage Bookings",
+    description: "Control your schedule, set pricing, and track reservations in one place."
+  }, {
+    icon: CheckCircle,
+    title: "Grow Revenue",
+    description: "Fill empty slots and maximize your facility utilization."
+  }];
+  const benefits = ["Real-time availability for instant booking", "Secure payments and booking protection", "Verified venues with reviews and ratings", "Join games when you need teammates", "Mobile-friendly for booking on the go", "24/7 customer support"];
+  const featuredVenues = [{
+    name: "Football Fields",
+    image: venueFootball,
+    count: "120+ venues"
+  }, {
+    name: "Tennis Courts",
+    image: venueTennis,
+    count: "85+ venues"
+  }, {
+    name: "Basketball Courts",
+    image: venueBasketball,
+    count: "95+ venues"
+  }, {
+    name: "Swimming Pools",
+    image: venueSwimming,
+    count: "60+ venues"
+  }];
+  return <div className="flex flex-col">
       {/* Hero Section */}
       <section className="relative min-h-[85vh] flex items-center">
         <div className="absolute inset-0 z-0">
-          <img
-            src={heroImage}
-            alt="Sports facilities"
-            className="w-full h-full object-cover"
-          />
+          <img src={heroImage} alt="Sports facilities" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-secondary/95 via-secondary/80 to-secondary/40" />
         </div>
         
@@ -116,24 +105,14 @@ const HomePage = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {featuredVenues.map((venue) => (
-              <Link
-                key={venue.name}
-                to="/discover"
-                className="group relative aspect-[4/3] rounded-xl overflow-hidden"
-              >
-                <img
-                  src={venue.image}
-                  alt={venue.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+            {featuredVenues.map(venue => <Link key={venue.name} to="/discover" className="group relative aspect-[4/3] rounded-xl overflow-hidden">
+                <img src={venue.image} alt={venue.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-gradient-to-t from-secondary/80 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <h3 className="font-semibold text-secondary-foreground text-lg">{venue.name}</h3>
-                  <p className="text-sm text-secondary-foreground/70">{venue.count}</p>
+                  
                 </div>
-              </Link>
-            ))}
+              </Link>)}
           </div>
         </div>
       </section>
@@ -153,18 +132,16 @@ const HomePage = () => {
           
           <div className="grid md:grid-cols-3 gap-8 md:gap-12">
             {howItWorks.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <div key={step.title} className="text-center">
+            const Icon = step.icon;
+            return <div key={step.title} className="text-center">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-6">
                     <Icon className="h-8 w-8" />
                   </div>
                   <div className="text-sm font-medium text-muted-foreground mb-2">Step {index + 1}</div>
                   <h3 className="text-xl font-semibold text-foreground mb-3">{step.title}</h3>
                   <p className="text-muted-foreground leading-relaxed">{step.description}</p>
-                </div>
-              );
-            })}
+                </div>;
+          })}
           </div>
           
           <div className="text-center mt-12">
@@ -193,10 +170,9 @@ const HomePage = () => {
               </p>
               
               <div className="space-y-6 mb-8">
-                {forOwners.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div key={item.title} className="flex gap-4">
+                {forOwners.map(item => {
+                const Icon = item.icon;
+                return <div key={item.title} className="flex gap-4">
                       <div className="shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <Icon className="h-6 w-6" />
                       </div>
@@ -204,9 +180,8 @@ const HomePage = () => {
                         <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
                         <p className="text-muted-foreground">{item.description}</p>
                       </div>
-                    </div>
-                  );
-                })}
+                    </div>;
+              })}
               </div>
               
               <Link to="/list-venue">
@@ -219,11 +194,7 @@ const HomePage = () => {
             
             <div className="relative">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden">
-                <img
-                  src={venueBasketball}
-                  alt="Sports venue"
-                  className="w-full h-full object-cover"
-                />
+                <img src={venueBasketball} alt="Sports venue" className="w-full h-full object-cover" />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-card rounded-xl p-6 shadow-xl border border-border max-w-xs">
                 <div className="text-3xl font-bold text-primary mb-1">+40%</div>
@@ -247,12 +218,10 @@ const HomePage = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {benefits.map((benefit) => (
-              <div key={benefit} className="flex items-center gap-3 bg-secondary-foreground/5 rounded-xl p-5">
+            {benefits.map(benefit => <div key={benefit} className="flex items-center gap-3 bg-secondary-foreground/5 rounded-xl p-5">
                 <CheckCircle className="h-5 w-5 text-primary shrink-0" />
                 <span className="text-secondary-foreground font-medium">{benefit}</span>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -269,21 +238,17 @@ const HomePage = () => {
               Your next game is just a few clicks away.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {!isLoading && !user ? (
-                <Link to="/signup">
+              {!isLoading && !user ? <Link to="/signup">
                   <Button variant="hero" size="xl">
                     Get started free
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                </Link>
-              ) : (
-                <Link to="/dashboard">
+                </Link> : <Link to="/dashboard">
                   <Button variant="hero" size="xl">
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                </Link>
-              )}
+                </Link>}
               <Link to="/discover">
                 <Button variant="outline" size="xl">
                   Explore venues
@@ -293,8 +258,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-    </div>
-  );
+    </div>;
 };
-
 export default HomePage;
