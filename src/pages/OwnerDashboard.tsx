@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, DollarSign, TrendingUp, Users, Plus, Settings, MapPin, Clock, MoreHorizontal, Loader2 } from "lucide-react";
+import { Calendar, DollarSign, TrendingUp, Users, Plus, Settings, MapPin, Clock, MoreHorizontal, Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,11 +9,13 @@ import { Separator } from "@/components/ui/separator";
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerVenues, getVenueImage } from "@/hooks/useVenues";
+import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { StripeConnectBanner } from "@/components/stripe/StripeConnectBanner";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading } = useAuth();
+  const { isFullyVerified, isCheckingStatus } = useStripeConnect();
   
   useEffect(() => {
     if (!authLoading && !user) {
@@ -25,6 +27,12 @@ const OwnerDashboard = () => {
     }
   }, [user, profile, authLoading, navigate]);
 
+  const { data: myVenues = [], isLoading: venuesLoading } = useOwnerVenues(user?.id);
+  
+  // Separate active and pending venues
+  const activeVenues = myVenues.filter(v => v.is_active);
+  const pendingVenues = myVenues.filter(v => !v.is_active);
+
   if (authLoading) {
     return (
       <Layout>
@@ -34,8 +42,6 @@ const OwnerDashboard = () => {
       </Layout>
     );
   }
-
-  const { data: myVenues = [], isLoading: venuesLoading } = useOwnerVenues(user?.id);
 
   const upcomingReservations = [
     {
@@ -246,41 +252,104 @@ const OwnerDashboard = () => {
                 <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" />
               </div>
             ) : myVenues.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {myVenues.map((venue) => (
-                  <Card key={venue.id} className="overflow-hidden">
-                    <div className="aspect-[16/9] relative">
-                      <img
-                        src={getVenueImage(venue)}
-                        alt={venue.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-3 right-3">
-                        <Button variant="secondary" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </div>
+              <div className="space-y-6">
+                {/* Pending Verification Venues */}
+                {pendingVenues.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      <h3 className="font-medium text-foreground">Pending Verification ({pendingVenues.length})</h3>
                     </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-foreground mb-1">{venue.name}</h3>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                        <MapPin className="h-3 w-3" />
-                        <span className="truncate">{venue.address || venue.city}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm">
-                          <span className="font-medium text-foreground">${venue.price_per_hour}</span>
-                          <span className="text-muted-foreground">/hr</span>
-                        </div>
-                        <Link to={`/venue/${venue.id}/edit`}>
-                          <Button variant="outline" size="sm">
-                            Edit
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {pendingVenues.map((venue) => (
+                        <Card key={venue.id} className="overflow-hidden border-amber-500/30 bg-amber-500/5">
+                          <div className="aspect-[16/9] relative">
+                            <img
+                              src={getVenueImage(venue)}
+                              alt={venue.name}
+                              className="w-full h-full object-cover opacity-75"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <Badge variant="secondary" className="absolute top-3 left-3 bg-amber-500 text-white">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Pending
+                            </Badge>
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold text-foreground mb-1">{venue.name}</h3>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                              <MapPin className="h-3 w-3" />
+                              <span className="truncate">{venue.address || venue.city}</span>
+                            </div>
+                            <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">
+                              {isFullyVerified 
+                                ? "Activating venue..." 
+                                : "Complete identity verification to make this venue visible"
+                              }
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm">
+                                <span className="font-medium text-foreground">${venue.price_per_hour}</span>
+                                <span className="text-muted-foreground">/hr</span>
+                              </div>
+                              <Link to={`/venue/${venue.id}/edit`}>
+                                <Button variant="outline" size="sm">
+                                  Edit
+                                </Button>
+                              </Link>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Active Venues */}
+                {activeVenues.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      <h3 className="font-medium text-foreground">Active Venues ({activeVenues.length})</h3>
+                    </div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {activeVenues.map((venue) => (
+                        <Card key={venue.id} className="overflow-hidden">
+                          <div className="aspect-[16/9] relative">
+                            <img
+                              src={getVenueImage(venue)}
+                              alt={venue.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-3 right-3">
+                              <Button variant="secondary" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold text-foreground mb-1">{venue.name}</h3>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                              <MapPin className="h-3 w-3" />
+                              <span className="truncate">{venue.address || venue.city}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm">
+                                <span className="font-medium text-foreground">${venue.price_per_hour}</span>
+                                <span className="text-muted-foreground">/hr</span>
+                              </div>
+                              <Link to={`/venue/${venue.id}/edit`}>
+                                <Button variant="outline" size="sm">
+                                  Edit
+                                </Button>
+                              </Link>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <Card className="p-8 text-center">

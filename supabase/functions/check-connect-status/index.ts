@@ -63,27 +63,50 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const account = await stripe.accounts.retrieve(profile.stripe_account_id);
+    
+    // Check identity verification status
+    const requirements = account.requirements;
+    const hasIdentityVerification = !requirements?.currently_due?.some(
+      (req: string) => req.includes('individual.verification') || req.includes('identity')
+    );
+    const pendingVerification = requirements?.pending_verification?.length > 0;
+    
     logStep("Stripe account retrieved", {
       accountId: account.id,
       payoutsEnabled: account.payouts_enabled,
       chargesEnabled: account.charges_enabled,
+      hasIdentityVerification,
+      pendingVerification,
+      currentlyDue: requirements?.currently_due,
     });
 
+    // Full verification requires: bank account linked + ID verified
+    const isFullyVerified = account.payouts_enabled && account.charges_enabled && hasIdentityVerification && !pendingVerification;
+    
     // Update profile if onboarding is complete
-    const isComplete = account.payouts_enabled && account.charges_enabled;
-    if (isComplete && !profile.stripe_onboarding_completed) {
+    if (isFullyVerified && !profile.stripe_onboarding_completed) {
       await supabaseClient
         .from('profiles')
         .update({ stripe_onboarding_completed: true })
         .eq('user_id', user.id);
       logStep("Profile updated with completed onboarding status");
+      
+      // Activate all user's venues now that verification is complete
+      await supabaseClient
+        .from('venues')
+        .update({ is_active: true })
+        .eq('owner_id', user.id);
+      logStep("Activated user's venues");
     }
 
     return new Response(JSON.stringify({
       hasAccount: true,
-      onboardingComplete: isComplete,
+      onboardingComplete: account.payouts_enabled && account.charges_enabled,
       payoutsEnabled: account.payouts_enabled,
       chargesEnabled: account.charges_enabled,
+      identityVerified: hasIdentityVerification && !pendingVerification,
+      pendingVerification,
+      fullyVerified: isFullyVerified,
       accountId: account.id,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

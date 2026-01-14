@@ -51,7 +51,6 @@ const AddVenuePage = () => {
     amenities: [] as string[],
     pricePerHour: "30",
     isIndoor: true,
-    isActive: true,
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -211,6 +210,7 @@ const AddVenuePage = () => {
         return;
       }
 
+      // Venue is NOT active until owner completes full Stripe verification (ID + bank)
       const { error } = await supabase
         .from('venues')
         .insert({
@@ -223,7 +223,7 @@ const AddVenuePage = () => {
           amenities: formData.amenities,
           price_per_hour: parseFloat(formData.pricePerHour) || 30,
           is_indoor: formData.isIndoor,
-          is_active: formData.isActive,
+          is_active: false, // Always start as inactive - will be activated after full verification
           image_url: imageUrls[0], // Primary image
         });
 
@@ -232,7 +232,7 @@ const AddVenuePage = () => {
       queryClient.invalidateQueries({ queryKey: ["owner-venues"] });
       queryClient.invalidateQueries({ queryKey: ["venues"] });
       
-      toast.success("Venue added successfully!");
+      toast.success("Venue saved! It will become visible to players once your identity verification is complete.");
       navigate("/owner-dashboard");
     } catch (error) {
       console.error("Error adding venue:", error);
@@ -287,7 +287,7 @@ const AddVenuePage = () => {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Quality Requirements:</strong> All venues must have a detailed description (100+ characters) and at least 3 photos to ensure players can make informed booking decisions.
+                  <strong>Quality Requirements:</strong> All venues must have a detailed description (100+ characters), at least 3 photos of your facility, and your identity must be verified before going live. This ensures trust and safety for all players.
                 </AlertDescription>
               </Alert>
 
@@ -528,16 +528,12 @@ const AddVenuePage = () => {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Active Listing</Label>
-                      <p className="text-sm text-muted-foreground">Make this venue visible to players</p>
-                    </div>
-                    <Switch
-                      checked={formData.isActive}
-                      onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                    />
-                  </div>
+                  <Alert className="border-muted bg-muted/30">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      <strong>Note:</strong> Your venue will be saved but will only become visible to players once you complete identity verification. This protects both you and our players.
+                    </AlertDescription>
+                  </Alert>
                 </CardContent>
               </Card>
 
