@@ -1,34 +1,143 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, User, Building } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { ArrowLeft, User, Building, Eye, EyeOff, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const signupSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name is too long"),
+  email: z.string().trim().email("Please enter a valid email address").max(255, "Email is too long"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 const SignupPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [userType, setUserType] = useState<"player" | "owner">("player");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
+
+  // Password strength calculation
+  const passwordStrength = useMemo(() => {
+    const password = formData.password;
+    let score = 0;
+    const checks = {
+      length: password.length >= 8,
+      lowercase: /[a-z]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[^a-zA-Z0-9]/.test(password),
+    };
+
+    if (checks.length) score += 20;
+    if (checks.lowercase) score += 20;
+    if (checks.uppercase) score += 20;
+    if (checks.number) score += 20;
+    if (checks.special) score += 20;
+
+    return { score, checks };
+  }, [formData.password]);
+
+  const getStrengthLabel = (score: number) => {
+    if (score === 0) return { label: "", color: "" };
+    if (score <= 20) return { label: "Very Weak", color: "bg-destructive" };
+    if (score <= 40) return { label: "Weak", color: "bg-orange-500" };
+    if (score <= 60) return { label: "Fair", color: "bg-yellow-500" };
+    if (score <= 80) return { label: "Good", color: "bg-primary/70" };
+    return { label: "Strong", color: "bg-primary" };
+  };
+
+  const validateField = (name: string, value: string) => {
+    const newErrors = { ...errors };
+    
+    switch (name) {
+      case "name":
+        if (value.length < 2) {
+          newErrors.name = "Name must be at least 2 characters";
+        } else {
+          delete newErrors.name;
+        }
+        break;
+      case "email":
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors.email = "Please enter a valid email address";
+        } else {
+          delete newErrors.email;
+        }
+        break;
+      case "password":
+        if (value.length < 8) {
+          newErrors.password = "Password must be at least 8 characters";
+        } else {
+          delete newErrors.password;
+        }
+        if (formData.confirmPassword && value !== formData.confirmPassword) {
+          newErrors.confirmPassword = "Passwords don't match";
+        } else if (formData.confirmPassword) {
+          delete newErrors.confirmPassword;
+        }
+        break;
+      case "confirmPassword":
+        if (value !== formData.password) {
+          newErrors.confirmPassword = "Passwords don't match";
+        } else {
+          delete newErrors.confirmPassword;
+        }
+        break;
+    }
+    
+    setErrors(newErrors);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    validateField(name, value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate all fields
+    const result = signupSchema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach(err => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast.error("Please fix the errors in the form");
+      return;
+    }
+
     setIsLoading(true);
     
     const { error } = await supabase.auth.signUp({
-      email: formData.email,
+      email: formData.email.trim(),
       password: formData.password,
       options: {
         emailRedirectTo: window.location.origin,
         data: {
-          full_name: formData.name,
+          full_name: formData.name.trim(),
           user_type: userType,
         },
       },
@@ -64,6 +173,8 @@ const SignupPage = () => {
       setIsLoading(false);
     }
   };
+
+  const strengthInfo = getStrengthLabel(passwordStrength.score);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -149,7 +260,7 @@ const SignupPage = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* User Type Selection */}
             <div className="space-y-3">
               <Label>I want to</Label>
@@ -197,42 +308,126 @@ const SignupPage = () => {
               </Label>
               <Input
                 id="name"
+                name="name"
                 type="text"
                 placeholder={userType === "player" ? "John Doe" : "My Sports Center"}
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="h-12"
+                onChange={handleChange}
+                className={`h-12 ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 required
               />
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="you@example.com"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="h-12"
+                onChange={handleChange}
+                className={`h-12 ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 required
               />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Create a strong password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="h-12"
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Create a strong password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`h-12 pr-10 ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {formData.password && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Progress value={passwordStrength.score} className="h-2 flex-1" />
+                    {strengthInfo.label && (
+                      <span className={`text-xs font-medium ${passwordStrength.score >= 80 ? "text-primary" : passwordStrength.score >= 60 ? "text-yellow-600" : "text-destructive"}`}>
+                        {strengthInfo.label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    {[
+                      { key: "length", label: "8+ characters" },
+                      { key: "lowercase", label: "Lowercase letter" },
+                      { key: "uppercase", label: "Uppercase letter" },
+                      { key: "number", label: "Number" },
+                      { key: "special", label: "Special character" },
+                    ].map(({ key, label }) => (
+                      <div key={key} className="flex items-center gap-1">
+                        {passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? (
+                          <Check className="h-3 w-3 text-primary" />
+                        ) : (
+                          <X className="h-3 w-3 text-muted-foreground" />
+                        )}
+                        <span className={passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? "text-foreground" : "text-muted-foreground"}>
+                          {label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password}</p>
+              )}
             </div>
 
-            <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`h-12 pr-10 ${errors.confirmPassword ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+              )}
+              {formData.confirmPassword && formData.password === formData.confirmPassword && !errors.confirmPassword && (
+                <p className="text-sm text-primary flex items-center gap-1">
+                  <Check className="h-4 w-4" /> Passwords match
+                </p>
+              )}
+            </div>
+
+            <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading || Object.keys(errors).length > 0}>
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
 

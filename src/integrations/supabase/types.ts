@@ -202,6 +202,7 @@ export type Database = {
           full_name: string | null
           gender: string | null
           id: string
+          notification_preferences: Json | null
           onboarding_completed: boolean
           phone: string | null
           preferred_sports: string[] | null
@@ -225,6 +226,7 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id?: string
+          notification_preferences?: Json | null
           onboarding_completed?: boolean
           phone?: string | null
           preferred_sports?: string[] | null
@@ -248,6 +250,7 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id?: string
+          notification_preferences?: Json | null
           onboarding_completed?: boolean
           phone?: string | null
           preferred_sports?: string[] | null
