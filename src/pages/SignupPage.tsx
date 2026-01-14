@@ -26,6 +26,7 @@ const SignupPage = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
   const [userType, setUserType] = useState<"player" | "owner">("player");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -37,12 +38,12 @@ const SignupPage = () => {
     confirmPassword: "",
   });
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (but not if we just signed up)
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && !isSigningUp) {
       navigate("/dashboard", { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, isSigningUp]);
 
   // Password strength calculation
   const passwordStrength = useMemo(() => {
@@ -140,6 +141,7 @@ const SignupPage = () => {
     }
 
     setIsLoading(true);
+    setIsSigningUp(true);
     
     const { error } = await supabase.auth.signUp({
       email: formData.email.trim(),
@@ -156,15 +158,16 @@ const SignupPage = () => {
     if (error) {
       toast.error(getGenericAuthError(error, 'signup'));
       setIsLoading(false);
+      setIsSigningUp(false);
       return;
     }
 
     toast.success("Account created successfully!");
-    // Redirect to appropriate onboarding flow
+    // Redirect to appropriate onboarding flow with replace to prevent back navigation issues
     if (userType === "player") {
-      navigate("/onboarding/player");
+      navigate("/onboarding/player", { replace: true });
     } else {
-      navigate("/onboarding/owner");
+      navigate("/onboarding/owner", { replace: true });
     }
     setIsLoading(false);
   };
