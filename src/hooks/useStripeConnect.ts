@@ -8,6 +8,9 @@ interface ConnectStatus {
   onboardingComplete: boolean;
   payoutsEnabled: boolean;
   chargesEnabled: boolean;
+  identityVerified: boolean;
+  pendingVerification: boolean;
+  fullyVerified: boolean;
   accountId?: string;
 }
 
@@ -85,5 +88,8 @@ export const useStripeConnect = () => {
     startOnboarding,
     checkConnectStatus,
     canListVenues: connectStatus?.onboardingComplete === true,
+    isFullyVerified: connectStatus?.fullyVerified === true,
+    identityVerified: connectStatus?.identityVerified === true,
+    pendingVerification: connectStatus?.pendingVerification === true,
   };
 };
