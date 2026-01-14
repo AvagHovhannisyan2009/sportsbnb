@@ -10,11 +10,18 @@ interface Profile {
   full_name: string | null;
   username: string | null;
   avatar_url: string | null;
+  phone: string | null;
+  email: string | null;
   city: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
   preferred_sports: string[] | null;
   skill_level: string | null;
   business_name: string | null;
   venue_name: string | null;
+  venue_address: string | null;
+  sports_offered: string[] | null;
+  venue_description: string | null;
 }
 
 interface AuthContextType {
