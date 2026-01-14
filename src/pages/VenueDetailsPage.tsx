@@ -1,17 +1,22 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { MapPin, Star, Clock, Users, Wifi, Car, Droplets, CheckCircle, ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Layout from "@/components/layout/Layout";
+import BookingDialog from "@/components/booking/BookingDialog";
+import { useAuth } from "@/hooks/useAuth";
 import { venues, timeSlots } from "@/data/mockData";
 
 const VenueDetailsPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const venue = venues.find((v) => v.id === id);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
 
   if (!venue) {
     return (
@@ -222,6 +227,13 @@ const VenueDetailsPage = () => {
                   className="w-full"
                   size="lg"
                   disabled={!selectedDate || !selectedTime}
+                  onClick={() => {
+                    if (!user) {
+                      navigate("/login");
+                      return;
+                    }
+                    setIsBookingDialogOpen(true);
+                  }}
                 >
                   {selectedDate && selectedTime ? "Book Now" : "Select time to book"}
                 </Button>
@@ -229,6 +241,22 @@ const VenueDetailsPage = () => {
                 <p className="text-xs text-muted-foreground text-center mt-4">
                   Free cancellation up to 24 hours before
                 </p>
+
+                {selectedDate && selectedTime && (
+                  <BookingDialog
+                    isOpen={isBookingDialogOpen}
+                    onClose={() => setIsBookingDialogOpen(false)}
+                    venue={{
+                      id: venue.id,
+                      name: venue.name,
+                      location: venue.location,
+                      price: venue.price,
+                    }}
+                    selectedDate={selectedDate}
+                    selectedDateLabel={dates.find((d) => d.value === selectedDate)?.label || ""}
+                    selectedTime={selectedTime}
+                  />
+                )}
               </div>
             </div>
           </div>

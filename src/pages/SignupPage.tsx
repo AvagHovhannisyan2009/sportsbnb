@@ -28,7 +28,7 @@ const SignupPage = () => {
       options: {
         emailRedirectTo: window.location.origin,
         data: {
-          name: formData.name,
+          full_name: formData.name,
           user_type: userType,
         },
       },
