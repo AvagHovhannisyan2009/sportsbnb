@@ -86,7 +86,8 @@ const OwnerOnboarding = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
+      // Update profile
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: formData.fullName,
@@ -102,11 +103,29 @@ const OwnerOnboarding = () => {
         })
         .eq('user_id', user.id);
 
-      if (error) {
-        throw error;
+      if (profileError) {
+        throw profileError;
       }
 
-      toast.success("Venue profile completed!");
+      // Create venue in venues table
+      const { error: venueError } = await supabase
+        .from('venues')
+        .insert({
+          owner_id: user.id,
+          name: formData.venueName,
+          description: formData.venueDescription || null,
+          address: formData.venueAddress || null,
+          city: formData.city,
+          sports: formData.sportsOffered,
+          price_per_hour: 30, // Default price
+          is_active: true,
+        });
+
+      if (venueError) {
+        throw venueError;
+      }
+
+      toast.success("Venue profile completed and venue listed!");
       navigate("/owner-dashboard");
     } catch (error) {
       console.error("Onboarding error:", error);

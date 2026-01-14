@@ -131,6 +131,63 @@ export type Database = {
         }
         Relationships: []
       }
+      venues: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          city: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_indoor: boolean | null
+          name: string
+          owner_id: string
+          price_per_hour: number
+          rating: number | null
+          review_count: number | null
+          sports: string[]
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          city: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_indoor?: boolean | null
+          name: string
+          owner_id: string
+          price_per_hour?: number
+          rating?: number | null
+          review_count?: number | null
+          sports?: string[]
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          city?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_indoor?: boolean | null
+          name?: string
+          owner_id?: string
+          price_per_hour?: number
+          rating?: number | null
+          review_count?: number | null
+          sports?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

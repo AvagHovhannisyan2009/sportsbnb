@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, MapPin, X } from "lucide-react";
+import { Search, Filter, MapPin, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import VenueCard from "@/components/venues/VenueCard";
-import { venues, sportTypes } from "@/data/mockData";
+import { sportTypes } from "@/data/mockData";
 import Layout from "@/components/layout/Layout";
+import { useVenues, getVenueImage } from "@/hooks/useVenues";
 
 const DiscoverPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,16 +21,19 @@ const DiscoverPage = () => {
   const [selectedPrice, setSelectedPrice] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
 
+  const { data: venues = [], isLoading } = useVenues();
+
   const filteredVenues = venues.filter((venue) => {
+    const location = venue.address || venue.city;
     const matchesSearch =
       venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      venue.location.toLowerCase().includes(searchQuery.toLowerCase());
+      location.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesSport = !selectedSport || venue.sports.includes(selectedSport);
     const matchesPrice =
       !selectedPrice ||
-      (selectedPrice === "low" && venue.price < 40) ||
-      (selectedPrice === "medium" && venue.price >= 40 && venue.price < 55) ||
-      (selectedPrice === "high" && venue.price >= 55);
+      (selectedPrice === "low" && venue.price_per_hour < 40) ||
+      (selectedPrice === "medium" && venue.price_per_hour >= 40 && venue.price_per_hour < 55) ||
+      (selectedPrice === "high" && venue.price_per_hour >= 55);
 
     return matchesSearch && matchesSport && matchesPrice;
   });
@@ -156,10 +160,26 @@ const DiscoverPage = () => {
             </div>
           </div>
 
-          {filteredVenues.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading venues...</p>
+            </div>
+          ) : filteredVenues.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredVenues.map((venue) => (
-                <VenueCard key={venue.id} {...venue} />
+                <VenueCard
+                  key={venue.id}
+                  id={venue.id}
+                  name={venue.name}
+                  image={getVenueImage(venue)}
+                  location={venue.address || venue.city}
+                  sports={venue.sports}
+                  price={venue.price_per_hour}
+                  rating={venue.rating}
+                  reviewCount={venue.review_count}
+                  available={venue.is_active}
+                />
               ))}
             </div>
           ) : (
