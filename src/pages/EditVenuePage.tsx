@@ -22,6 +22,7 @@ import {
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useVenueById } from "@/hooks/useVenues";
+import { LocationPicker } from "@/components/venues/LocationPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -62,6 +63,9 @@ const EditVenuePage = () => {
     pricePerHour: "30",
     isIndoor: true,
     isActive: true,
+    latitude: null as number | null,
+    longitude: null as number | null,
+    locationConfirmed: false,
   });
 
   useEffect(() => {
@@ -92,6 +96,9 @@ const EditVenuePage = () => {
         pricePerHour: String(venue.price_per_hour),
         isIndoor: venue.is_indoor,
         isActive: venue.is_active,
+        latitude: venue.latitude || null,
+        longitude: venue.longitude || null,
+        locationConfirmed: venue.location_confirmed || false,
       });
       if (venue.image_url) {
         setImagePreview(venue.image_url);
@@ -204,6 +211,9 @@ const EditVenuePage = () => {
         price_per_hour: parseFloat(formData.pricePerHour) || 30,
         is_indoor: formData.isIndoor,
         is_active: formData.isActive,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        location_confirmed: formData.locationConfirmed,
       };
 
       if (imageUrl !== undefined) {
