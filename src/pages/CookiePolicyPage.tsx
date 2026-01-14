@@ -1,8 +1,6 @@
 import Layout from "@/components/layout/Layout";
-
 const CookiePolicyPage = () => {
-  return (
-    <Layout>
+  return <Layout>
       <div className="container py-12 md:py-16">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">Cookie Policy</h1>
@@ -91,16 +89,12 @@ const CookiePolicyPage = () => {
               <h2 className="text-xl font-semibold text-foreground">6. Contact Us</h2>
               <p className="text-muted-foreground">
                 If you have questions about our use of cookies, please contact us at{" "}
-                <a href="mailto:privacy@sportsbnb.com" className="text-primary hover:underline">
-                  privacy@sportsbnb.com
-                </a>
+                <a href="mailto:privacy@sportsbnb.com" className="text-primary hover:underline">support@sportsbnb.org</a>
               </p>
             </section>
           </div>
         </div>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default CookiePolicyPage;
