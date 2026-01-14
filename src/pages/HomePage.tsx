@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, Calendar, Users, Building, ArrowRight, CheckCircle, MapPin } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import heroImage from "@/assets/hero-sports.jpg";
 import venueFootball from "@/assets/venue-football.jpg";
 import venueTennis from "@/assets/venue-tennis.jpg";
@@ -8,6 +9,7 @@ import venueBasketball from "@/assets/venue-basketball.jpg";
 import venueSwimming from "@/assets/venue-swimming.jpg";
 
 const HomePage = () => {
+  const { user, isLoading } = useAuth();
   const howItWorks = [
     {
       icon: Search,
@@ -267,12 +269,21 @@ const HomePage = () => {
               Your next game is just a few clicks away.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/signup">
-                <Button variant="hero" size="xl">
-                  Get started free
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+              {!isLoading && !user ? (
+                <Link to="/signup">
+                  <Button variant="hero" size="xl">
+                    Get started free
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/dashboard">
+                  <Button variant="hero" size="xl">
+                    Go to Dashboard
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
               <Link to="/discover">
                 <Button variant="outline" size="xl">
                   Explore venues

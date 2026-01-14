@@ -16,6 +16,8 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import FAQPage from "./pages/FAQPage";
 import ProfilePage from "./pages/ProfilePage";
+import PlayerOnboarding from "./pages/PlayerOnboarding";
+import OwnerOnboarding from "./pages/OwnerOnboarding";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/layout/Layout";
 
@@ -37,6 +39,8 @@ const App = () => (
             <Route path="/owner-dashboard" element={<OwnerDashboard />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/onboarding/player" element={<PlayerOnboarding />} />
+            <Route path="/onboarding/owner" element={<OwnerOnboarding />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/faq" element={<FAQPage />} />
