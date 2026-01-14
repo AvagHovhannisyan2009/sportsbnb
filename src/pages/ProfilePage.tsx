@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { User, Bell, CreditCard, Shield, LogOut, Camera, MapPin, Calendar, Upload, Check, Loader2 } from "lucide-react";
+import { User, Bell, CreditCard, Shield, LogOut, Camera, MapPin, Calendar, Upload, Check, Loader2, ExternalLink, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
+import { useBilling, useOpenBillingPortal, formatCurrency, formatDate, getBrandIcon } from "@/hooks/useBilling";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -203,6 +205,193 @@ const ProfilePage = () => {
   }
 
   const isOwner = profile?.user_type === "owner";
+
+  // Billing Section Component
+  const BillingSection = () => {
+    const { data: billingInfo, isLoading: billingLoading, error: billingError } = useBilling();
+    const openPortal = useOpenBillingPortal();
+
+    if (billingLoading) {
+      return (
+        <>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-4 w-60" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-36" />
+              <Skeleton className="h-4 w-48" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-24 w-full" />
+            </CardContent>
+          </Card>
+        </>
+      );
+    }
+
+    if (billingError) {
+      return (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            <CreditCard className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <p>Unable to load billing information</p>
+            <p className="text-sm">Please try again later</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <>
+        {/* Active Subscriptions */}
+        {billingInfo?.subscriptions && billingInfo.subscriptions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Subscriptions</CardTitle>
+              <CardDescription>Your current subscription plans.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {billingInfo.subscriptions.map((sub) => (
+                <div key={sub.id} className="rounded-lg border border-border p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-foreground">{sub.plan}</div>
+                    <Badge variant={sub.status === "active" ? "default" : "secondary"}>
+                      {sub.status}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {formatCurrency(sub.amount, sub.currency)} / {sub.interval}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {sub.cancelAtPeriodEnd 
+                      ? `Cancels on ${formatDate(sub.currentPeriodEnd)}`
+                      : `Renews on ${formatDate(sub.currentPeriodEnd)}`
+                    }
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Payment Methods */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Methods</CardTitle>
+            <CardDescription>
+              Manage your payment methods for bookings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {billingInfo?.paymentMethods && billingInfo.paymentMethods.length > 0 ? (
+              billingInfo.paymentMethods.map((pm) => (
+                <div key={pm.id} className="rounded-lg border border-border p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-16 rounded bg-muted flex items-center justify-center text-xs font-medium">
+                      {getBrandIcon(pm.brand)}
+                    </div>
+                    <div>
+                      <div className="font-medium text-foreground">•••• •••• •••• {pm.last4}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Expires {pm.expMonth}/{pm.expYear}
+                      </div>
+                    </div>
+                  </div>
+                  {pm.isDefault && <Badge variant="secondary">Default</Badge>}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                <p>No payment methods on file</p>
+              </div>
+            )}
+            
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => openPortal.mutate()}
+              disabled={openPortal.isPending}
+            >
+              {openPortal.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <CreditCard className="h-4 w-4 mr-2" />
+              )}
+              Manage Payment Methods
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Billing History */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Billing History</CardTitle>
+            <CardDescription>
+              View your past transactions and invoices.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {billingInfo?.invoices && billingInfo.invoices.length > 0 ? (
+              <div className="space-y-3">
+                {billingInfo.invoices.map((invoice) => (
+                  <div key={invoice.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                    <div className="flex items-center gap-3">
+                      <Receipt className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <div className="font-medium text-foreground">
+                          {invoice.description || "Payment"}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {formatDate(invoice.created)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="font-medium text-foreground">
+                          {formatCurrency(invoice.amount, invoice.currency)}
+                        </div>
+                        <Badge 
+                          variant={invoice.status === "succeeded" ? "default" : "secondary"}
+                          className="text-xs"
+                        >
+                          {invoice.status}
+                        </Badge>
+                      </div>
+                      {invoice.receiptUrl && (
+                        <a 
+                          href={invoice.receiptUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <CreditCard className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No transactions yet</p>
+                <p className="text-sm">Your billing history will appear here</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </>
+    );
+  };
 
   return (
     <Layout>
@@ -592,50 +781,8 @@ const ProfilePage = () => {
             </TabsContent>
 
             {/* Billing Tab */}
-            <TabsContent value="billing">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment Methods</CardTitle>
-                  <CardDescription>
-                    Manage your payment methods for bookings.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="rounded-lg border border-border p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-16 rounded bg-muted flex items-center justify-center text-xs font-medium">
-                        VISA
-                      </div>
-                      <div>
-                        <div className="font-medium text-foreground">•••• •••• •••• 4242</div>
-                        <div className="text-sm text-muted-foreground">Expires 12/25</div>
-                      </div>
-                    </div>
-                    <Badge variant="secondary">Default</Badge>
-                  </div>
-                  
-                  <Button variant="outline" className="w-full">
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Add Payment Method
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle>Billing History</CardTitle>
-                  <CardDescription>
-                    View your past transactions and invoices.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    <CreditCard className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>No transactions yet</p>
-                    <p className="text-sm">Your billing history will appear here</p>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="billing" className="space-y-6">
+              <BillingSection />
             </TabsContent>
           </Tabs>
 
