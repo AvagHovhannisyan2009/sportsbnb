@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification email to support
     const supportEmailResponse = await resend.emails.send({
-      from: "SportsBnB Contact <onboarding@resend.dev>",
+      from: "SportsBnB Support <support@sportsbnb.org>",
       to: ["support@sportsbnb.org"],
       subject: `Contact Form: ${subject}`,
       html: `
@@ -52,11 +52,25 @@ const handler = async (req: Request): Promise<Response> => {
       reply_to: email,
     });
 
-    console.log("Support email sent successfully:", supportEmailResponse);
+    console.log("Support email response:", supportEmailResponse);
+
+    // Check if support email failed
+    if (supportEmailResponse.error) {
+      console.error("Failed to send support email:", supportEmailResponse.error);
+      return new Response(
+        JSON.stringify({ 
+          error: `Failed to send notification email: ${supportEmailResponse.error.message}` 
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     // Send confirmation email to the user
     const confirmationEmailResponse = await resend.emails.send({
-      from: "SportsBnB <onboarding@resend.dev>",
+      from: "SportsBnB Support <support@sportsbnb.org>",
       to: [email],
       subject: "We received your message!",
       html: `
@@ -70,7 +84,21 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Confirmation email sent successfully:", confirmationEmailResponse);
+    console.log("Confirmation email response:", confirmationEmailResponse);
+
+    // Check if confirmation email failed
+    if (confirmationEmailResponse.error) {
+      console.error("Failed to send confirmation email:", confirmationEmailResponse.error);
+      return new Response(
+        JSON.stringify({ 
+          error: `Failed to send confirmation email: ${confirmationEmailResponse.error.message}` 
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: "Emails sent successfully" }),
