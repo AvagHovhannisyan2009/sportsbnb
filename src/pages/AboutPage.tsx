@@ -127,7 +127,7 @@ const AboutPage = () => {
                   </Button>
                 </Link>
                 <Link to="/contact">
-                  <Button size="lg" variant="outline" className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10">
+                  <Button size="lg" variant="secondaryOutline">
                     Contact us
                   </Button>
                 </Link>

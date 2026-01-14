@@ -21,6 +21,7 @@ const buttonVariants = cva(
         hero: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200",
         heroOutline: "border-2 border-primary text-primary bg-transparent hover:bg-primary hover:text-primary-foreground transition-all duration-200",
         subtle: "bg-muted/30 text-foreground hover:bg-muted/50",
+        secondaryOutline: "border border-secondary-foreground/30 text-secondary-foreground bg-transparent hover:bg-secondary-foreground/10 transition-all duration-200",
       },
       size: {
         default: "h-10 px-4 py-2",
