@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Bell, User, LogOut } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,10 +73,7 @@ const Header = () => {
         <div className="hidden md:flex items-center gap-3">
           {!isLoading && user ? (
             <>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
-              </Button>
+              <NotificationDropdown />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
