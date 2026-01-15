@@ -80,7 +80,7 @@ serve(async (req) => {
               </div>
               <div class="detail-row">
                 <span class="label">Total Paid</span>
-                <span class="value total">$${totalPrice.toFixed(2)}</span>
+                <span class="value total">֏${Math.round(totalPrice).toLocaleString()}</span>
               </div>
             </div>
             

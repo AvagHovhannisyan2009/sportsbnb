@@ -340,7 +340,7 @@ const CreateGamePage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="price">Cost per Player ($)</Label>
+                    <Label htmlFor="price">Cost per Player (֏)</Label>
                     <Input
                       id="price"
                       type="number"

@@ -519,7 +519,7 @@ const AddVenuePage = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price per Hour ($) *</Label>
+                    <Label htmlFor="price">Price per Hour (֏) *</Label>
                     <Input
                       id="price"
                       type="number"
@@ -530,7 +530,7 @@ const AddVenuePage = () => {
                       onChange={(e) => setFormData({ ...formData, pricePerHour: e.target.value })}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Your earnings: ${((parseFloat(formData.pricePerHour) || 30) * 0.9).toFixed(2)}/hour after platform fee
+                      Your earnings: ֏{Math.round((parseFloat(formData.pricePerHour) || 30) * 0.9).toLocaleString()}/hour after platform fee
                     </p>
                   </div>
 

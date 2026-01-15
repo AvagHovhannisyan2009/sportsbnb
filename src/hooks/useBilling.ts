@@ -72,7 +72,10 @@ export const useOpenBillingPortal = () => {
   });
 };
 
-export const formatCurrency = (amount: number, currency: string = "usd") => {
+export const formatCurrency = (amount: number, currency: string = "amd") => {
+  if (currency.toLowerCase() === "amd") {
+    return `֏${Math.round(amount / 100).toLocaleString()}`;
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency.toUpperCase(),

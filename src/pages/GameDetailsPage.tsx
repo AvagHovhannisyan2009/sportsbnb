@@ -231,7 +231,7 @@ const GameDetailsPage = () => {
                       <div>
                         <p className="text-sm text-muted-foreground">Cost</p>
                         <p className="font-medium text-foreground">
-                          {game.price_per_player > 0 ? `$${game.price_per_player} per player` : "Free"}
+                          {game.price_per_player > 0 ? `֏${game.price_per_player.toLocaleString()} per player` : "Free"}
                         </p>
                       </div>
                     </div>
@@ -310,7 +310,7 @@ const GameDetailsPage = () => {
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Cost</span>
                       <span className="font-medium">
-                        {game.price_per_player > 0 ? `$${game.price_per_player}` : "Free"}
+                        {game.price_per_player > 0 ? `֏${game.price_per_player.toLocaleString()}` : "Free"}
                       </span>
                     </div>
                   </div>

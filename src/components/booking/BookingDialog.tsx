@@ -144,7 +144,7 @@ const BookingDialog = ({
           </div>
           <div className="flex items-center justify-between py-2 border-t border-border">
             <span className="font-semibold">Total</span>
-            <span className="text-xl font-bold">${venue.price}</span>
+            <span className="text-xl font-bold">֏{venue.price.toLocaleString()}</span>
           </div>
         </div>
 
@@ -165,7 +165,7 @@ const BookingDialog = ({
             ) : (
               <>
                 <CreditCard className="h-4 w-4 mr-2" />
-                Pay ${venue.price}
+                Pay ֏{venue.price.toLocaleString()}
               </>
             )}
           </Button>
