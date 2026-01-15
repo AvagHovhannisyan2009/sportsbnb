@@ -15,9 +15,11 @@ export const getGenericAuthError = (error: unknown, context: 'login' | 'signup')
   }
   
   if (context === 'signup') {
-    // Generic message unless rate limit
     if (errorMessage.includes('rate limit')) {
       return 'Too many attempts. Please try again later.';
+    }
+    if (errorMessage.includes('already registered') || errorMessage.includes('user_already_exists') || errorMessage.includes('already exists')) {
+      return 'An account with this email already exists. Please sign in instead.';
     }
     return 'Unable to create account. Please try again or contact support.';
   }
