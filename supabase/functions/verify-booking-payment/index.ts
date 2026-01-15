@@ -86,6 +86,27 @@ serve(async (req) => {
       throw new Error("Failed to create booking");
     }
 
+    // Create in-app notification for the user
+    const formattedDate = new Date(session.metadata?.bookingDate || "").toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    
+    try {
+      await supabaseClient.from("notifications").insert({
+        user_id: user.id,
+        type: "booking",
+        title: "Booking Confirmed! 🎉",
+        message: `Your booking at ${session.metadata?.venueName} on ${formattedDate} at ${session.metadata?.bookingTime} has been confirmed.`,
+        link: `/dashboard`,
+      });
+      console.log("Notification created for booking");
+    } catch (notifError) {
+      console.error("Failed to create notification:", notifError);
+      // Don't throw - booking is still successful
+    }
+
     // Send confirmation email
     const userEmail = session.metadata?.userEmail || user.email;
     if (userEmail) {
