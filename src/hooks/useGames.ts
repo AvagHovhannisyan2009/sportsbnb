@@ -248,6 +248,30 @@ export const useJoinGame = () => {
         .single();
 
       if (error) throw error;
+      
+      // Notify the host that someone joined their game
+      const { data: game } = await supabase
+        .from("games")
+        .select("host_id, title")
+        .eq("id", gameId)
+        .single();
+      
+      const { data: joiner } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", userId)
+        .single();
+      
+      if (game && game.host_id !== userId) {
+        await supabase.from("notifications").insert({
+          user_id: game.host_id,
+          type: "game",
+          title: "New Player Joined! 🎮",
+          message: `${joiner?.full_name || "Someone"} has joined your game "${game.title}".`,
+          link: `/games/${gameId}`,
+        });
+      }
+      
       return data;
     },
     onSuccess: (_, variables) => {
@@ -284,12 +308,38 @@ export const useCancelGame = () => {
 
   return useMutation({
     mutationFn: async (gameId: string) => {
+      // Get game info and participants before cancelling
+      const { data: game } = await supabase
+        .from("games")
+        .select("title")
+        .eq("id", gameId)
+        .single();
+      
+      const { data: participants } = await supabase
+        .from("game_participants")
+        .select("user_id")
+        .eq("game_id", gameId)
+        .eq("status", "confirmed");
+      
       const { error } = await supabase
         .from("games")
         .update({ status: "cancelled" })
         .eq("id", gameId);
 
       if (error) throw error;
+      
+      // Notify all participants that the game was cancelled
+      if (participants && participants.length > 0 && game) {
+        const notifications = participants.map(p => ({
+          user_id: p.user_id,
+          type: "game",
+          title: "Game Cancelled 😔",
+          message: `The game "${game.title}" has been cancelled by the host.`,
+          link: `/games`,
+        }));
+        
+        await supabase.from("notifications").insert(notifications);
+      }
     },
     onSuccess: (_, gameId) => {
       queryClient.invalidateQueries({ queryKey: ["game", gameId] });
