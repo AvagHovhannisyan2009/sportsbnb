@@ -95,6 +95,15 @@ const BookingDialog = ({
 
       if (error) throw error;
 
+      // Handle demo booking (venue without Stripe setup)
+      if (data?.demo) {
+        toast.success("Demo booking confirmed! 🎉");
+        onClose();
+        navigate("/dashboard");
+        return;
+      }
+
+      // Handle real Stripe checkout
       if (data?.url) {
         window.location.href = data.url;
       }

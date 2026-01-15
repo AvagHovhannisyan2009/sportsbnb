@@ -65,9 +65,63 @@ serve(async (req) => {
 
     if (profileError) throw new Error(`Failed to fetch owner profile: ${profileError.message}`);
     
+    // If owner doesn't have Stripe setup, create a fake/demo booking directly
     if (!ownerProfile.stripe_account_id || !ownerProfile.stripe_onboarding_completed) {
-      throw new Error("Venue owner has not completed bank account setup. This venue cannot accept bookings yet.");
+      logStep("Owner has no Stripe account - creating demo booking");
+      
+      // Create the booking directly (fake/demo mode)
+      const { data: booking, error: bookingError } = await supabaseClient
+        .from("bookings")
+        .insert({
+          user_id: user.id,
+          venue_id: venueId,
+          venue_name: venueName,
+          booking_date: bookingDate,
+          booking_time: bookingTime,
+          duration_hours: 1,
+          total_price: price,
+          status: "confirmed",
+          payment_intent_id: `demo_${Date.now()}`, // Fake payment ID for demo
+        })
+        .select()
+        .single();
+
+      if (bookingError) {
+        logStep("Demo booking insert error", { error: bookingError.message });
+        throw new Error("Failed to create demo booking");
+      }
+
+      logStep("Demo booking created successfully", { bookingId: booking.id });
+
+      // Create notification for the user
+      const formattedDate = new Date(bookingDate).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+      
+      try {
+        await supabaseClient.from("notifications").insert({
+          user_id: user.id,
+          type: "booking",
+          title: "Demo Booking Confirmed! 🎉",
+          message: `Your demo booking at ${venueName} on ${formattedDate} at ${bookingTime} has been confirmed.`,
+          link: `/dashboard`,
+        });
+      } catch (notifError) {
+        logStep("Failed to create notification", { error: notifError });
+      }
+
+      return new Response(JSON.stringify({ 
+        demo: true, 
+        booking,
+        message: "Demo booking created successfully" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
+    
     logStep("Owner Stripe account found", { stripeAccountId: ownerProfile.stripe_account_id });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
