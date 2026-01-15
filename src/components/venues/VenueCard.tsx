@@ -73,7 +73,7 @@ const VenueCard = ({
             )}
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-lg font-semibold text-foreground">${price}</span>
+            <span className="text-lg font-semibold text-foreground">֏{price.toLocaleString()}</span>
             <span className="text-sm text-muted-foreground">/ hour</span>
           </div>
         </div>

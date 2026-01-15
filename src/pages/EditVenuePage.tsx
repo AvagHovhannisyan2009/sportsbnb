@@ -498,7 +498,7 @@ const EditVenuePage = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price per Hour ($) *</Label>
+                  <Label htmlFor="price">Price per Hour (֏) *</Label>
                   <Input
                     id="price"
                     type="number"

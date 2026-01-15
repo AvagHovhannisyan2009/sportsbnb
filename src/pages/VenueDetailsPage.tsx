@@ -362,7 +362,7 @@ const VenueDetailsPage = () => {
             <div className="lg:col-span-1">
               <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-3xl font-bold text-foreground">${venue.price_per_hour}</span>
+                  <span className="text-3xl font-bold text-foreground">֏{venue.price_per_hour.toLocaleString()}</span>
                   <span className="text-muted-foreground">/ hour</span>
                 </div>
 
@@ -385,7 +385,7 @@ const VenueDetailsPage = () => {
                     <Separator />
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-foreground">Total</span>
-                      <span className="text-xl font-bold text-foreground">${venue.price_per_hour}</span>
+                      <span className="text-xl font-bold text-foreground">֏{venue.price_per_hour.toLocaleString()}</span>
                     </div>
                   </div>
                 ) : (

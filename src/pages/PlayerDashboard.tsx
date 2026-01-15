@@ -209,7 +209,7 @@ const PlayerDashboard = () => {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      This will cancel your booking at {booking.venue_name} and issue a full refund of ${booking.total_price.toFixed(2)}. This action cannot be undone.
+                                      This will cancel your booking at {booking.venue_name} and issue a full refund of ֏{booking.total_price.toLocaleString()}. This action cannot be undone.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
@@ -237,7 +237,7 @@ const PlayerDashboard = () => {
                               </div>
                             </div>
                             <div className="mt-1 text-sm font-medium text-foreground">
-                              ${booking.total_price}
+                              ֏{booking.total_price.toLocaleString()}
                             </div>
                           </div>
                         </div>
@@ -368,7 +368,7 @@ const PlayerDashboard = () => {
                               <span>{venue.rating}</span>
                             </div>
                             <div className="text-sm font-medium text-foreground">
-                              ${venue.price_per_hour}/hr
+                              ֏{venue.price_per_hour.toLocaleString()}/hr
                             </div>
                           </div>
                         </div>

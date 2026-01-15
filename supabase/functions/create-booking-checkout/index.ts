@@ -98,7 +98,7 @@ serve(async (req) => {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: "amd",
             product_data: {
               name: `Venue Booking: ${venueName}`,
               description: `${dateLabel} at ${bookingTime} - ${venueLocation}`,

@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
       cancelAtPeriodEnd: sub.cancel_at_period_end,
       plan: sub.items.data[0]?.price?.nickname || "Subscription",
       amount: sub.items.data[0]?.price?.unit_amount || 0,
-      currency: sub.items.data[0]?.price?.currency || "usd",
+      currency: sub.items.data[0]?.price?.currency || "amd",
       interval: sub.items.data[0]?.price?.recurring?.interval || "month",
     }));
 

@@ -84,10 +84,7 @@ const AdminDashboard = () => {
   const deleteGame = useDeleteGame();
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
+    return `֏${amount.toLocaleString()}`;
   };
 
   const statCards = [
