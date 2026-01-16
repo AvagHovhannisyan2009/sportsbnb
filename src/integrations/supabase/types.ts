@@ -133,7 +133,9 @@ export type Database = {
           host_id: string
           id: string
           is_public: boolean | null
+          latitude: number | null
           location: string
+          longitude: number | null
           max_players: number
           price_per_player: number | null
           skill_level: string
@@ -152,7 +154,9 @@ export type Database = {
           host_id: string
           id?: string
           is_public?: boolean | null
+          latitude?: number | null
           location: string
+          longitude?: number | null
           max_players?: number
           price_per_player?: number | null
           skill_level?: string
@@ -171,7 +175,9 @@ export type Database = {
           host_id?: string
           id?: string
           is_public?: boolean | null
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           max_players?: number
           price_per_player?: number | null
           skill_level?: string

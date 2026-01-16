@@ -10,6 +10,8 @@ export interface Game {
   sport: string;
   skill_level: string;
   location: string;
+  latitude: number | null;
+  longitude: number | null;
   game_date: string;
   game_time: string;
   duration_hours: number;

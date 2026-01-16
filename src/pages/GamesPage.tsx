@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Filter, X, Plus, Loader2, Calendar, MapPin, Users, Clock } from "lucide-react";
+import { Search, Filter, X, Plus, Loader2, Calendar, MapPin, Users, Clock, LayoutGrid, Map } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { sportTypes } from "@/data/mockData";
 import Layout from "@/components/layout/Layout";
 import { useGames, type Game } from "@/hooks/useGames";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
+import GamesMapView from "@/components/games/GamesMapView";
 
 const GameCard = ({ game }: { game: Game }) => {
   const spotsLeft = game.max_players - (game.participant_count || 0);
@@ -90,6 +92,7 @@ const GamesPage = () => {
   const [selectedSport, setSelectedSport] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
   const { data: games = [], isLoading } = useGames({
     sport: selectedSport || undefined,
@@ -237,6 +240,14 @@ const GamesPage = () => {
                 {games.length} {games.length === 1 ? "game" : "games"} looking for players
               </p>
             </div>
+            <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "grid" | "map")}>
+              <ToggleGroupItem value="grid" aria-label="Grid view">
+                <LayoutGrid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="map" aria-label="Map view">
+                <Map className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
 
           {isLoading ? (
@@ -245,11 +256,15 @@ const GamesPage = () => {
               <p className="text-muted-foreground">Loading games...</p>
             </div>
           ) : games.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {games.map((game) => (
-                <GameCard key={game.id} game={game} />
-              ))}
-            </div>
+            viewMode === "map" ? (
+              <GamesMapView games={games} />
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {games.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            )
           ) : (
             <div className="text-center py-16">
               <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
