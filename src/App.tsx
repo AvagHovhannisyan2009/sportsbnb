@@ -11,6 +11,7 @@ import DiscoverPage from "./pages/DiscoverPage";
 import GamesPage from "./pages/GamesPage";
 import CreateGamePage from "./pages/CreateGamePage";
 import GameDetailsPage from "./pages/GameDetailsPage";
+import GameJoinSuccessPage from "./pages/GameJoinSuccessPage";
 import VenueDetailsPage from "./pages/VenueDetailsPage";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import OwnerDashboard from "./pages/OwnerDashboard";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/games" element={<GamesPage />} />
             <Route path="/create-game" element={<ProtectedRoute><CreateGamePage /></ProtectedRoute>} />
             <Route path="/game/:id" element={<GameDetailsPage />} />
+            <Route path="/game/:id/join-success" element={<ProtectedRoute><GameJoinSuccessPage /></ProtectedRoute>} />
             <Route path="/venue/:id" element={<VenueDetailsPage />} />
             <Route path="/dashboard" element={<ProtectedRoute><PlayerDashboard /></ProtectedRoute>} />
             <Route path="/owner-dashboard" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />

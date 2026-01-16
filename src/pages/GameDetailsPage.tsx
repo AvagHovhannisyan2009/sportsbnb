@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
   MapPin, Calendar, Clock, Users, ArrowLeft, Loader2, 
-  Share2, DollarSign, User, AlertTriangle 
+  Share2, DollarSign, User, AlertTriangle, CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ import {
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useGameById, useJoinGame, useLeaveGame, useCancelGame } from "@/hooks/useGames";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -29,6 +31,7 @@ const GameDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   const { data: game, isLoading } = useGameById(id);
   const joinGame = useJoinGame();
@@ -63,6 +66,7 @@ const GameDetailsPage = () => {
   const spotsLeft = game.max_players - (game.participant_count || 0);
   const isFull = spotsLeft <= 0;
   const isCancelled = game.status === "cancelled";
+  const isPaidGame = game.price_per_player > 0;
 
   const levelColors: Record<string, string> = {
     beginner: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
@@ -77,6 +81,38 @@ const GameDetailsPage = () => {
       return;
     }
 
+    // For paid games, redirect to payment
+    if (isPaidGame) {
+      setIsProcessingPayment(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("create-game-payment", {
+          body: { gameId: game.id },
+        });
+
+        if (error) throw new Error(error.message);
+
+        if (data.free) {
+          // Game was free (edge case where price changed)
+          toast.success("You've joined the game!");
+          window.location.reload();
+          return;
+        }
+
+        if (data.url) {
+          // Redirect to Stripe Checkout
+          window.location.href = data.url;
+        } else {
+          throw new Error("No checkout URL received");
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to process payment";
+        toast.error(message);
+        setIsProcessingPayment(false);
+      }
+      return;
+    }
+
+    // For free games, join directly
     try {
       await joinGame.mutateAsync({ gameId: game.id, userId: user.id });
       toast.success("You've joined the game!");
@@ -373,15 +409,20 @@ const GameDetailsPage = () => {
                     <Button 
                       className="w-full" 
                       onClick={handleJoin}
-                      disabled={isFull || joinGame.isPending}
+                      disabled={isFull || joinGame.isPending || isProcessingPayment}
                     >
-                      {joinGame.isPending ? (
+                      {joinGame.isPending || isProcessingPayment ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Joining...
+                          {isProcessingPayment ? "Processing..." : "Joining..."}
                         </>
                       ) : isFull ? (
                         "Game Full"
+                      ) : isPaidGame ? (
+                        <>
+                          <CreditCard className="h-4 w-4 mr-2" />
+                          Pay & Join (֏{game.price_per_player.toLocaleString()})
+                        </>
                       ) : (
                         "Join Game"
                       )}
