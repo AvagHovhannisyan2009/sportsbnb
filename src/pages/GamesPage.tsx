@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Filter, X, Plus, Loader2, Calendar, MapPin, Users, Clock, LayoutGrid, Map } from "lucide-react";
+import { Search, Filter, X, Plus, Loader2, Calendar, MapPin, Users, Clock, LayoutGrid, Map, Navigation, MapPinOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +18,11 @@ import { useGames, type Game } from "@/hooks/useGames";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import GamesMapView from "@/components/games/GamesMapView";
+import { toast } from "sonner";
 
-const GameCard = ({ game }: { game: Game }) => {
+type GameWithDistance = Game & { distance?: number | null };
+
+const GameCard = ({ game }: { game: GameWithDistance }) => {
   const spotsLeft = game.max_players - (game.participant_count || 0);
   const isFull = spotsLeft <= 0;
 
@@ -54,6 +57,14 @@ const GameCard = ({ game }: { game: Game }) => {
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="h-4 w-4" />
           <span>{game.location}</span>
+          {game.distance !== null && game.distance !== undefined && (
+            <Badge variant="outline" className="ml-auto text-xs">
+              {game.distance < 1 
+                ? `${Math.round(game.distance * 1000)}m away`
+                : `${game.distance.toFixed(1)}km away`
+              }
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
@@ -93,20 +104,65 @@ const GamesPage = () => {
   const [selectedLevel, setSelectedLevel] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   const { data: games = [], isLoading } = useGames({
     sport: selectedSport || undefined,
     level: selectedLevel || undefined,
     search: searchQuery || undefined,
+    userLocation,
   });
+
+  const handleGetLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setIsLocating(false);
+        toast.success("Showing games near you!");
+      },
+      (error) => {
+        setIsLocating(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            toast.error("Location permission denied");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            toast.error("Location information unavailable");
+            break;
+          case error.TIMEOUT:
+            toast.error("Location request timed out");
+            break;
+          default:
+            toast.error("Unable to get your location");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    );
+  }, []);
+
+  const clearLocation = useCallback(() => {
+    setUserLocation(null);
+    toast.info("Location filter cleared");
+  }, []);
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedSport("");
     setSelectedLevel("");
+    setUserLocation(null);
   };
 
-  const hasActiveFilters = searchQuery || selectedSport || selectedLevel;
+  const hasActiveFilters = searchQuery || selectedSport || selectedLevel || userLocation;
 
   const handleCreateGame = () => {
     if (!user) {
@@ -134,6 +190,31 @@ const GamesPage = () => {
               </div>
               
               <div className="hidden md:flex items-center gap-3">
+                {userLocation ? (
+                  <Button 
+                    variant="secondary" 
+                    className="h-12"
+                    onClick={clearLocation}
+                  >
+                    <MapPinOff className="h-4 w-4 mr-2" />
+                    Near Me
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="h-12"
+                    onClick={handleGetLocation}
+                    disabled={isLocating}
+                  >
+                    {isLocating ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Navigation className="h-4 w-4 mr-2" />
+                    )}
+                    Near Me
+                  </Button>
+                )}
+                
                 <Select value={selectedSport} onValueChange={setSelectedSport}>
                   <SelectTrigger className="w-[160px] h-12">
                     <SelectValue placeholder="Sport type" />
@@ -190,6 +271,31 @@ const GamesPage = () => {
             {/* Mobile Filters */}
             {showFilters && (
               <div className="md:hidden pt-4 flex flex-col gap-3">
+                {userLocation ? (
+                  <Button 
+                    variant="secondary" 
+                    className="w-full h-12"
+                    onClick={clearLocation}
+                  >
+                    <MapPinOff className="h-4 w-4 mr-2" />
+                    Near Me (Active)
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12"
+                    onClick={handleGetLocation}
+                    disabled={isLocating}
+                  >
+                    {isLocating ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Navigation className="h-4 w-4 mr-2" />
+                    )}
+                    Games Near Me
+                  </Button>
+                )}
+                
                 <Select value={selectedSport} onValueChange={setSelectedSport}>
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Sport type" />

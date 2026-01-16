@@ -40,7 +40,32 @@ export interface GameParticipant {
   };
 }
 
-export const useGames = (filters?: { sport?: string; level?: string; search?: string }) => {
+// Helper function to calculate distance between two coordinates (Haversine formula)
+export const calculateDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+export const useGames = (filters?: { 
+  sport?: string; 
+  level?: string; 
+  search?: string;
+  userLocation?: { lat: number; lng: number } | null;
+}) => {
   return useQuery({
     queryKey: ["games", filters],
     queryFn: async () => {
@@ -90,11 +115,32 @@ export const useGames = (filters?: { sport?: string; level?: string; search?: st
         countMap.set(p.game_id, (countMap.get(p.game_id) || 0) + 1);
       });
 
-      return games.map(game => ({
+      let enrichedGames = games.map(game => ({
         ...game,
         host: profileMap.get(game.host_id) || { full_name: null, avatar_url: null },
         participant_count: countMap.get(game.id) || 0,
-      })) as Game[];
+        distance: filters?.userLocation && game.latitude && game.longitude
+          ? calculateDistance(
+              filters.userLocation.lat,
+              filters.userLocation.lng,
+              game.latitude,
+              game.longitude
+            )
+          : null,
+      })) as (Game & { distance: number | null })[];
+
+      // Sort by distance if user location is provided
+      if (filters?.userLocation) {
+        enrichedGames = enrichedGames.sort((a, b) => {
+          // Games with coordinates come first
+          if (a.distance === null && b.distance === null) return 0;
+          if (a.distance === null) return 1;
+          if (b.distance === null) return -1;
+          return a.distance - b.distance;
+        });
+      }
+
+      return enrichedGames;
     },
   });
 };
