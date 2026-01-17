@@ -1,7 +1,8 @@
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Flag, MoreVertical } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Flag, MoreVertical, Crown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,23 @@ interface ChatBubbleProps {
   onReport?: (messageId: string) => void;
 }
 
+const getRoleLabel = (role?: string) => {
+  switch (role) {
+    case "host":
+      return "Host";
+    case "player":
+      return "Player";
+    case "owner":
+      return "Venue Owner";
+    case "customer":
+      return "Customer";
+    default:
+      return null;
+  }
+};
+
+const isHostRole = (role?: string) => role === "host" || role === "owner";
+
 export const ChatBubble = ({ message, isOwn, onReport }: ChatBubbleProps) => {
   if (message.message_type === "system") {
     return (
@@ -28,7 +46,9 @@ export const ChatBubble = ({ message, isOwn, onReport }: ChatBubbleProps) => {
     );
   }
 
-  const senderName = message.sender?.full_name || "Unknown User";
+  const senderName = message.sender?.full_name || "User";
+  const roleLabel = getRoleLabel(message.sender_role);
+  const isHost = isHostRole(message.sender_role);
   const senderInitials = senderName
     .split(" ")
     .map((n) => n[0])
@@ -44,7 +64,7 @@ export const ChatBubble = ({ message, isOwn, onReport }: ChatBubbleProps) => {
       )}
     >
       {!isOwn && (
-        <Avatar className="h-8 w-8 flex-shrink-0">
+        <Avatar className={cn("h-8 w-8 flex-shrink-0", isHost && "ring-2 ring-primary ring-offset-2")}>
           <AvatarImage src={message.sender?.avatar_url || undefined} />
           <AvatarFallback className="text-xs">{senderInitials}</AvatarFallback>
         </Avatar>
@@ -52,9 +72,23 @@ export const ChatBubble = ({ message, isOwn, onReport }: ChatBubbleProps) => {
 
       <div className={cn("flex flex-col max-w-[70%]", isOwn ? "items-end" : "items-start")}>
         {!isOwn && (
-          <span className="text-xs text-muted-foreground mb-1 px-1">
-            {senderName}
-          </span>
+          <div className="flex items-center gap-1.5 mb-1 px-1">
+            <span className="text-xs font-medium text-foreground">
+              {senderName}
+            </span>
+            {roleLabel && (
+              <Badge 
+                variant={isHost ? "default" : "secondary"} 
+                className={cn(
+                  "text-[10px] px-1.5 py-0 h-4",
+                  isHost && "bg-primary/90"
+                )}
+              >
+                {isHost && <Crown className="h-2.5 w-2.5 mr-0.5" />}
+                {roleLabel}
+              </Badge>
+            )}
+          </div>
         )}
 
         <div className="flex items-end gap-1">

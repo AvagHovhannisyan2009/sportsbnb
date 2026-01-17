@@ -36,6 +36,7 @@ export interface ChatMessage {
     full_name: string | null;
     avatar_url: string | null;
   };
+  sender_role?: string;
 }
 
 // Get or create a chat room for a game/booking
@@ -136,8 +137,10 @@ export const useChatMessages = (roomId: string | undefined) => {
       // Fetch sender profiles separately
       const senderIds = [...new Set(data?.filter(m => m.sender_id).map(m => m.sender_id) || [])];
       let profiles: Record<string, { full_name: string | null; avatar_url: string | null }> = {};
+      let memberRoles: Record<string, string> = {};
       
       if (senderIds.length > 0) {
+        // Fetch profiles
         const { data: profileData } = await supabase
           .from("profiles_public")
           .select("user_id, full_name, avatar_url")
@@ -145,15 +148,31 @@ export const useChatMessages = (roomId: string | undefined) => {
         
         if (profileData) {
           profiles = profileData.reduce((acc, p) => {
-            acc[p.user_id!] = { full_name: p.full_name, avatar_url: p.avatar_url };
+            if (p.user_id) {
+              acc[p.user_id] = { full_name: p.full_name, avatar_url: p.avatar_url };
+            }
             return acc;
           }, {} as Record<string, { full_name: string | null; avatar_url: string | null }>);
+        }
+
+        // Fetch member roles for this room
+        const { data: membersData } = await supabase
+          .from("chat_members")
+          .select("user_id, role")
+          .eq("room_id", roomId!);
+        
+        if (membersData) {
+          memberRoles = membersData.reduce((acc, m) => {
+            acc[m.user_id] = m.role;
+            return acc;
+          }, {} as Record<string, string>);
         }
       }
 
       return (data || []).map(msg => ({
         ...msg,
         sender: msg.sender_id ? profiles[msg.sender_id] : undefined,
+        sender_role: msg.sender_id ? memberRoles[msg.sender_id] : undefined,
       })) as ChatMessage[];
     },
     enabled: !!roomId,
@@ -174,27 +193,41 @@ export const useChatMessages = (roomId: string | undefined) => {
           filter: `room_id=eq.${roomId}`,
         },
         async (payload) => {
-          // Fetch sender profile for new message
+          // Fetch sender profile and role for new message
           const newMessage = payload.new as ChatMessage;
           let sender = undefined;
+          let sender_role = undefined;
           
           if (newMessage.sender_id) {
+            // Fetch profile
             const { data: profile } = await supabase
               .from("profiles_public")
               .select("full_name, avatar_url")
               .eq("user_id", newMessage.sender_id)
-              .single();
+              .maybeSingle();
             
             if (profile) {
               sender = profile;
             }
+
+            // Fetch role
+            const { data: memberData } = await supabase
+              .from("chat_members")
+              .select("role")
+              .eq("room_id", roomId)
+              .eq("user_id", newMessage.sender_id)
+              .maybeSingle();
+            
+            if (memberData) {
+              sender_role = memberData.role;
+            }
           }
 
           queryClient.setQueryData(["chat-messages", roomId], (old: ChatMessage[] | undefined) => {
-            if (!old) return [{ ...newMessage, sender }];
+            if (!old) return [{ ...newMessage, sender, sender_role }];
             // Avoid duplicates
             if (old.some(m => m.id === newMessage.id)) return old;
-            return [...old, { ...newMessage, sender }];
+            return [...old, { ...newMessage, sender, sender_role }];
           });
         }
       )
