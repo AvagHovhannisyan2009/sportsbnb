@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import VenueCard from "@/components/venues/VenueCard";
-import { sportTypes } from "@/data/mockData";
+import { sportTypes } from "@/data/constants";
 import Layout from "@/components/layout/Layout";
 import { useVenues, getVenueImage } from "@/hooks/useVenues";
 import { useAuth } from "@/hooks/useAuth";

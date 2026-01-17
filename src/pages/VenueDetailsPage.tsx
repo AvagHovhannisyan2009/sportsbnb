@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useVenueById, getVenueImage } from "@/hooks/useVenues";
 import { useVenueReviews, useUserReviewForVenue, useDeleteReview } from "@/hooks/useReviews";
 import { useVenueHours, useBlockedDates, DAYS_OF_WEEK } from "@/hooks/useAvailability";
-import { timeSlots } from "@/data/mockData";
+import { timeSlots } from "@/data/constants";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 

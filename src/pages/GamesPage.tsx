@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { sportTypes } from "@/data/mockData";
+import { sportTypes } from "@/data/constants";
 import Layout from "@/components/layout/Layout";
 import { useGames, type Game } from "@/hooks/useGames";
 import { useAuth } from "@/hooks/useAuth";
