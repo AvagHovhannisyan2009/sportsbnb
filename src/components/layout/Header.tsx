@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Plus, Gamepad2, Building, Users } from "lucide-react";
+import { Menu, X, LogOut, Plus, Gamepad2, Building, Shield } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useAdmin";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, isLoading } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
 
   const navLinks = [
     { href: "/venues", label: "Venues" },
@@ -130,6 +132,17 @@ const Header = () => {
                       </DropdownMenuItem>
                     </>
                   )}
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          Admin Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                     <LogOut className="h-4 w-4 mr-2" />
@@ -197,7 +210,15 @@ const Header = () => {
                   <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">Profile</Button>
                   </Link>
-                  <Button 
+                  {isAdmin && (
+                    <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Dashboard
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
                     variant="ghost" 
                     className="w-full justify-start text-destructive" 
                     onClick={() => {
