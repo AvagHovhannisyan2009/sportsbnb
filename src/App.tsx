@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import HomePage from "./pages/HomePage";
 import DiscoverPage from "./pages/DiscoverPage";
+import CommunityPage from "./pages/CommunityPage";
 import GamesPage from "./pages/GamesPage";
 import CreateGamePage from "./pages/CreateGamePage";
 import GameDetailsPage from "./pages/GameDetailsPage";
@@ -56,7 +57,7 @@ const App = () => (
               <Route path="/discover" element={<Navigate to="/venues" replace />} />
               {/* Games */}
               <Route path="/games" element={<GamesPage />} />
-              <Route path="/community" element={<GamesPage />} />
+              <Route path="/community" element={<CommunityPage />} />
               <Route path="/create-game" element={<ProtectedRoute><CreateGamePage /></ProtectedRoute>} />
               <Route path="/game/:id" element={<GameDetailsPage />} />
               <Route path="/game/:id/join-success" element={<ProtectedRoute><GameJoinSuccessPage /></ProtectedRoute>} />
