@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X, LogOut, Plus, Gamepad2, Building, Users } from "lucide-react";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 import {
   DropdownMenu,
@@ -20,9 +20,10 @@ const Header = () => {
   const { user, signOut, isLoading } = useAuth();
 
   const navLinks = [
-    { href: "/discover", label: "Discover" },
+    { href: "/venues", label: "Venues" },
     { href: "/games", label: "Games" },
-    ...(user ? [{ href: "/dashboard", label: "Dashboard" }] : []),
+    { href: "/community", label: "Community" },
+    ...(user ? [{ href: "/dashboard", label: "My Activity" }] : []),
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -73,6 +74,30 @@ const Header = () => {
         <div className="hidden md:flex items-center gap-3">
           {!isLoading && user ? (
             <>
+              {/* Create Button with Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" className="gap-1.5">
+                    <Plus className="h-4 w-4" />
+                    Create
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link to="/create-game" className="flex items-center gap-2">
+                      <Gamepad2 className="h-4 w-4" />
+                      Create Game
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/add-venue" className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      List Venue
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <NotificationDropdown />
 
               <DropdownMenu>
@@ -92,7 +117,7 @@ const Header = () => {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard">Dashboard</Link>
+                    <Link to="/dashboard">My Activity</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/profile">Profile</Link>
@@ -155,6 +180,20 @@ const Header = () => {
             <div className="pt-4 border-t border-border mt-2 flex flex-col gap-2">
               {!isLoading && user ? (
                 <>
+                  {/* Mobile Create Options */}
+                  <Link to="/create-game" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Gamepad2 className="h-4 w-4 mr-2" />
+                      Create Game
+                    </Button>
+                  </Link>
+                  <Link to="/add-venue" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Building className="h-4 w-4 mr-2" />
+                      List Venue
+                    </Button>
+                  </Link>
+                  <div className="border-t border-border my-2" />
                   <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">Profile</Button>
                   </Link>

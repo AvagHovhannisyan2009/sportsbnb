@@ -227,7 +227,7 @@ const OwnerDashboard = () => {
                       Manage Schedule
                     </Button>
                   </Link>
-                  <Link to="/settings" className="block">
+                  <Link to="/profile" className="block">
                     <Button variant="outline" className="w-full justify-start">
                       <Settings className="h-4 w-4 mr-2" />
                       Account Settings
