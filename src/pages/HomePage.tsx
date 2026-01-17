@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Calendar, Users, Building, ArrowRight, CheckCircle, Shield, Star, Zap } from "lucide-react";
+import { Search, Calendar, Users, Building, ArrowRight, CheckCircle, Shield, Star, Zap, Target, Eye } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
 import heroImage from "@/assets/hero-sports-premium.jpg";
@@ -298,6 +298,45 @@ const HomePage = () => {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Mission & Vision */}
+      <section className="py-20 md:py-28 bg-background">
+        <div className="container">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12">
+            {/* Mission */}
+            <div className="bg-muted/30 rounded-3xl p-8 md:p-10">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
+                <Target className="h-7 w-7" />
+              </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4 tracking-tight">
+                Our Mission
+              </h3>
+              <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                To make it easy for anyone to find, organize, and join sports activity.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Sportsbnb's mission is to make participation in sport simple and accessible by organizing games, venues, and people into one clear digital space. We aim to remove the friction that prevents active people from playing regularly and help communities stay connected through sport.
+              </p>
+            </div>
+
+            {/* Vision */}
+            <div className="bg-muted/30 rounded-3xl p-8 md:p-10">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
+                <Eye className="h-7 w-7" />
+              </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4 tracking-tight">
+                Our Vision
+              </h3>
+              <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                A world where finding a game is as easy as opening an app.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Sportsbnb's vision is to become the everyday infrastructure for grassroots sport, where people no longer rely on chaotic chats or fragmented platforms, but instead use one trusted place to discover games, connect with others, and stay active in their daily lives.
+              </p>
+            </div>
           </div>
         </div>
       </section>
