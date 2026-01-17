@@ -76,7 +76,7 @@ const HomePage = () => {
               and connect with players in your area.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/discover">
+              <Link to="/venues">
                 <Button variant="hero" size="xl">
                   Find a place to play
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -105,7 +105,7 @@ const HomePage = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {featuredVenues.map(venue => <Link key={venue.name} to="/discover" className="group relative aspect-[4/3] rounded-xl overflow-hidden">
+            {featuredVenues.map(venue => <Link key={venue.name} to="/venues" className="group relative aspect-[4/3] rounded-xl overflow-hidden">
                 <img src={venue.image} alt={venue.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-gradient-to-t from-secondary/80 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -145,7 +145,7 @@ const HomePage = () => {
           </div>
           
           <div className="text-center mt-12">
-            <Link to="/discover">
+            <Link to="/venues">
               <Button size="lg">
                 Start exploring venues
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -249,7 +249,7 @@ const HomePage = () => {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>}
-              <Link to="/discover">
+              <Link to="/venues">
                 <Button variant="outline" size="xl">
                   Explore venues
                 </Button>

@@ -160,7 +160,7 @@ const PlayerDashboard = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-foreground">Upcoming Bookings</h2>
-                <Link to="/discover" className="text-sm text-primary hover:underline">
+                <Link to="/venues" className="text-sm text-primary hover:underline">
                   Book more
                 </Link>
               </div>
@@ -248,7 +248,7 @@ const PlayerDashboard = () => {
                   <Card>
                     <CardContent className="py-8 text-center">
                       <p className="text-muted-foreground mb-4">No upcoming bookings</p>
-                      <Link to="/discover">
+                      <Link to="/venues">
                         <Button size="sm">Find a venue</Button>
                       </Link>
                     </CardContent>
@@ -340,7 +340,7 @@ const PlayerDashboard = () => {
               <h2 className="text-xl font-semibold text-foreground">
                 {recentVenues.length > 0 ? "Your Recent Venues" : "Recommended Venues"}
               </h2>
-              <Link to="/discover" className="text-sm text-primary hover:underline">
+              <Link to="/venues" className="text-sm text-primary hover:underline">
                 See all
               </Link>
             </div>
@@ -381,7 +381,7 @@ const PlayerDashboard = () => {
               <Card>
                 <CardContent className="py-8 text-center">
                   <p className="text-muted-foreground mb-4">No venues available yet</p>
-                  <Link to="/discover">
+                  <Link to="/venues">
                     <Button size="sm">Explore venues</Button>
                   </Link>
                 </CardContent>

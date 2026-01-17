@@ -189,7 +189,7 @@ const DiscoverPage = () => {
         <div className="container py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">Discover Venues</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Venues</h1>
               <p className="text-muted-foreground">
                 {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"} available
               </p>
