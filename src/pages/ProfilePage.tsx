@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { User, Bell, CreditCard, Shield, LogOut, Camera, MapPin, Check, Loader2, ExternalLink, Receipt, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { User, Bell, CreditCard, Shield, LogOut, Camera, MapPin, Check, Loader2, ExternalLink, Receipt, Eye, EyeOff, AlertTriangle, Globe } from "lucide-react";
 import TwoFactorAuth from "@/components/security/TwoFactorAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,8 +27,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useBilling, useOpenBillingPortal, formatCurrency, formatDate, getBrandIcon } from "@/hooks/useBilling";
+import { useCurrency, CURRENCIES } from "@/hooks/useCurrency";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -48,6 +56,7 @@ interface NotificationPreferences {
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading, signOut, refreshProfile } = useAuth();
+  const { currency, setCurrency, detectedCurrency } = useCurrency();
   const [activeTab, setActiveTab] = useState("profile");
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingNotifications, setIsSavingNotifications] = useState(false);
@@ -830,6 +839,57 @@ const ProfilePage = () => {
                       </>
                     )}
                   </Button>
+                </CardContent>
+              </Card>
+
+              {/* Currency Preferences Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    Currency Preferences
+                  </CardTitle>
+                  <CardDescription>
+                    Choose your preferred currency for displaying prices.
+                    {detectedCurrency && detectedCurrency !== currency && (
+                      <span className="block mt-1 text-primary">
+                        Detected currency based on your location: {CURRENCIES[detectedCurrency]?.name} ({detectedCurrency})
+                      </span>
+                    )}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Display Currency</Label>
+                    <Select value={currency} onValueChange={setCurrency}>
+                      <SelectTrigger id="currency" className="w-full">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(CURRENCIES).map(([code, info]) => (
+                          <SelectItem key={code} value={code}>
+                            <span className="flex items-center gap-2">
+                              <span className="font-mono w-6">{info.symbol}</span>
+                              <span>{info.name}</span>
+                              <span className="text-muted-foreground ml-1">({code})</span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      This affects how prices are displayed throughout the app.
+                    </p>
+                  </div>
+                  {detectedCurrency && detectedCurrency !== currency && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrency(detectedCurrency)}
+                    >
+                      Use detected currency ({detectedCurrency})
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

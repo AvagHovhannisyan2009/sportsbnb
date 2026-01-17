@@ -1,0 +1,3 @@
+-- Add currency preference to profiles table
+ALTER TABLE public.profiles 
+ADD COLUMN IF NOT EXISTS preferred_currency text DEFAULT 'USD';
