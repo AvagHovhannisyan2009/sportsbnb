@@ -167,21 +167,23 @@ export const useGameById = (gameId: string | undefined) => {
         .eq("user_id", game.host_id)
         .maybeSingle();
 
-      // Get participants
-      const { data: participants } = await supabase
+      // Get all participants (both confirmed and pending)
+      const { data: allParticipants } = await supabase
         .from("game_participants")
         .select("*")
-        .eq("game_id", gameId)
-        .eq("status", "confirmed");
+        .eq("game_id", gameId);
 
-      const participantUserIds = participants?.map(p => p.user_id) || [];
+      const confirmedParticipants = allParticipants?.filter(p => p.status === "confirmed") || [];
+      const pendingParticipants = allParticipants?.filter(p => p.status === "pending") || [];
+      
+      const allUserIds = allParticipants?.map(p => p.user_id) || [];
       let participantProfiles: Map<string, { full_name: string | null; avatar_url: string | null }> = new Map();
       
-      if (participantUserIds.length > 0) {
+      if (allUserIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, full_name, avatar_url")
-          .in("user_id", participantUserIds);
+          .in("user_id", allUserIds);
         
         participantProfiles = new Map(profiles?.map(p => [p.user_id, p]) || []);
       }
@@ -189,12 +191,16 @@ export const useGameById = (gameId: string | undefined) => {
       return {
         ...game,
         host: hostProfile || { full_name: null, avatar_url: null },
-        participant_count: participants?.length || 0,
-        participants: participants?.map(p => ({
+        participant_count: confirmedParticipants.length,
+        participants: confirmedParticipants.map(p => ({
           ...p,
           profile: participantProfiles.get(p.user_id) || { full_name: null, avatar_url: null },
-        })) || [],
-      } as Game & { participants: GameParticipant[] };
+        })),
+        pending_participants: pendingParticipants.map(p => ({
+          ...p,
+          profile: participantProfiles.get(p.user_id) || { full_name: null, avatar_url: null },
+        })),
+      } as Game & { participants: GameParticipant[]; pending_participants: GameParticipant[] };
     },
     enabled: !!gameId,
   });
@@ -280,6 +286,58 @@ export const useCreateGame = () => {
   });
 };
 
+export const useRequestToJoinGame = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ gameId, userId }: { gameId: string; userId: string }) => {
+      const { data, error } = await supabase
+        .from("game_participants")
+        .insert({
+          game_id: gameId,
+          user_id: userId,
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Notify the host that someone wants to join their game
+      const { data: game } = await supabase
+        .from("games")
+        .select("host_id, title")
+        .eq("id", gameId)
+        .single();
+      
+      const { data: requester } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", userId)
+        .single();
+      
+      if (game && game.host_id !== userId) {
+        await supabase.from("notifications").insert({
+          user_id: game.host_id,
+          type: "game",
+          title: "New Join Request! 🙋",
+          message: `${requester?.full_name || "Someone"} wants to join your game "${game.title}". Review their request.`,
+          link: `/game/${gameId}`,
+        });
+      }
+      
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["game", variables.gameId] });
+      queryClient.invalidateQueries({ queryKey: ["games"] });
+      queryClient.invalidateQueries({ queryKey: ["user-games"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-requests"] });
+    },
+  });
+};
+
+// Legacy hook for direct joining (used after payment confirmation)
 export const useJoinGame = () => {
   const queryClient = useQueryClient();
 
@@ -297,35 +355,82 @@ export const useJoinGame = () => {
 
       if (error) throw error;
       
-      // Notify the host that someone joined their game
-      const { data: game } = await supabase
-        .from("games")
-        .select("host_id, title")
-        .eq("id", gameId)
-        .single();
-      
-      const { data: joiner } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("user_id", userId)
-        .single();
-      
-      if (game && game.host_id !== userId) {
-        await supabase.from("notifications").insert({
-          user_id: game.host_id,
-          type: "game",
-          title: "New Player Joined! 🎮",
-          message: `${joiner?.full_name || "Someone"} has joined your game "${game.title}".`,
-          link: `/games/${gameId}`,
-        });
-      }
-      
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["game", variables.gameId] });
       queryClient.invalidateQueries({ queryKey: ["games"] });
       queryClient.invalidateQueries({ queryKey: ["user-games"] });
+    },
+  });
+};
+
+export const useApproveParticipant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ participantId, gameId, userId }: { participantId: string; gameId: string; userId: string }) => {
+      const { error } = await supabase
+        .from("game_participants")
+        .update({ status: "confirmed" })
+        .eq("id", participantId);
+
+      if (error) throw error;
+      
+      // Notify the user that they've been approved
+      const { data: game } = await supabase
+        .from("games")
+        .select("title")
+        .eq("id", gameId)
+        .single();
+      
+      await supabase.from("notifications").insert({
+        user_id: userId,
+        type: "game",
+        title: "Request Approved! 🎉",
+        message: `Your request to join "${game?.title}" has been approved. See you there!`,
+        link: `/game/${gameId}`,
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["game", variables.gameId] });
+      queryClient.invalidateQueries({ queryKey: ["games"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-requests"] });
+    },
+  });
+};
+
+export const useRejectParticipant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ participantId, gameId, userId }: { participantId: string; gameId: string; userId: string }) => {
+      const { error } = await supabase
+        .from("game_participants")
+        .delete()
+        .eq("id", participantId);
+
+      if (error) throw error;
+      
+      // Notify the user that their request was declined
+      const { data: game } = await supabase
+        .from("games")
+        .select("title")
+        .eq("id", gameId)
+        .single();
+      
+      await supabase.from("notifications").insert({
+        user_id: userId,
+        type: "game",
+        title: "Request Declined",
+        message: `Your request to join "${game?.title}" was not approved.`,
+        link: `/games`,
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["game", variables.gameId] });
+      queryClient.invalidateQueries({ queryKey: ["games"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-requests"] });
     },
   });
 };
