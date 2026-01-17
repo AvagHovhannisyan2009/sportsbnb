@@ -654,6 +654,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_chat_member: {
+        Args: { _room_id: string; _user_id: string }
+        Returns: boolean
+      }
       send_system_message: {
         Args: { p_message: string; p_room_id: string }
         Returns: string
