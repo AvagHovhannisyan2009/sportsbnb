@@ -17,7 +17,7 @@ import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateGame } from "@/hooks/useGames";
 import { useVenues } from "@/hooks/useVenues";
-import { sportTypes, timeSlots } from "@/data/mockData";
+import { sportTypes, timeSlots } from "@/data/constants";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 
