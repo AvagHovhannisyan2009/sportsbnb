@@ -260,6 +260,8 @@ export const useCreateGame = () => {
       skill_level: string;
       location: string;
       venue_id?: string;
+      latitude?: number;
+      longitude?: number;
       game_date: string;
       game_time: string;
       duration_hours: number;

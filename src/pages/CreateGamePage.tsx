@@ -20,6 +20,7 @@ import { useVenues } from "@/hooks/useVenues";
 import { sportTypes, timeSlots } from "@/data/constants";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
+import { LocationAutocomplete, PhotonPlace } from "@/components/location/LocationAutocomplete";
 
 const CreateGamePage = () => {
   const navigate = useNavigate();
@@ -39,6 +40,8 @@ const CreateGamePage = () => {
     durationHours: "1",
     maxPlayers: "10",
     pricePerPlayer: "0",
+    latitude: null as number | null,
+    longitude: null as number | null,
   });
 
   useEffect(() => {
@@ -63,8 +66,20 @@ const CreateGamePage = () => {
         ...prev,
         venueId,
         location: venue.address || venue.city,
+        latitude: venue.latitude || null,
+        longitude: venue.longitude || null,
       }));
     }
+  };
+
+  const handleLocationSelect = (place: PhotonPlace) => {
+    setFormData(prev => ({
+      ...prev,
+      location: place.formattedAddress,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      venueId: "", // Clear venue selection when manually selecting location
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,6 +106,8 @@ const CreateGamePage = () => {
         skill_level: formData.skillLevel,
         location: formData.location.trim(),
         venue_id: formData.venueId || undefined,
+        latitude: formData.latitude || undefined,
+        longitude: formData.longitude || undefined,
         game_date: formData.gameDate,
         game_time: formData.gameTime,
         duration_hours: parseInt(formData.durationHours),
@@ -231,13 +248,20 @@ const CreateGamePage = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="location">Location Address *</Label>
-                  <Input
-                    id="location"
-                    placeholder="Enter location or address"
+                  <LocationAutocomplete
                     value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    maxLength={200}
+                    onSelect={handleLocationSelect}
+                    onClear={() => setFormData(prev => ({ 
+                      ...prev, 
+                      location: "", 
+                      latitude: null, 
+                      longitude: null 
+                    }))}
+                    placeholder="Search for a location..."
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Start typing and select from the suggestions
+                  </p>
                 </div>
               </CardContent>
             </Card>

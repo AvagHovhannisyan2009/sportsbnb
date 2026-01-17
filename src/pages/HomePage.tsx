@@ -60,7 +60,14 @@ const HomePage = () => {
       {/* Hero Section */}
       <section className="relative min-h-[85vh] flex items-center">
         <div className="absolute inset-0 z-0">
-          <img src={heroImage} alt="Sports facilities" className="w-full h-full object-cover" />
+          <img 
+            src={heroImage} 
+            alt="Sports facilities" 
+            className="w-full h-full object-cover"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+          />
           <div className="absolute inset-0 bg-gradient-to-r from-secondary/95 via-secondary/80 to-secondary/40" />
         </div>
         

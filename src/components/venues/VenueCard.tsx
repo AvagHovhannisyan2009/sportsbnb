@@ -12,6 +12,7 @@ interface VenueCardProps {
   rating: number;
   reviewCount: number;
   available: boolean;
+  distance?: number | null;
 }
 
 const VenueCard = ({
@@ -24,6 +25,7 @@ const VenueCard = ({
   rating,
   reviewCount,
   available,
+  distance,
 }: VenueCardProps) => {
   return (
     <Link to={`/venue/${id}`} className="group block">
@@ -59,6 +61,11 @@ const VenueCard = ({
           <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
             <MapPin className="h-4 w-4" />
             <span className="line-clamp-1">{location}</span>
+            {distance !== undefined && distance !== null && (
+              <span className="ml-auto text-xs bg-muted px-1.5 py-0.5 rounded shrink-0">
+                {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
+              </span>
+            )}
           </div>
           <div className="flex flex-wrap gap-1.5 mb-3">
             {sports.slice(0, 3).map((sport) => (
