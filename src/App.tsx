@@ -37,6 +37,7 @@ import TermsOfServicePage from "./pages/TermsOfServicePage";
 import CookiePolicyPage from "./pages/CookiePolicyPage";
 import MyVenuesPage from "./pages/MyVenuesPage";
 import OwnerSchedulePage from "./pages/OwnerSchedulePage";
+import MessagesPage from "./pages/MessagesPage";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/layout/Layout";
 
@@ -65,6 +66,8 @@ const App = () => (
               <Route path="/venue/:id" element={<VenueDetailsPage />} />
               {/* Dashboards */}
               <Route path="/dashboard" element={<ProtectedRoute><PlayerDashboard /></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+              <Route path="/owner-dashboard" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
               <Route path="/owner-dashboard" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
               {/* Venue Management */}
               <Route path="/add-venue" element={<ProtectedRoute><AddVenuePage /></ProtectedRoute>} />

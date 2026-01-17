@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Plus, Gamepad2, Building, Shield } from "lucide-react";
+import { Menu, X, LogOut, Plus, Gamepad2, Building, Shield, MessageCircle } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useAdmin";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
+import { ChatBadge } from "@/components/chat/ChatBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,6 +100,14 @@ const Header = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {/* Messages with badge */}
+              <Link to="/messages" className="relative">
+                <Button variant="ghost" size="icon" className="relative">
+                  <MessageCircle className="h-5 w-5" />
+                  <ChatBadge />
+                </Button>
+              </Link>
 
               <NotificationDropdown />
 
