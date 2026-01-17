@@ -31,6 +31,7 @@ import {
   useRejectParticipant,
   type GameParticipant
 } from "@/hooks/useGames";
+import { ChatButton } from "@/components/chat/ChatButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -546,6 +547,18 @@ const GameDetailsPage = () => {
                         "Request to Join"
                       )}
                     </Button>
+                  )}
+
+                  {/* Chat button - visible to host and participants */}
+                  {(isHost || isParticipant) && !isCancelled && (
+                    <ChatButton
+                      type="game"
+                      referenceId={game.id}
+                      title={`${game.title} - Game Chat`}
+                      userRole={isHost ? "host" : "player"}
+                      variant="outline"
+                      className="w-full"
+                    />
                   )}
 
                   <Button variant="ghost" className="w-full" onClick={handleShare}>
