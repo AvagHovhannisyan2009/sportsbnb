@@ -16,6 +16,16 @@ interface ContactEmailRequest {
   message: string;
 }
 
+// HTML entity escaping to prevent XSS in email templates
+const escapeHtml = (str: string): string => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+};
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -36,18 +46,24 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Escape all user inputs to prevent XSS
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeSubject = escapeHtml(subject);
+    const safeMessage = escapeHtml(message);
+
     // Send notification email to support
     const supportEmailResponse = await resend.emails.send({
       from: "SportsBnB Support <support@sportsbnb.org>",
       to: ["support@sportsbnb.org"],
-      subject: `Contact Form: ${subject}`,
+      subject: `Contact Form: ${safeSubject}`,
       html: `
         <h2>New Contact Form Submission</h2>
-        <p><strong>From:</strong> ${name} (${email})</p>
-        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>From:</strong> ${safeName} (${safeEmail})</p>
+        <p><strong>Subject:</strong> ${safeSubject}</p>
         <hr />
         <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>${safeMessage.replace(/\n/g, '<br>')}</p>
       `,
       reply_to: email,
     });
@@ -74,11 +90,11 @@ const handler = async (req: Request): Promise<Response> => {
       to: [email],
       subject: "We received your message!",
       html: `
-        <h1>Thank you for contacting us, ${name}!</h1>
+        <h1>Thank you for contacting us, ${safeName}!</h1>
         <p>We have received your message and will get back to you as soon as possible.</p>
         <p><strong>Your message:</strong></p>
         <blockquote style="border-left: 3px solid #ccc; padding-left: 10px; margin: 10px 0;">
-          ${message.replace(/\n/g, '<br>')}
+          ${safeMessage.replace(/\n/g, '<br>')}
         </blockquote>
         <p>Best regards,<br>The SportsBnB Team</p>
       `,
