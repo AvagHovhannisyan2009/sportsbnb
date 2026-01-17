@@ -58,10 +58,10 @@ const HomePage = () => {
   ];
 
   const featuredVenues = [
-    { name: "Football", image: venueFootball, count: "120+ venues" },
-    { name: "Tennis", image: venueTennis, count: "85+ venues" },
-    { name: "Basketball", image: venueBasketball, count: "95+ venues" },
-    { name: "Swimming", image: venueSwimming, count: "60+ venues" },
+    { name: "Football", image: venueFootball },
+    { name: "Tennis", image: venueTennis },
+    { name: "Basketball", image: venueBasketball },
+    { name: "Swimming", image: venueSwimming },
   ];
 
   return (
@@ -83,13 +83,6 @@ const HomePage = () => {
 
         <div className="container relative z-10 py-24 md:py-32">
           <div className="max-w-3xl mx-auto text-center mb-12">
-            {/* Trust Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-8">
-              <div className="flex -space-x-1">
-                <div className="w-6 h-6 rounded-full bg-primary/80 flex items-center justify-center text-xs text-white font-medium">5K</div>
-              </div>
-              <span className="text-white/90 text-sm font-medium">Players already booking</span>
-            </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 tracking-tight">
               Organizing sports
@@ -167,8 +160,7 @@ const HomePage = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <h3 className="font-semibold text-white text-xl mb-1">{venue.name}</h3>
-                  <p className="text-white/70 text-sm">{venue.count}</p>
+                  <h3 className="font-semibold text-white text-xl">{venue.name}</h3>
                 </div>
               </Link>
             ))}
@@ -270,10 +262,6 @@ const HomePage = () => {
                   alt="Sports venue"
                   className="w-full h-full object-cover"
                 />
-              </div>
-              <div className="absolute -bottom-8 -left-8 bg-card rounded-2xl p-8 shadow-2xl border border-border max-w-xs">
-                <div className="text-4xl font-bold text-primary mb-2">+40%</div>
-                <p className="text-muted-foreground">Average increase in bookings for venues on Sportsbnb</p>
               </div>
             </div>
           </div>
