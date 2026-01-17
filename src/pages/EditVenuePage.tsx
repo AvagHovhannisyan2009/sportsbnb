@@ -22,7 +22,7 @@ import {
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useVenueById } from "@/hooks/useVenues";
-import { LocationPicker } from "@/components/venues/LocationPicker";
+import { VenueLocationPicker } from "@/components/venues/VenueLocationPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";

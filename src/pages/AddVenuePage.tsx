@@ -13,7 +13,7 @@ import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { StripeConnectBanner } from "@/components/stripe/StripeConnectBanner";
-import { LocationPicker } from "@/components/venues/LocationPicker";
+import { VenueLocationPicker } from "@/components/venues/VenueLocationPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -370,7 +370,7 @@ const AddVenuePage = () => {
               </Card>
 
               {/* Location Picker with Map */}
-              <LocationPicker
+              <VenueLocationPicker
                 address={formData.address}
                 city={formData.city}
                 onAddressChange={(address) => {

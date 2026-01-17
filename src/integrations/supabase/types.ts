@@ -244,6 +244,7 @@ export type Database = {
           notification_preferences: Json | null
           onboarding_completed: boolean
           phone: string | null
+          preferred_currency: string | null
           preferred_sports: string[] | null
           skill_level: string | null
           sports_offered: string[] | null
@@ -270,6 +271,7 @@ export type Database = {
           notification_preferences?: Json | null
           onboarding_completed?: boolean
           phone?: string | null
+          preferred_currency?: string | null
           preferred_sports?: string[] | null
           skill_level?: string | null
           sports_offered?: string[] | null
@@ -296,6 +298,7 @@ export type Database = {
           notification_preferences?: Json | null
           onboarding_completed?: boolean
           phone?: string | null
+          preferred_currency?: string | null
           preferred_sports?: string[] | null
           skill_level?: string | null
           sports_offered?: string[] | null
