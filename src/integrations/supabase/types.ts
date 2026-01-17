@@ -91,6 +91,109 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_members: {
+        Row: {
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          role: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_reported: boolean | null
+          message_text: string
+          message_type: string
+          reported_at: string | null
+          reported_by: string | null
+          room_id: string
+          sender_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_reported?: boolean | null
+          message_text: string
+          message_type?: string
+          reported_at?: string | null
+          reported_by?: string | null
+          room_id: string
+          sender_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_reported?: boolean | null
+          message_text?: string
+          message_type?: string
+          reported_at?: string | null
+          reported_by?: string | null
+          room_id?: string
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          created_at: string
+          id: string
+          reference_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reference_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reference_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       game_participants: {
         Row: {
           game_id: string
@@ -536,12 +639,24 @@ export type Database = {
       }
     }
     Functions: {
+      add_chat_member: {
+        Args: { p_role: string; p_room_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      get_or_create_chat_room: {
+        Args: { p_reference_id: string; p_type: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      send_system_message: {
+        Args: { p_message: string; p_room_id: string }
+        Returns: string
       }
     }
     Enums: {
