@@ -85,7 +85,7 @@ const GameCard = ({ game }: { game: GameWithDistance }) => {
       <div className="flex items-center gap-3">
         <Link to={`/game/${game.id}`} className="flex-1">
           <Button variant={isFull ? "secondary" : "default"} className="w-full" disabled={isFull}>
-            {isFull ? "Full" : "Join Game"}
+            {isFull ? "Full" : "Request to Join"}
           </Button>
         </Link>
         <Link to={`/game/${game.id}`}>

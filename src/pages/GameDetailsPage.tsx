@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
   MapPin, Calendar, Clock, Users, ArrowLeft, Loader2, 
-  Share2, DollarSign, User, AlertTriangle, CreditCard
+  Share2, DollarSign, AlertTriangle, CreditCard, Check, X, UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { useGameById, useJoinGame, useLeaveGame, useCancelGame } from "@/hooks/useGames";
+import { 
+  useGameById, 
+  useRequestToJoinGame,
+  useLeaveGame, 
+  useCancelGame,
+  useApproveParticipant,
+  useRejectParticipant,
+  type GameParticipant
+} from "@/hooks/useGames";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -34,9 +42,11 @@ const GameDetailsPage = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   const { data: game, isLoading } = useGameById(id);
-  const joinGame = useJoinGame();
+  const requestToJoin = useRequestToJoinGame();
   const leaveGame = useLeaveGame();
   const cancelGame = useCancelGame();
+  const approveParticipant = useApproveParticipant();
+  const rejectParticipant = useRejectParticipant();
 
   if (isLoading) {
     return (
@@ -63,6 +73,8 @@ const GameDetailsPage = () => {
 
   const isHost = user?.id === game.host_id;
   const isParticipant = game.participants?.some(p => p.user_id === user?.id);
+  const isPendingParticipant = (game as any).pending_participants?.some((p: GameParticipant) => p.user_id === user?.id);
+  const pendingParticipants = (game as any).pending_participants || [];
   const spotsLeft = game.max_players - (game.participant_count || 0);
   const isFull = spotsLeft <= 0;
   const isCancelled = game.status === "cancelled";
@@ -75,13 +87,13 @@ const GameDetailsPage = () => {
     all: "bg-primary/10 text-primary",
   };
 
-  const handleJoin = async () => {
+  const handleRequestToJoin = async () => {
     if (!user) {
       navigate("/login");
       return;
     }
 
-    // For paid games, redirect to payment
+    // For paid games, redirect to payment (will be approved after payment)
     if (isPaidGame) {
       setIsProcessingPayment(true);
       try {
@@ -92,14 +104,12 @@ const GameDetailsPage = () => {
         if (error) throw new Error(error.message);
 
         if (data.free) {
-          // Game was free (edge case where price changed)
           toast.success("You've joined the game!");
           window.location.reload();
           return;
         }
 
         if (data.url) {
-          // Redirect to Stripe Checkout
           window.location.href = data.url;
         } else {
           throw new Error("No checkout URL received");
@@ -112,12 +122,12 @@ const GameDetailsPage = () => {
       return;
     }
 
-    // For free games, join directly
+    // For free games, send join request
     try {
-      await joinGame.mutateAsync({ gameId: game.id, userId: user.id });
-      toast.success("You've joined the game!");
+      await requestToJoin.mutateAsync({ gameId: game.id, userId: user.id });
+      toast.success("Join request sent! Waiting for host approval.");
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to join game";
+      const message = error instanceof Error ? error.message : "Failed to send join request";
       toast.error(message);
     }
   };
@@ -140,6 +150,32 @@ const GameDetailsPage = () => {
       navigate("/games");
     } catch (error) {
       toast.error("Failed to cancel game");
+    }
+  };
+
+  const handleApprove = async (participant: GameParticipant) => {
+    try {
+      await approveParticipant.mutateAsync({ 
+        participantId: participant.id, 
+        gameId: game.id, 
+        userId: participant.user_id 
+      });
+      toast.success(`${participant.profile?.full_name || "Player"} approved!`);
+    } catch (error) {
+      toast.error("Failed to approve player");
+    }
+  };
+
+  const handleReject = async (participant: GameParticipant) => {
+    try {
+      await rejectParticipant.mutateAsync({ 
+        participantId: participant.id, 
+        gameId: game.id, 
+        userId: participant.user_id 
+      });
+      toast.success("Request declined");
+    } catch (error) {
+      toast.error("Failed to decline request");
     }
   };
 
@@ -288,6 +324,68 @@ const GameDetailsPage = () => {
 
               <Separator />
 
+              {/* Pending Requests - Only visible to host */}
+              {isHost && pendingParticipants.length > 0 && (
+                <>
+                  <div>
+                    <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                      <UserPlus className="h-5 w-5" />
+                      Join Requests ({pendingParticipants.length})
+                    </h2>
+                    <div className="space-y-3">
+                      {pendingParticipants.map((participant: GameParticipant) => {
+                        const initials = participant.profile?.full_name
+                          ?.split(" ")
+                          .map(n => n[0])
+                          .join("")
+                          .toUpperCase() || "U";
+                        
+                        return (
+                          <div 
+                            key={participant.id}
+                            className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border border-border"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={participant.profile?.avatar_url || undefined} />
+                                <AvatarFallback>{initials}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-foreground">
+                                  {participant.profile?.full_name || "Anonymous"}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Requested {format(new Date(participant.joined_at), "MMM d, h:mm a")}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleReject(participant)}
+                                disabled={rejectParticipant.isPending}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm"
+                                onClick={() => handleApprove(participant)}
+                                disabled={approveParticipant.isPending || isFull}
+                              >
+                                <Check className="h-4 w-4 mr-1" />
+                                Approve
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
               {/* Participants */}
               <div>
                 <h2 className="text-xl font-semibold text-foreground mb-4">
@@ -349,6 +447,12 @@ const GameDetailsPage = () => {
                         {game.price_per_player > 0 ? `֏${game.price_per_player.toLocaleString()}` : "Free"}
                       </span>
                     </div>
+                    {pendingParticipants.length > 0 && isHost && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Pending requests</span>
+                        <Badge variant="secondary">{pendingParticipants.length}</Badge>
+                      </div>
+                    )}
                   </div>
 
                   <Separator />
@@ -405,16 +509,31 @@ const GameDetailsPage = () => {
                         "Leave Game"
                       )}
                     </Button>
+                  ) : isPendingParticipant ? (
+                    <div className="space-y-2">
+                      <Button className="w-full" disabled>
+                        <Clock className="h-4 w-4 mr-2" />
+                        Awaiting Approval
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full text-muted-foreground" 
+                        onClick={handleLeave}
+                        disabled={leaveGame.isPending}
+                      >
+                        Cancel Request
+                      </Button>
+                    </div>
                   ) : (
                     <Button 
                       className="w-full" 
-                      onClick={handleJoin}
-                      disabled={isFull || joinGame.isPending || isProcessingPayment}
+                      onClick={handleRequestToJoin}
+                      disabled={isFull || requestToJoin.isPending || isProcessingPayment}
                     >
-                      {joinGame.isPending || isProcessingPayment ? (
+                      {requestToJoin.isPending || isProcessingPayment ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          {isProcessingPayment ? "Processing..." : "Joining..."}
+                          {isProcessingPayment ? "Processing..." : "Requesting..."}
                         </>
                       ) : isFull ? (
                         "Game Full"
@@ -424,7 +543,7 @@ const GameDetailsPage = () => {
                           Pay & Join (֏{game.price_per_player.toLocaleString()})
                         </>
                       ) : (
-                        "Join Game"
+                        "Request to Join"
                       )}
                     </Button>
                   )}
