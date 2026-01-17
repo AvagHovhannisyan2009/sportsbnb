@@ -1,8 +1,11 @@
-import { useState, useMemo } from "react";
-import { Search, Filter, MapPin, X, Loader2 } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Search, Filter, MapPin, X, Loader2, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -10,19 +13,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import VenueCard from "@/components/venues/VenueCard";
 import { sportTypes } from "@/data/constants";
 import Layout from "@/components/layout/Layout";
 import { useVenues, getVenueImage } from "@/hooks/useVenues";
 import { useAuth } from "@/hooks/useAuth";
+import { SmartSearch } from "@/components/search/SmartSearch";
+import { toast } from "sonner";
+
+// Calculate distance between two coordinates using Haversine formula
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
 
 const DiscoverPage = () => {
   const { profile } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSport, setSelectedSport] = useState<string>("");
-  const [selectedPrice, setSelectedPrice] = useState<string>("");
+  const [selectedSport, setSelectedSport] = useState<string>(searchParams.get("sport") || "");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
   const [selectedCity, setSelectedCity] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [searchLocation, setSearchLocation] = useState<{lat: number, lng: number, address: string} | null>(null);
 
   const { data: venues = [], isLoading } = useVenues();
 
@@ -32,41 +59,123 @@ const DiscoverPage = () => {
     return Array.from(citySet).sort();
   }, [venues]);
 
+  // Get max price from venues
+  const maxPrice = useMemo(() => {
+    if (venues.length === 0) return 200000;
+    return Math.max(...venues.map(v => v.price_per_hour), 200000);
+  }, [venues]);
+
+  // Handle URL params for location search
+  useEffect(() => {
+    const lat = searchParams.get("lat");
+    const lng = searchParams.get("lng");
+    const sport = searchParams.get("sport");
+    
+    if (lat && lng) {
+      setSearchLocation({
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        address: "Selected location",
+      });
+    }
+    if (sport) {
+      setSelectedSport(sport);
+    }
+  }, [searchParams]);
+
   // Auto-set city from user profile on first load
-  useState(() => {
-    if (profile?.city && !selectedCity) {
+  useEffect(() => {
+    if (profile?.city && !selectedCity && !searchLocation) {
       const profileCity = profile.city.toLowerCase();
       const matchingCity = cities.find(c => c.toLowerCase() === profileCity);
       if (matchingCity) {
         setSelectedCity(matchingCity);
       }
     }
-  });
+  }, [profile, selectedCity, cities, searchLocation]);
 
-  const filteredVenues = venues.filter((venue) => {
-    const location = venue.address || venue.city;
-    const matchesSearch =
-      venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSport = !selectedSport || venue.sports.includes(selectedSport);
-    const matchesPrice =
-      !selectedPrice ||
-      (selectedPrice === "low" && venue.price_per_hour < 40) ||
-      (selectedPrice === "medium" && venue.price_per_hour >= 40 && venue.price_per_hour < 55) ||
-      (selectedPrice === "high" && venue.price_per_hour >= 55);
-    const matchesCity = !selectedCity || venue.city === selectedCity;
+  const handleNearMe = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
 
-    return matchesSearch && matchesSport && matchesPrice && matchesCity;
-  });
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setSearchLocation(null);
+        setSelectedCity("");
+        setIsLocating(false);
+        toast.success("Showing venues near you!");
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        toast.error("Unable to get your location");
+        setIsLocating(false);
+      }
+    );
+  };
+
+  const handleLocationSearch = (lat: number, lng: number, address: string) => {
+    setSearchLocation({ lat, lng, address });
+    setUserLocation(null);
+    setSelectedCity("");
+    setSearchParams({ lat: lat.toString(), lng: lng.toString() });
+  };
+
+  // Filter and sort venues
+  const filteredVenues = useMemo(() => {
+    let result = venues.filter((venue) => {
+      const location = venue.address || venue.city;
+      const matchesSearch =
+        venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        location.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSport = !selectedSport || venue.sports.includes(selectedSport);
+      const matchesPrice = venue.price_per_hour >= priceRange[0] && venue.price_per_hour <= priceRange[1];
+      const matchesCity = !selectedCity || venue.city === selectedCity;
+
+      return matchesSearch && matchesSport && matchesPrice && matchesCity;
+    });
+
+    // Sort by distance if we have location
+    const locationToUse = searchLocation || (userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null);
+    
+    if (locationToUse) {
+      result = result.map(venue => ({
+        ...venue,
+        distance: venue.latitude && venue.longitude
+          ? calculateDistance(locationToUse.lat, locationToUse.lng, venue.latitude, venue.longitude)
+          : null,
+      })).sort((a, b) => {
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        return a.distance - b.distance;
+      });
+    }
+
+    return result;
+  }, [venues, searchQuery, selectedSport, priceRange, selectedCity, userLocation, searchLocation]);
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedSport("");
-    setSelectedPrice("");
+    setPriceRange([0, maxPrice]);
     setSelectedCity("");
+    setUserLocation(null);
+    setSearchLocation(null);
+    setSearchParams({});
   };
 
-  const hasActiveFilters = searchQuery || selectedSport || selectedPrice || selectedCity;
+  const hasActiveFilters = searchQuery || selectedSport || selectedCity || 
+    priceRange[0] > 0 || priceRange[1] < maxPrice || userLocation || searchLocation;
+
+  const formatPrice = (price: number) => {
+    return `֏${price.toLocaleString()}`;
+  };
 
   return (
     <Layout>
@@ -75,17 +184,30 @@ const DiscoverPage = () => {
         <div className="bg-card border-b border-border sticky top-16 z-40">
           <div className="container py-4">
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search venues or locations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12"
+              {/* Smart Search */}
+              <div className="flex-1">
+                <SmartSearch 
+                  placeholder="Search venues, games, or locations..."
+                  onLocationSelect={handleLocationSearch}
                 />
               </div>
               
               <div className="hidden md:flex items-center gap-3">
+                {/* Near Me Button */}
+                <Button
+                  variant="outline"
+                  onClick={handleNearMe}
+                  disabled={isLocating}
+                  className="gap-2"
+                >
+                  {isLocating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Navigation className="h-4 w-4" />
+                  )}
+                  Near me
+                </Button>
+
                 <Select value={selectedCity} onValueChange={setSelectedCity}>
                   <SelectTrigger className="w-[160px] h-12">
                     <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -113,16 +235,41 @@ const DiscoverPage = () => {
                   </SelectContent>
                 </Select>
                 
-                <Select value={selectedPrice} onValueChange={setSelectedPrice}>
-                  <SelectTrigger className="w-[160px] h-12">
-                    <SelectValue placeholder="Price range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Under $40/hr</SelectItem>
-                    <SelectItem value="medium">$40 - $55/hr</SelectItem>
-                    <SelectItem value="high">$55+/hr</SelectItem>
-                  </SelectContent>
-                </Select>
+                {/* Advanced Price Filter */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="h-12 gap-2">
+                      Price
+                      {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+                        <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                          ✓
+                        </Badge>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80" align="end">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium">Price Range (per hour)</Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
+                        </p>
+                      </div>
+                      <Slider
+                        value={priceRange}
+                        onValueChange={(value) => setPriceRange(value as [number, number])}
+                        max={maxPrice}
+                        min={0}
+                        step={1000}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{formatPrice(0)}</span>
+                        <span>{formatPrice(maxPrice)}</span>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 
                 {hasActiveFilters && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -140,9 +287,7 @@ const DiscoverPage = () => {
                 <Filter className="h-4 w-4 mr-2" />
                 Filters
                 {hasActiveFilters && (
-                  <Badge className="ml-2 h-5 w-5 p-0 justify-center">
-                    {[searchQuery, selectedSport, selectedPrice, selectedCity].filter(Boolean).length}
-                  </Badge>
+                  <Badge className="ml-2 h-5 w-5 p-0 justify-center">!</Badge>
                 )}
               </Button>
             </div>
@@ -150,6 +295,20 @@ const DiscoverPage = () => {
             {/* Mobile Filters */}
             {showFilters && (
               <div className="md:hidden pt-4 flex flex-col gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleNearMe}
+                  disabled={isLocating}
+                  className="gap-2 justify-center"
+                >
+                  {isLocating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Navigation className="h-4 w-4" />
+                  )}
+                  Near me
+                </Button>
+
                 <Select value={selectedSport} onValueChange={setSelectedSport}>
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Sport type" />
@@ -163,16 +322,20 @@ const DiscoverPage = () => {
                   </SelectContent>
                 </Select>
                 
-                <Select value={selectedPrice} onValueChange={setSelectedPrice}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Price range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Under $40/hr</SelectItem>
-                    <SelectItem value="medium">$40 - $55/hr</SelectItem>
-                    <SelectItem value="high">$55+/hr</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2 p-3 border border-border rounded-lg">
+                  <Label className="text-sm font-medium">Price Range</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
+                  </p>
+                  <Slider
+                    value={priceRange}
+                    onValueChange={(value) => setPriceRange(value as [number, number])}
+                    max={maxPrice}
+                    min={0}
+                    step={1000}
+                    className="w-full"
+                  />
+                </div>
                 
                 {hasActiveFilters && (
                   <Button variant="ghost" onClick={clearFilters}>
@@ -180,6 +343,19 @@ const DiscoverPage = () => {
                     Clear all filters
                   </Button>
                 )}
+              </div>
+            )}
+
+            {/* Active location indicator */}
+            {(userLocation || searchLocation) && (
+              <div className="mt-3 flex items-center gap-2">
+                <Badge variant="secondary" className="gap-1">
+                  <Navigation className="h-3 w-3" />
+                  {searchLocation?.address || "Your location"}
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  Sorting by distance
+                </span>
               </div>
             )}
           </div>
@@ -203,7 +379,7 @@ const DiscoverPage = () => {
             </div>
           ) : filteredVenues.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredVenues.map((venue) => (
+              {filteredVenues.map((venue: any) => (
                 <VenueCard
                   key={venue.id}
                   id={venue.id}
@@ -215,6 +391,7 @@ const DiscoverPage = () => {
                   rating={venue.rating}
                   reviewCount={venue.review_count}
                   available={venue.is_active}
+                  distance={venue.distance}
                 />
               ))}
             </div>
