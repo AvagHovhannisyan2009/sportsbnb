@@ -45,12 +45,17 @@ const NotificationItem = ({
   onDelete,
   onNavigate,
 }: NotificationItemProps) => {
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!notification.is_read) {
       onMarkAsRead(notification.id);
     }
     if (notification.link) {
-      onNavigate(notification.link);
+      // Use setTimeout to allow the dropdown to close first
+      setTimeout(() => {
+        onNavigate(notification.link);
+      }, 0);
     }
   };
 
