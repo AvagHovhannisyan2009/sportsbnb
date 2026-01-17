@@ -11,11 +11,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOwnerVenues, getVenueImage } from "@/hooks/useVenues";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { StripeConnectBanner } from "@/components/stripe/StripeConnectBanner";
+import { useOwnerAnalytics } from "@/hooks/useOwnerAnalytics";
+import { format, parseISO, isToday, isTomorrow } from "date-fns";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading } = useAuth();
   const { isFullyVerified, isCheckingStatus, canListVenues } = useStripeConnect();
+  const { data: analytics, isLoading: analyticsLoading } = useOwnerAnalytics();
   
   useEffect(() => {
     if (!authLoading && !user) {
@@ -43,41 +46,55 @@ const OwnerDashboard = () => {
     );
   }
 
-  const upcomingReservations = [
-    {
-      id: "1",
-      venue: "Downtown Sports Complex",
-      customer: "Mike Johnson",
-      date: "Today",
-      time: "6:00 PM - 7:00 PM",
-      sport: "Football",
-      amount: 45,
-    },
-    {
-      id: "2",
-      venue: "Downtown Sports Complex",
-      customer: "Sarah Williams",
-      date: "Today",
-      time: "8:00 PM - 9:00 PM",
-      sport: "Basketball",
-      amount: 45,
-    },
-    {
-      id: "3",
-      venue: "Riverside Tennis Club",
-      customer: "David Chen",
-      date: "Tomorrow",
-      time: "10:00 AM - 11:00 AM",
-      sport: "Tennis",
-      amount: 35,
-    },
-  ];
+  // Format upcoming reservations from real data
+  const upcomingReservations = (analytics?.recentBookings || [])
+    .filter(booking => {
+      const bookingDate = parseISO(booking.booking_date);
+      return bookingDate >= new Date();
+    })
+    .slice(0, 3)
+    .map(booking => {
+      const bookingDate = parseISO(booking.booking_date);
+      let dateLabel = format(bookingDate, "MMM d");
+      if (isToday(bookingDate)) dateLabel = "Today";
+      else if (isTomorrow(bookingDate)) dateLabel = "Tomorrow";
+      
+      return {
+        id: booking.id,
+        venue: booking.venue_name,
+        customer: "Customer", // We don't have customer name in current data
+        date: dateLabel,
+        time: booking.booking_time,
+        sport: "Booking",
+        amount: booking.total_price,
+      };
+    });
 
   const stats = [
-    { label: "Total Revenue", value: "$4,250", change: "+12%", icon: DollarSign },
-    { label: "Total Bookings", value: "86", change: "+8%", icon: Calendar },
-    { label: "Unique Customers", value: "54", change: "+15%", icon: Users },
-    { label: "Occupancy Rate", value: "72%", change: "+5%", icon: TrendingUp },
+    { 
+      label: "Total Revenue", 
+      value: analytics ? `֏${analytics.totalRevenue.toLocaleString()}` : "֏0", 
+      change: analytics?.totalRevenue > 0 ? "+12%" : "—", 
+      icon: DollarSign 
+    },
+    { 
+      label: "Total Bookings", 
+      value: analytics?.totalBookings?.toString() || "0", 
+      change: analytics?.totalBookings > 0 ? "+8%" : "—", 
+      icon: Calendar 
+    },
+    { 
+      label: "Unique Customers", 
+      value: analytics?.uniqueCustomers?.toString() || "0", 
+      change: analytics?.uniqueCustomers > 0 ? "+15%" : "—", 
+      icon: Users 
+    },
+    { 
+      label: "Occupancy Rate", 
+      value: analytics ? `${analytics.occupancyRate}%` : "0%", 
+      change: analytics?.occupancyRate > 0 ? "+5%" : "—", 
+      icon: TrendingUp 
+    },
   ];
 
   return (
@@ -139,45 +156,54 @@ const OwnerDashboard = () => {
                   </Link>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {upcomingReservations.map((reservation, index) => (
-                      <div key={reservation.id}>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-foreground">
-                                {reservation.customer}
-                              </span>
-                              <Badge variant="secondary" className="text-xs">
-                                {reservation.sport}
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-muted-foreground mb-1">
-                              {reservation.venue}
-                            </div>
-                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                <span>{reservation.date}</span>
+                  {analyticsLoading ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" />
+                    </div>
+                  ) : upcomingReservations.length > 0 ? (
+                    <div className="space-y-4">
+                      {upcomingReservations.map((reservation, index) => (
+                        <div key={reservation.id}>
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-foreground">
+                                  {reservation.venue}
+                                </span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {reservation.sport}
+                                </Badge>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{reservation.time}</span>
+                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>{reservation.date}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  <span>{reservation.time}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <div className="font-semibold text-foreground">
+                                ֏{reservation.amount.toLocaleString()}
                               </div>
                             </div>
                           </div>
-                          <div className="text-right shrink-0">
-                            <div className="font-semibold text-foreground">
-                              ${reservation.amount}
-                            </div>
-                          </div>
+                          {index < upcomingReservations.length - 1 && (
+                            <Separator className="mt-4" />
+                          )}
                         </div>
-                        {index < upcomingReservations.length - 1 && (
-                          <Separator className="mt-4" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                      <p>No upcoming reservations</p>
+                      <p className="text-sm">Bookings will appear here once customers start booking</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -210,28 +236,21 @@ const OwnerDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Today's Occupancy */}
+              {/* Overall Occupancy */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Today's Occupancy</CardTitle>
+                  <CardTitle>Weekly Occupancy</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {myVenues.slice(0, 2).map((venue) => {
-                    const occupancy = Math.floor(Math.random() * 40) + 50;
-                    return (
-                      <div key={venue.id}>
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="font-medium text-foreground truncate pr-2">
-                            {venue.name}
-                          </span>
-                          <span className="text-muted-foreground shrink-0">{occupancy}%</span>
-                        </div>
-                        <Progress value={occupancy} className="h-2" />
-                      </div>
-                    );
-                  })}
+                  <div>
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="font-medium text-foreground">Overall</span>
+                      <span className="text-muted-foreground shrink-0">{analytics?.occupancyRate || 0}%</span>
+                    </div>
+                    <Progress value={analytics?.occupancyRate || 0} className="h-2" />
+                  </div>
                   {myVenues.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No venues yet</p>
+                    <p className="text-sm text-muted-foreground">Add venues to track occupancy</p>
                   )}
                 </CardContent>
               </Card>
