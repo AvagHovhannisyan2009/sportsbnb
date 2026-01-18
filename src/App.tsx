@@ -50,6 +50,8 @@ import OwnerBookingsPage from "./pages/owner/OwnerBookingsPage";
 import OwnerPricingPage from "./pages/owner/OwnerPricingPage";
 import OwnerIntegrationsPage from "./pages/owner/OwnerIntegrationsPage";
 import OwnerPoliciesPage from "./pages/owner/OwnerPoliciesPage";
+import OwnerSettingsPage from "./pages/owner/OwnerSettingsPage";
+import CalendarCallbackPage from "./pages/owner/CalendarCallbackPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 
 const queryClient = new QueryClient();
@@ -87,8 +89,9 @@ const App = () => (
               <Route path="/owner/hours" element={<ProtectedRoute><OwnerHoursPage /></ProtectedRoute>} />
               <Route path="/owner/pricing" element={<ProtectedRoute><OwnerPricingPage /></ProtectedRoute>} />
               <Route path="/owner/integrations" element={<ProtectedRoute><OwnerIntegrationsPage /></ProtectedRoute>} />
+              <Route path="/owner/integrations/callback" element={<ProtectedRoute><CalendarCallbackPage /></ProtectedRoute>} />
               <Route path="/owner/policies" element={<ProtectedRoute><OwnerPoliciesPage /></ProtectedRoute>} />
-              <Route path="/owner/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/owner/settings" element={<ProtectedRoute><OwnerSettingsPage /></ProtectedRoute>} />
               
               {/* Auth callback for magic link */}
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
