@@ -4,8 +4,10 @@ import { MessageCircle, Loader2, ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Layout from "@/components/layout/Layout";
 import { ChatDialog } from "@/components/chat/ChatDialog";
+import { OwnerChatView } from "@/components/venue/OwnerChatView";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserChatRooms, useUnreadMessageCount } from "@/hooks/useChat";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,12 +18,13 @@ interface ChatRoomWithDetails {
   room_id: string;
   last_read_at: string | null;
   role: string;
-  type: "game" | "booking";
+  type: "game" | "booking" | "venue";
   reference_id: string;
   title: string;
   subtitle: string;
   updated_at: string;
   unread_count: number;
+  other_user_id?: string;
 }
 
 const MessagesPage = () => {
@@ -80,6 +83,29 @@ const MessagesPage = () => {
           
           title = booking?.venue_name || "Booking Chat";
           subtitle = booking ? `${booking.booking_date} at ${booking.booking_time}` : "";
+        } else if (room.type === "venue") {
+          const { data: venue } = await supabase
+            .from("venues")
+            .select("name, city, address")
+            .eq("id", room.reference_id)
+            .single();
+          
+          title = venue?.name || "Venue Chat";
+          subtitle = venue ? `📍 ${venue.address || venue.city}` : "Question about venue";
+        }
+
+        // Get the other user in venue chats
+        let otherUserId: string | undefined;
+        if (room.type === "venue") {
+          const { data: members } = await supabase
+            .from("chat_members")
+            .select("user_id")
+            .eq("room_id", room.id)
+            .neq("user_id", user!.id);
+          
+          if (members && members.length > 0) {
+            otherUserId = members[0].user_id;
+          }
         }
 
         // Get unread count
@@ -93,12 +119,13 @@ const MessagesPage = () => {
           room_id: room.id,
           last_read_at: membership.last_read_at,
           role: membership.role,
-          type: room.type as "game" | "booking",
+          type: room.type as "game" | "booking" | "venue",
           reference_id: room.reference_id,
           title,
           subtitle,
           updated_at: room.updated_at,
           unread_count: count || 0,
+          other_user_id: otherUserId,
         });
       }
 
@@ -155,7 +182,7 @@ const MessagesPage = () => {
                     <div className="flex items-center gap-4">
                       <Avatar className="h-12 w-12">
                         <AvatarFallback className="bg-primary/10 text-primary">
-                          {room.type === "game" ? "🎮" : "📍"}
+                          {room.type === "game" ? "🎮" : room.type === "venue" ? "📍" : "📅"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
@@ -203,7 +230,20 @@ const MessagesPage = () => {
       </div>
 
       {/* Chat Dialog */}
-      {selectedRoom && (
+      {selectedRoom && selectedRoom.type === "venue" && selectedRoom.role === "owner" ? (
+        <Dialog open={!!selectedRoom} onOpenChange={(open) => !open && setSelectedRoom(null)}>
+          <DialogContent className="sm:max-w-md h-[600px] flex flex-col p-0">
+            <DialogHeader className="px-4 py-3 border-b">
+              <DialogTitle>{selectedRoom.title}</DialogTitle>
+            </DialogHeader>
+            <OwnerChatView
+              roomId={selectedRoom.room_id}
+              venueName={selectedRoom.title}
+              customerId={selectedRoom.other_user_id || ""}
+            />
+          </DialogContent>
+        </Dialog>
+      ) : selectedRoom ? (
         <ChatDialog
           open={!!selectedRoom}
           onOpenChange={(open) => !open && setSelectedRoom(null)}
@@ -212,7 +252,7 @@ const MessagesPage = () => {
           title={selectedRoom.title}
           userRole={selectedRoom.role as "host" | "player" | "owner" | "customer"}
         />
-      )}
+      ) : null}
     </Layout>
   );
 };

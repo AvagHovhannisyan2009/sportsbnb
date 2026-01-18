@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, DollarSign, TrendingUp, Users, Plus, Settings, MapPin, Clock, MoreHorizontal, Loader2, AlertTriangle, ShieldCheck, FileEdit } from "lucide-react";
+import { Calendar, DollarSign, TrendingUp, Users, Plus, Settings, MapPin, Clock, MoreHorizontal, Loader2, AlertTriangle, ShieldCheck, FileEdit, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -219,6 +219,12 @@ const OwnerDashboard = () => {
                     <Button variant="outline" className="w-full justify-start">
                       <Plus className="h-4 w-4 mr-2" />
                       Add New Venue
+                    </Button>
+                  </Link>
+                  <Link to="/messages" className="block">
+                    <Button variant="outline" className="w-full justify-start">
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      View Messages
                     </Button>
                   </Link>
                   <Link to="/owner-schedule" className="block">

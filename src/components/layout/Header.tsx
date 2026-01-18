@@ -215,6 +215,13 @@ const Header = () => {
                       List Venue
                     </Button>
                   </Link>
+                  <Link to="/messages" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start relative">
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Messages
+                      <ChatBadge />
+                    </Button>
+                  </Link>
                   <div className="border-t border-border my-2" />
                   <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">Profile</Button>

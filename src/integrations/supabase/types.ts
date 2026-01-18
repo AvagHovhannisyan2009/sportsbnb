@@ -46,6 +46,41 @@ export type Database = {
           },
         ]
       }
+      blocked_users: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+          reason: string | null
+          room_id: string | null
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          room_id?: string | null
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          room_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_users_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -330,6 +365,33 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      owner_reply_templates: {
+        Row: {
+          created_at: string
+          id: string
+          message_text: string
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_text: string
+          owner_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_text?: string
+          owner_id?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -643,10 +705,9 @@ export type Database = {
         Args: { p_role: string; p_room_id: string; p_user_id: string }
         Returns: undefined
       }
-      get_or_create_chat_room: {
-        Args: { p_reference_id: string; p_type: string }
-        Returns: string
-      }
+      get_or_create_chat_room:
+        | { Args: { p_reference_id: string; p_type: string }; Returns: string }
+        | { Args: { p_reference_id: string; p_type: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -656,6 +717,10 @@ export type Database = {
       }
       is_chat_member: {
         Args: { _room_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_user_blocked: {
+        Args: { p_room_id: string; p_user_id: string }
         Returns: boolean
       }
       send_system_message: {
