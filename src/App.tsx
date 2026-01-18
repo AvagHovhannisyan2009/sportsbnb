@@ -51,8 +51,10 @@ import OwnerPricingPage from "./pages/owner/OwnerPricingPage";
 import OwnerIntegrationsPage from "./pages/owner/OwnerIntegrationsPage";
 import OwnerPoliciesPage from "./pages/owner/OwnerPoliciesPage";
 import OwnerSettingsPage from "./pages/owner/OwnerSettingsPage";
+import OwnerWidgetPage from "./pages/owner/OwnerWidgetPage";
 import CalendarCallbackPage from "./pages/owner/CalendarCallbackPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
+import EmbedBookingPage from "./pages/EmbedBookingPage";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +94,10 @@ const App = () => (
               <Route path="/owner/integrations/callback" element={<ProtectedRoute><CalendarCallbackPage /></ProtectedRoute>} />
               <Route path="/owner/policies" element={<ProtectedRoute><OwnerPoliciesPage /></ProtectedRoute>} />
               <Route path="/owner/settings" element={<ProtectedRoute><OwnerSettingsPage /></ProtectedRoute>} />
+              <Route path="/owner/widget" element={<ProtectedRoute><OwnerWidgetPage /></ProtectedRoute>} />
+              
+              {/* Embed booking widget (public) */}
+              <Route path="/embed/booking/:venueId" element={<EmbedBookingPage />} />
               
               {/* Auth callback for magic link */}
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
