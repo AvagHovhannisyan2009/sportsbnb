@@ -41,6 +41,15 @@ import MessagesPage from "./pages/MessagesPage";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/layout/Layout";
 
+// Owner Dashboard Pages
+import OwnerOverviewPage from "./pages/owner/OwnerOverviewPage";
+import OwnerSchedulePageNew from "./pages/owner/OwnerSchedulePage";
+import OwnerHoursPage from "./pages/owner/OwnerHoursPage";
+import OwnerVenuesPage from "./pages/owner/OwnerVenuesPage";
+import OwnerBookingsPage from "./pages/owner/OwnerBookingsPage";
+import OwnerPricingPage from "./pages/owner/OwnerPricingPage";
+import OwnerIntegrationsPage from "./pages/owner/OwnerIntegrationsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -67,14 +76,26 @@ const App = () => (
               {/* Dashboards */}
               <Route path="/dashboard" element={<ProtectedRoute><PlayerDashboard /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-              <Route path="/owner-dashboard" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
-              <Route path="/owner-dashboard" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
+              
+              {/* New Owner Dashboard Routes */}
+              <Route path="/owner-dashboard" element={<ProtectedRoute><OwnerOverviewPage /></ProtectedRoute>} />
+              <Route path="/owner/venues" element={<ProtectedRoute><OwnerVenuesPage /></ProtectedRoute>} />
+              <Route path="/owner/schedule" element={<ProtectedRoute><OwnerSchedulePageNew /></ProtectedRoute>} />
+              <Route path="/owner/bookings" element={<ProtectedRoute><OwnerBookingsPage /></ProtectedRoute>} />
+              <Route path="/owner/hours" element={<ProtectedRoute><OwnerHoursPage /></ProtectedRoute>} />
+              <Route path="/owner/pricing" element={<ProtectedRoute><OwnerPricingPage /></ProtectedRoute>} />
+              <Route path="/owner/integrations" element={<ProtectedRoute><OwnerIntegrationsPage /></ProtectedRoute>} />
+              <Route path="/owner/policies" element={<ProtectedRoute><OwnerPricingPage /></ProtectedRoute>} />
+              <Route path="/owner/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              
+              {/* Legacy owner routes */}
+              <Route path="/owner-schedule" element={<ProtectedRoute><OwnerSchedulePage /></ProtectedRoute>} />
+              
               {/* Venue Management */}
               <Route path="/add-venue" element={<ProtectedRoute><AddVenuePage /></ProtectedRoute>} />
               <Route path="/venue/:id/edit" element={<ProtectedRoute><EditVenuePage /></ProtectedRoute>} />
               <Route path="/venue/:id/availability" element={<ProtectedRoute><VenueAvailabilityPage /></ProtectedRoute>} />
               <Route path="/my-venues" element={<ProtectedRoute><MyVenuesPage /></ProtectedRoute>} />
-              <Route path="/owner-schedule" element={<ProtectedRoute><OwnerSchedulePage /></ProtectedRoute>} />
               {/* Auth */}
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/login" element={<LoginPage />} />

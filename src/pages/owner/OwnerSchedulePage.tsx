@@ -1,0 +1,184 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, Calendar, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { OwnerLayout } from "@/components/owner/OwnerLayout";
+import { EmptyState } from "@/components/owner/EmptyState";
+import { WeekCalendar } from "@/components/owner/schedule/WeekCalendar";
+import { BookingDetailDrawer } from "@/components/owner/schedule/BookingDetailDrawer";
+import { BlockTimeDialog } from "@/components/owner/schedule/BlockTimeDialog";
+import { useAuth } from "@/hooks/useAuth";
+import { useOwnerVenues } from "@/hooks/useVenues";
+import { useVenueHours, useBlockedDates, useAddBlockedDate } from "@/hooks/useAvailability";
+import { useOwnerAnalytics } from "@/hooks/useOwnerAnalytics";
+import { toast } from "sonner";
+import { format } from "date-fns";
+
+const OwnerSchedulePage = () => {
+  const navigate = useNavigate();
+  const { user, profile, isLoading: authLoading } = useAuth();
+  const { data: myVenues = [], isLoading: venuesLoading } = useOwnerVenues(user?.id);
+  const { data: analytics } = useOwnerAnalytics();
+
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+
+  // Set default venue when data loads
+  useEffect(() => {
+    if (myVenues.length > 0 && !selectedVenueId) {
+      setSelectedVenueId(myVenues[0].id);
+    }
+  }, [myVenues, selectedVenueId]);
+
+  const { data: venueHours = [] } = useVenueHours(selectedVenueId || undefined);
+  const { data: blockedDates = [] } = useBlockedDates(selectedVenueId || undefined);
+  const addBlockedDate = useAddBlockedDate();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/login");
+    }
+    if (!authLoading && user && profile?.user_type !== "owner") {
+      navigate("/dashboard");
+    }
+  }, [user, profile, authLoading, navigate]);
+
+  if (authLoading || venuesLoading) {
+    return (
+      <OwnerLayout title="Schedule">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </OwnerLayout>
+    );
+  }
+
+  const selectedVenue = myVenues.find((v) => v.id === selectedVenueId);
+
+  // Format bookings for calendar
+  const bookings = (analytics?.recentBookings || [])
+    .filter((b: any) => selectedVenueId && b.venue_id === selectedVenueId)
+    .map((b: any) => ({
+      id: b.id,
+      booking_date: b.booking_date,
+      booking_time: b.booking_time || "10:00",
+      duration_hours: b.duration_hours || 1,
+      venue_name: b.venue_name,
+      total_price: b.total_price,
+      status: b.status || "confirmed",
+      customer_name: "Customer",
+    }));
+
+  const handleBlockTime = async (data: any) => {
+    if (!selectedVenueId) return;
+
+    try {
+      await addBlockedDate.mutateAsync({
+        venueId: selectedVenueId,
+        blockedDate: format(data.date, "yyyy-MM-dd"),
+        reason: data.reason || `Blocked: ${data.startTime} - ${data.endTime}`,
+      });
+      toast.success("Time blocked successfully");
+    } catch (error) {
+      toast.error("Failed to block time");
+    }
+  };
+
+  return (
+    <OwnerLayout title="Schedule" subtitle="Manage your venue calendar and bookings">
+      {myVenues.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={Calendar}
+            title="No venues to schedule"
+            description="Add a venue first to manage its schedule and bookings."
+            actionLabel="Add Your First Venue"
+            actionHref="/add-venue"
+          />
+        </Card>
+      ) : (
+        <>
+          {/* Venue Selector */}
+          <div className="mb-6">
+            <Select
+              value={selectedVenueId || ""}
+              onValueChange={setSelectedVenueId}
+            >
+              <SelectTrigger className="w-full max-w-xs">
+                <SelectValue placeholder="Select a venue" />
+              </SelectTrigger>
+              <SelectContent>
+                {myVenues.map((venue) => (
+                  <SelectItem key={venue.id} value={venue.id}>
+                    {venue.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Calendar */}
+          {selectedVenue && (
+            <WeekCalendar
+              bookings={bookings}
+              blockedDates={blockedDates}
+              openingHours={venueHours}
+              resourceName={selectedVenue.name}
+              onBookingClick={(booking) => setSelectedBooking(booking)}
+              onBlockTime={() => setBlockDialogOpen(true)}
+            />
+          )}
+
+          {/* Stats Summary */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground">Today's Bookings</p>
+              <p className="text-2xl font-bold text-foreground">
+                {bookings.filter((b: any) => b.booking_date === format(new Date(), "yyyy-MM-dd")).length}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground">This Week</p>
+              <p className="text-2xl font-bold text-foreground">{bookings.length}</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground">Blocked Days</p>
+              <p className="text-2xl font-bold text-foreground">{blockedDates.length}</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground">Occupancy</p>
+              <p className="text-2xl font-bold text-foreground">
+                {analytics?.occupancyRate || 0}%
+              </p>
+            </Card>
+          </div>
+
+          {/* Booking Detail Drawer */}
+          <BookingDetailDrawer
+            booking={selectedBooking}
+            open={!!selectedBooking}
+            onOpenChange={(open) => !open && setSelectedBooking(null)}
+          />
+
+          {/* Block Time Dialog */}
+          <BlockTimeDialog
+            open={blockDialogOpen}
+            onOpenChange={setBlockDialogOpen}
+            onBlock={handleBlockTime}
+          />
+        </>
+      )}
+    </OwnerLayout>
+  );
+};
+
+export default OwnerSchedulePage;
