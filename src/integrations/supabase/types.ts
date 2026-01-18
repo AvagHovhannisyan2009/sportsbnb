@@ -86,9 +86,15 @@ export type Database = {
           booking_date: string
           booking_time: string
           created_at: string
+          created_by_owner_id: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
           duration_hours: number
           id: string
+          notes: string | null
           payment_intent_id: string | null
+          source: string
           status: string
           total_price: number
           updated_at: string
@@ -100,9 +106,15 @@ export type Database = {
           booking_date: string
           booking_time: string
           created_at?: string
+          created_by_owner_id?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           duration_hours?: number
           id?: string
+          notes?: string | null
           payment_intent_id?: string | null
+          source?: string
           status?: string
           total_price: number
           updated_at?: string
@@ -114,9 +126,15 @@ export type Database = {
           booking_date?: string
           booking_time?: string
           created_at?: string
+          created_by_owner_id?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           duration_hours?: number
           id?: string
+          notes?: string | null
           payment_intent_id?: string | null
+          source?: string
           status?: string
           total_price?: number
           updated_at?: string
@@ -584,6 +602,68 @@ export type Database = {
             foreignKeyName: "venue_hours_venue_id_fkey"
             columns: ["venue_id"]
             isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venue_policies: {
+        Row: {
+          booking_window_days: number
+          buffer_minutes: number
+          cancellation_hours: number
+          cancellation_policy: string
+          checkin_instructions: string | null
+          created_at: string
+          grace_period_minutes: number
+          id: string
+          max_duration_hours: number
+          min_duration_hours: number
+          refund_type: string
+          time_slot_increment: number
+          updated_at: string
+          venue_id: string
+          venue_rules: string | null
+        }
+        Insert: {
+          booking_window_days?: number
+          buffer_minutes?: number
+          cancellation_hours?: number
+          cancellation_policy?: string
+          checkin_instructions?: string | null
+          created_at?: string
+          grace_period_minutes?: number
+          id?: string
+          max_duration_hours?: number
+          min_duration_hours?: number
+          refund_type?: string
+          time_slot_increment?: number
+          updated_at?: string
+          venue_id: string
+          venue_rules?: string | null
+        }
+        Update: {
+          booking_window_days?: number
+          buffer_minutes?: number
+          cancellation_hours?: number
+          cancellation_policy?: string
+          checkin_instructions?: string | null
+          created_at?: string
+          grace_period_minutes?: number
+          id?: string
+          max_duration_hours?: number
+          min_duration_hours?: number
+          refund_type?: string
+          time_slot_increment?: number
+          updated_at?: string
+          venue_id?: string
+          venue_rules?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_policies_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: true
             referencedRelation: "venues"
             referencedColumns: ["id"]
           },

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Calendar, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2, Calendar, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   Select,
@@ -15,6 +14,7 @@ import { EmptyState } from "@/components/owner/EmptyState";
 import { WeekCalendar } from "@/components/owner/schedule/WeekCalendar";
 import { BookingDetailDrawer } from "@/components/owner/schedule/BookingDetailDrawer";
 import { BlockTimeDialog } from "@/components/owner/schedule/BlockTimeDialog";
+import { ManualBookingDialog } from "@/components/owner/schedule/ManualBookingDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerVenues } from "@/hooks/useVenues";
 import { useVenueHours, useBlockedDates, useAddBlockedDate } from "@/hooks/useAvailability";
@@ -26,11 +26,12 @@ const OwnerSchedulePage = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading } = useAuth();
   const { data: myVenues = [], isLoading: venuesLoading } = useOwnerVenues(user?.id);
-  const { data: analytics } = useOwnerAnalytics();
+  const { data: analytics, refetch: refetchAnalytics } = useOwnerAnalytics();
 
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  const [newBookingDialogOpen, setNewBookingDialogOpen] = useState(false);
 
   // Set default venue when data loads
   useEffect(() => {
@@ -66,7 +67,7 @@ const OwnerSchedulePage = () => {
 
   // Format bookings for calendar
   const bookings = (analytics?.recentBookings || [])
-    .filter((b: any) => selectedVenueId && b.venue_id === selectedVenueId)
+    .filter((b: any) => !selectedVenueId || b.venue_id === selectedVenueId)
     .map((b: any) => ({
       id: b.id,
       booking_date: b.booking_date,
@@ -75,7 +76,7 @@ const OwnerSchedulePage = () => {
       venue_name: b.venue_name,
       total_price: b.total_price,
       status: b.status || "confirmed",
-      customer_name: "Customer",
+      customer_name: b.customer_name || "Customer",
     }));
 
   const handleBlockTime = async (data: any) => {
@@ -93,16 +94,21 @@ const OwnerSchedulePage = () => {
     }
   };
 
+  const handleBookingCreated = () => {
+    refetchAnalytics();
+  };
+
   return (
     <OwnerLayout title="Schedule" subtitle="Manage your venue calendar and bookings">
       {myVenues.length === 0 ? (
         <Card>
           <EmptyState
-            icon={Calendar}
+            icon={Building2}
             title="No venues to schedule"
             description="Add a venue first to manage its schedule and bookings."
             actionLabel="Add Your First Venue"
             actionHref="/add-venue"
+            tip="Once you add a venue, you can set opening hours and start accepting bookings."
           />
         </Card>
       ) : (
@@ -135,6 +141,7 @@ const OwnerSchedulePage = () => {
               resourceName={selectedVenue.name}
               onBookingClick={(booking) => setSelectedBooking(booking)}
               onBlockTime={() => setBlockDialogOpen(true)}
+              onNewBooking={() => setNewBookingDialogOpen(true)}
             />
           )}
 
@@ -174,6 +181,15 @@ const OwnerSchedulePage = () => {
             open={blockDialogOpen}
             onOpenChange={setBlockDialogOpen}
             onBlock={handleBlockTime}
+          />
+
+          {/* Manual Booking Dialog */}
+          <ManualBookingDialog
+            open={newBookingDialogOpen}
+            onOpenChange={setNewBookingDialogOpen}
+            venues={myVenues}
+            selectedVenueId={selectedVenueId}
+            onBookingCreated={handleBookingCreated}
           />
         </>
       )}

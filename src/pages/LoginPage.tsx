@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Shield, Mail, Lock, Users } from "lucide-react";
+import { ArrowLeft, Shield, Mail, Lock, Users, Loader2, CheckCircle, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -11,10 +11,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { getGenericAuthError } from "@/lib/authErrors";
 import authHero from "@/assets/auth-hero.jpg";
 
+type AuthMode = "password" | "magic-link";
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode>("password");
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -30,6 +35,14 @@ const LoginPage = () => {
       navigate("/dashboard", { replace: true });
     }
   }, [user, authLoading, navigate]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +73,54 @@ const LoginPage = () => {
 
     // No MFA, proceed with normal login
     await handleLoginSuccess(data.user?.id);
+    setIsLoading(false);
+  };
+
+  const handleMagicLinkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: formData.email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      toast.error(getGenericAuthError(error, 'login'));
+      setIsLoading(false);
+      return;
+    }
+
+    setMagicLinkSent(true);
+    setResendCooldown(30);
+    setIsLoading(false);
+    toast.success("Check your email for the login link!");
+  };
+
+  const handleResendMagicLink = async () => {
+    if (resendCooldown > 0) return;
+    
+    setIsLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      email: formData.email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      toast.error("Failed to resend. Please try again.");
+    } else {
+      setResendCooldown(30);
+      toast.success("New link sent!");
+    }
     setIsLoading(false);
   };
 
@@ -123,6 +184,7 @@ const LoginPage = () => {
     setMfaRequired(false);
     setMfaFactorId(null);
     setTotpCode("");
+    setMagicLinkSent(false);
     supabase.auth.signOut();
   };
 
@@ -131,7 +193,7 @@ const LoginPage = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -205,7 +267,51 @@ const LoginPage = () => {
       {/* Right Panel - Form Side */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 bg-background">
         <div className="w-full max-w-md">
-          {mfaRequired ? (
+          {/* Magic Link Sent State */}
+          {magicLinkSent ? (
+            <>
+              <button
+                onClick={handleBackToLogin}
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-10"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to login
+              </button>
+
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="h-8 w-8 text-emerald-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">Check your email</h2>
+                <p className="text-muted-foreground mb-6">
+                  We sent a login link to<br />
+                  <span className="font-medium text-foreground">{formData.email}</span>
+                </p>
+
+                <Button
+                  variant="outline"
+                  onClick={handleResendMagicLink}
+                  disabled={resendCooldown > 0 || isLoading}
+                  className="w-full"
+                >
+                  {resendCooldown > 0 ? (
+                    `Resend in ${resendCooldown}s`
+                  ) : isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Resend link"
+                  )}
+                </Button>
+
+                <p className="text-sm text-muted-foreground mt-6">
+                  Didn't receive it? Check your spam folder or try another email.
+                </p>
+              </div>
+            </>
+          ) : mfaRequired ? (
             <>
               <button
                 onClick={handleBackToLogin}
@@ -316,6 +422,18 @@ const LoginPage = () => {
                   Continue with Google
                 </Button>
 
+                {/* Magic Link Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-12 text-base font-medium border-2 hover:bg-accent transition-all mt-3"
+                  onClick={() => setAuthMode("magic-link")}
+                  disabled={isLoading}
+                >
+                  <Mail className="h-5 w-5 mr-3" />
+                  Continue with Email Link
+                </Button>
+
                 {/* Divider */}
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
@@ -323,58 +441,105 @@ const LoginPage = () => {
                   </div>
                   <div className="relative flex justify-center">
                     <span className="bg-card px-4 text-xs text-muted-foreground uppercase tracking-wider">
-                      or sign in with email
+                      or sign in with password
                     </span>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors"
-                        required
-                      />
+                {authMode === "magic-link" ? (
+                  <form onSubmit={handleMagicLinkSubmit} className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                      <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors"
-                        required
-                      />
-                    </div>
-                  </div>
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                      size="lg" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Sending link...
+                        </>
+                      ) : (
+                        <>
+                          Send magic link
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
-                    size="lg" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing in..." : "Sign in"}
-                  </Button>
-                </form>
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode("password")}
+                      className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Sign in with password instead
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                        <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">
+                          Forgot password?
+                        </Link>
+                      </div>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="Enter your password"
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                      size="lg" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Signing in..." : "Sign in"}
+                    </Button>
+                  </form>
+                )}
               </div>
 
               {/* Sign Up Link */}
