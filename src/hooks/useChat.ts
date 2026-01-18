@@ -5,7 +5,7 @@ import { useEffect, useCallback } from "react";
 
 export interface ChatRoom {
   id: string;
-  type: "game" | "booking";
+  type: "game" | "booking" | "venue";
   reference_id: string;
   created_at: string;
   updated_at: string;
@@ -39,12 +39,12 @@ export interface ChatMessage {
   sender_role?: string;
 }
 
-// Get or create a chat room for a game/booking
+// Get or create a chat room for a game/booking/venue
 export const useGetOrCreateChatRoom = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ type, referenceId }: { type: "game" | "booking"; referenceId: string }) => {
+    mutationFn: async ({ type, referenceId }: { type: "game" | "booking" | "venue"; referenceId: string }) => {
       const { data, error } = await supabase.rpc("get_or_create_chat_room", {
         p_type: type,
         p_reference_id: referenceId,
@@ -60,7 +60,7 @@ export const useGetOrCreateChatRoom = () => {
 };
 
 // Fetch chat room by type and reference
-export const useChatRoom = (type: "game" | "booking", referenceId: string) => {
+export const useChatRoom = (type: "game" | "booking" | "venue", referenceId: string) => {
   return useQuery({
     queryKey: ["chat-room", type, referenceId],
     queryFn: async () => {

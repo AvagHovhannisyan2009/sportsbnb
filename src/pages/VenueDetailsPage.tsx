@@ -9,6 +9,7 @@ import Layout from "@/components/layout/Layout";
 import BookingDialog from "@/components/booking/BookingDialog";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
+import { VenueChatButton } from "@/components/venue/VenueChatButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useVenueById, getVenueImage } from "@/hooks/useVenues";
 import { useVenueReviews, useUserReviewForVenue, useDeleteReview } from "@/hooks/useReviews";
@@ -412,6 +413,15 @@ const VenueDetailsPage = () => {
                 <p className="text-xs text-muted-foreground text-center mt-4">
                   Free cancellation up to 24 hours before
                 </p>
+
+                {/* Message Owner Button */}
+                <div className="mt-4 pt-4 border-t">
+                  <VenueChatButton
+                    venueId={venue.id}
+                    venueName={venue.name}
+                    ownerId={venue.owner_id}
+                  />
+                </div>
 
                 {selectedDate && selectedTime && (
                   <BookingDialog

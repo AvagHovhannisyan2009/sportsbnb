@@ -20,7 +20,7 @@ import { Loader2 } from "lucide-react";
 interface ChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  type: "game" | "booking";
+  type: "game" | "booking" | "venue";
   referenceId: string;
   title: string;
   userRole?: "host" | "player" | "owner" | "customer";
