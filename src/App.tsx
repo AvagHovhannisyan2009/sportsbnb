@@ -49,6 +49,8 @@ import OwnerVenuesPage from "./pages/owner/OwnerVenuesPage";
 import OwnerBookingsPage from "./pages/owner/OwnerBookingsPage";
 import OwnerPricingPage from "./pages/owner/OwnerPricingPage";
 import OwnerIntegrationsPage from "./pages/owner/OwnerIntegrationsPage";
+import OwnerPoliciesPage from "./pages/owner/OwnerPoliciesPage";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
 
 const queryClient = new QueryClient();
 
@@ -85,8 +87,11 @@ const App = () => (
               <Route path="/owner/hours" element={<ProtectedRoute><OwnerHoursPage /></ProtectedRoute>} />
               <Route path="/owner/pricing" element={<ProtectedRoute><OwnerPricingPage /></ProtectedRoute>} />
               <Route path="/owner/integrations" element={<ProtectedRoute><OwnerIntegrationsPage /></ProtectedRoute>} />
-              <Route path="/owner/policies" element={<ProtectedRoute><OwnerPricingPage /></ProtectedRoute>} />
+              <Route path="/owner/policies" element={<ProtectedRoute><OwnerPoliciesPage /></ProtectedRoute>} />
               <Route path="/owner/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              
+              {/* Auth callback for magic link */}
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
               
               {/* Legacy owner routes */}
               <Route path="/owner-schedule" element={<ProtectedRoute><OwnerSchedulePage /></ProtectedRoute>} />
