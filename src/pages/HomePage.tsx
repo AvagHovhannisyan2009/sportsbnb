@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Calendar, Users, Building, ArrowRight, CheckCircle, Shield, Star, Zap, Target, Eye } from "lucide-react";
+import { Search, Calendar, Users, Building, ArrowRight, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
 import heroImage from "@/assets/hero-sports-premium.jpg";
@@ -335,6 +335,65 @@ const HomePage = () => {
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 Sportsbnb's vision is to become the everyday infrastructure for grassroots sport, where people no longer rely on chaotic chats or fragmented platforms, but instead use one trusted place to discover games, connect with others, and stay active in their daily lives.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Values */}
+      <section className="py-20 md:py-28 bg-muted/30">
+        <div className="container">
+          <div className="text-center mb-14">
+            <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-3">
+              What We Stand For
+            </p>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-5 tracking-tight">
+              Our Values
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              The principles that guide everything we build.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-background rounded-2xl p-8 text-center border border-border/50">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-5">
+                <Globe className="h-8 w-8" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Accessibility</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Sport should be for everyone. We break down barriers that keep people from playing.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-2xl p-8 text-center border border-border/50">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-5">
+                <Heart className="h-8 w-8" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Community</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                We believe in the power of sport to bring people together and build lasting connections.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-2xl p-8 text-center border border-border/50">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-5">
+                <Sparkles className="h-8 w-8" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Simplicity</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Finding and booking a game should take seconds, not hours. We remove friction at every step.
+              </p>
+            </div>
+
+            <div className="bg-background rounded-2xl p-8 text-center border border-border/50">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-5">
+                <Shield className="h-8 w-8" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Trust</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Verified venues, secure payments, and transparent policies you can count on.
               </p>
             </div>
           </div>
