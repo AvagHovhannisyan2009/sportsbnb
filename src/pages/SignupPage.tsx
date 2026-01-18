@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, User, Building, Eye, EyeOff, Check, X } from "lucide-react";
+import { ArrowLeft, User, Building, Eye, EyeOff, Check, X, Mail, Lock, UserCircle, Users, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { getGenericAuthError } from "@/lib/authErrors";
+import authHero from "@/assets/auth-hero.jpg";
 
 const signupSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name is too long"),
@@ -68,11 +69,11 @@ const SignupPage = () => {
 
   const getStrengthLabel = (score: number) => {
     if (score === 0) return { label: "", color: "" };
-    if (score <= 20) return { label: "Very Weak", color: "bg-destructive" };
-    if (score <= 40) return { label: "Weak", color: "bg-orange-500" };
-    if (score <= 60) return { label: "Fair", color: "bg-yellow-500" };
-    if (score <= 80) return { label: "Good", color: "bg-primary/70" };
-    return { label: "Strong", color: "bg-primary" };
+    if (score <= 20) return { label: "Very Weak", color: "text-destructive" };
+    if (score <= 40) return { label: "Weak", color: "text-orange-500" };
+    if (score <= 60) return { label: "Fair", color: "text-yellow-500" };
+    if (score <= 80) return { label: "Good", color: "text-primary/70" };
+    return { label: "Strong", color: "text-primary" };
   };
 
   const validateField = (name: string, value: string) => {
@@ -191,7 +192,7 @@ const SignupPage = () => {
   // Show loading while checking auth state
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -200,271 +201,326 @@ const SignupPage = () => {
   const strengthInfo = getStrengthLabel(passwordStrength.score);
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left Panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-secondary p-12 flex-col justify-between">
-        <div>
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+    <div className="min-h-screen flex">
+      {/* Left Panel - Emotional Brand Side */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Background Image */}
+        <img
+          src={authHero}
+          alt="Athletes playing sports"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
+        
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-between p-10 lg:p-14 w-full">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/30 transition-transform group-hover:scale-105">
               <span className="text-lg font-bold text-primary-foreground">S</span>
             </div>
-            <span className="text-xl font-semibold text-secondary-foreground">Sportsbnb</span>
+            <span className="text-xl font-semibold text-white">Sportsbnb</span>
           </Link>
-        </div>
-        
-        <div className="max-w-md">
-          <h1 className="text-4xl font-bold text-secondary-foreground mb-4">
-            Join thousands of players and venue owners
-          </h1>
-          <p className="text-lg text-secondary-foreground/70">
-            Book sports facilities instantly, find games, and connect with your local sports community.
-          </p>
-        </div>
-        
-        <div className="text-sm text-secondary-foreground/50">
-          © {new Date().getFullYear()} Sportsbnb
+          
+          {/* Hero Text */}
+          <div className="max-w-lg">
+            <h1 className="text-4xl lg:text-5xl font-bold text-white mb-5 leading-tight tracking-tight">
+              Your game is<br />waiting for you.
+            </h1>
+            <p className="text-lg text-white/80 leading-relaxed">
+              Join thousands of players discovering new venues, making friends, and staying active every day.
+            </p>
+            
+            {/* Trust Indicators */}
+            <div className="flex items-center gap-6 mt-8">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                <span className="text-white/70 text-sm">10,000+ players</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <span className="text-white/70 text-sm">Join the community</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Footer */}
+          <div className="text-sm text-white/40">
+            © {new Date().getFullYear()} Sportsbnb. All rights reserved.
+          </div>
         </div>
       </div>
 
-      {/* Right Panel */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
+      {/* Right Panel - Form Side */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-12 bg-background overflow-y-auto">
+        <div className="w-full max-w-md py-8">
+          {/* Mobile Logo */}
+          <div className="lg:hidden mb-8">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+                <span className="text-lg font-bold text-primary-foreground">S</span>
+              </div>
+              <span className="text-xl font-semibold text-foreground">Sportsbnb</span>
+            </Link>
+          </div>
+
           <Link
             to="/"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8"
+            className="hidden lg:inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to home
           </Link>
 
-          <h2 className="text-2xl font-bold text-foreground mb-2">Create your account</h2>
-          <p className="text-muted-foreground mb-8">
+          {/* Welcome Header */}
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Create your account</h2>
+            <p className="text-muted-foreground">
+              Join the growing sports community
+            </p>
+          </div>
+
+          {/* Form Card */}
+          <div className="bg-card rounded-2xl border border-border/50 shadow-xl shadow-black/5 p-6 lg:p-8">
+            {/* Google Sign Up Button */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 text-base font-medium border-2 hover:bg-accent transition-all"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
+              <svg className="h-5 w-5 mr-3" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              Continue with Google
+            </Button>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-card px-4 text-xs text-muted-foreground uppercase tracking-wider">
+                  or sign up with email
+                </span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* User Type Selection */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">I want to</Label>
+                <RadioGroup
+                  value={userType}
+                  onValueChange={(value) => setUserType(value as "player" | "owner")}
+                  className="grid grid-cols-2 gap-3"
+                >
+                  <div>
+                    <RadioGroupItem
+                      value="player"
+                      id="player"
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor="player"
+                      className="flex flex-col items-center justify-center rounded-xl border-2 border-input bg-background p-4 hover:bg-accent/50 hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
+                    >
+                      <User className="h-6 w-6 mb-2 text-muted-foreground peer-data-[state=checked]:text-primary" />
+                      <span className="font-medium text-sm">Play Sports</span>
+                    </Label>
+                  </div>
+                  <div>
+                    <RadioGroupItem
+                      value="owner"
+                      id="owner"
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor="owner"
+                      className="flex flex-col items-center justify-center rounded-xl border-2 border-input bg-background p-4 hover:bg-accent/50 hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
+                    >
+                      <Building className="h-6 w-6 mb-2 text-muted-foreground peer-data-[state=checked]:text-primary" />
+                      <span className="font-medium text-sm">List Venues</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium">
+                  {userType === "player" ? "Full name" : "Business name"}
+                </Label>
+                <div className="relative">
+                  <UserCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder={userType === "player" ? "John Doe" : "My Sports Center"}
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={`h-12 pl-11 text-base border-2 transition-colors ${errors.name ? "border-destructive focus:border-destructive" : "focus:border-primary"}`}
+                    required
+                  />
+                </div>
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`h-12 pl-11 text-base border-2 transition-colors ${errors.email ? "border-destructive focus:border-destructive" : "focus:border-primary"}`}
+                    required
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a strong password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={`h-12 pl-11 pr-11 text-base border-2 transition-colors ${errors.password ? "border-destructive focus:border-destructive" : "focus:border-primary"}`}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {formData.password && (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center gap-2">
+                      <Progress value={passwordStrength.score} className="h-1.5 flex-1" />
+                      {strengthInfo.label && (
+                        <span className={`text-xs font-medium ${strengthInfo.color}`}>
+                          {strengthInfo.label}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      {[
+                        { key: "length", label: "8+ characters" },
+                        { key: "lowercase", label: "Lowercase" },
+                        { key: "uppercase", label: "Uppercase" },
+                        { key: "number", label: "Number" },
+                      ].map(({ key, label }) => (
+                        <div key={key} className="flex items-center gap-1">
+                          {passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? (
+                            <Check className="h-3 w-3 text-primary" />
+                          ) : (
+                            <X className="h-3 w-3 text-muted-foreground" />
+                          )}
+                          <span className={passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? "text-foreground" : "text-muted-foreground"}>
+                            {label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className={`h-12 pl-11 pr-11 text-base border-2 transition-colors ${errors.confirmPassword ? "border-destructive focus:border-destructive" : "focus:border-primary"}`}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+                )}
+                {formData.confirmPassword && formData.password === formData.confirmPassword && !errors.confirmPassword && (
+                  <p className="text-sm text-primary flex items-center gap-1">
+                    <Check className="h-4 w-4" /> Passwords match
+                  </p>
+                )}
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all mt-2" 
+                size="lg" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Creating account..." : "Create account"}
+              </Button>
+
+              <p className="text-xs text-center text-muted-foreground pt-2">
+                By signing up, you agree to our{" "}
+                <Link to="/terms" className="text-primary hover:underline">Terms</Link>
+                {" "}and{" "}
+                <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+              </p>
+            </form>
+          </div>
+
+          {/* Sign In Link */}
+          <p className="text-center text-muted-foreground mt-6">
             Already have an account?{" "}
-            <Link to="/login" className="text-primary hover:underline">
+            <Link to="/login" className="text-primary hover:underline font-semibold">
               Sign in
             </Link>
           </p>
-
-          {/* Google Sign Up Button */}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-12 mb-6"
-            onClick={handleGoogleSignIn}
-            disabled={isLoading}
-          >
-            <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="currentColor"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Continue with Google
-          </Button>
-
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* User Type Selection */}
-            <div className="space-y-3">
-              <Label>I want to</Label>
-              <RadioGroup
-                value={userType}
-                onValueChange={(value) => setUserType(value as "player" | "owner")}
-                className="grid grid-cols-2 gap-4"
-              >
-                <div>
-                  <RadioGroupItem
-                    value="player"
-                    id="player"
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor="player"
-                    className="flex flex-col items-center justify-center rounded-xl border-2 border-input bg-card p-6 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                  >
-                    <User className="h-8 w-8 mb-2" />
-                    <span className="font-medium">Play Sports</span>
-                    <span className="text-xs text-muted-foreground mt-1">Book venues & join games</span>
-                  </Label>
-                </div>
-                <div>
-                  <RadioGroupItem
-                    value="owner"
-                    id="owner"
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor="owner"
-                    className="flex flex-col items-center justify-center rounded-xl border-2 border-input bg-card p-6 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                  >
-                    <Building className="h-8 w-8 mb-2" />
-                    <span className="font-medium">List Venues</span>
-                    <span className="text-xs text-muted-foreground mt-1">Manage your facilities</span>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="name">
-                {userType === "player" ? "Full name" : "Business name"}
-              </Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder={userType === "player" ? "John Doe" : "My Sports Center"}
-                value={formData.name}
-                onChange={handleChange}
-                className={`h-12 ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                required
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                className={`h-12 ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                required
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a strong password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={`h-12 pr-10 ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {formData.password && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Progress value={passwordStrength.score} className="h-2 flex-1" />
-                    {strengthInfo.label && (
-                      <span className={`text-xs font-medium ${passwordStrength.score >= 80 ? "text-primary" : passwordStrength.score >= 60 ? "text-yellow-600" : "text-destructive"}`}>
-                        {strengthInfo.label}
-                      </span>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 text-xs">
-                    {[
-                      { key: "length", label: "8+ characters" },
-                      { key: "lowercase", label: "Lowercase letter" },
-                      { key: "uppercase", label: "Uppercase letter" },
-                      { key: "number", label: "Number" },
-                      { key: "special", label: "Special character" },
-                    ].map(({ key, label }) => (
-                      <div key={key} className="flex items-center gap-1">
-                        {passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? (
-                          <Check className="h-3 w-3 text-primary" />
-                        ) : (
-                          <X className="h-3 w-3 text-muted-foreground" />
-                        )}
-                        <span className={passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? "text-foreground" : "text-muted-foreground"}>
-                          {label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className={`h-12 pr-10 ${errors.confirmPassword ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-destructive">{errors.confirmPassword}</p>
-              )}
-              {formData.confirmPassword && formData.password === formData.confirmPassword && !errors.confirmPassword && (
-                <p className="text-sm text-primary flex items-center gap-1">
-                  <Check className="h-4 w-4" /> Passwords match
-                </p>
-              )}
-            </div>
-
-            <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading || Object.keys(errors).length > 0}>
-              {isLoading ? "Creating account..." : "Create account"}
-            </Button>
-
-            <p className="text-xs text-muted-foreground text-center">
-              By creating an account, you agree to our{" "}
-              <Link to="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link to="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>
-            </p>
-          </form>
         </div>
       </div>
     </div>
