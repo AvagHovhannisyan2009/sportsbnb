@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Calendar } from "lucide-react";
+import { Search, MapPin, Calendar, Navigation } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -10,18 +10,45 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { sportTypes } from "@/data/constants";
+import { toast } from "sonner";
 
 const HeroSearch = () => {
   const navigate = useNavigate();
   const [location, setLocation] = useState("");
   const [sport, setSport] = useState("");
   const [when, setWhen] = useState("");
+  const [isLocating, setIsLocating] = useState(false);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (sport) params.set("sport", sport);
     if (location) params.set("location", location);
     navigate(`/venues?${params.toString()}`);
+  };
+
+  const handleNearMe = () => {
+    setIsLocating(true);
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      setIsLocating(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const params = new URLSearchParams();
+        params.set("lat", latitude.toString());
+        params.set("lng", longitude.toString());
+        if (sport) params.set("sport", sport);
+        setIsLocating(false);
+        navigate(`/venues?${params.toString()}`);
+      },
+      (error) => {
+        setIsLocating(false);
+        toast.error("Unable to get your location. Please enable location services.");
+      }
+    );
   };
 
   return (
@@ -68,7 +95,7 @@ const HeroSearch = () => {
         </div>
 
         {/* When */}
-        <div className="flex-1 flex items-center gap-3 px-4 py-3">
+        <div className="flex-1 flex items-center gap-3 px-4 py-3 md:border-r border-border/50">
           <Calendar className="h-5 w-5 text-muted-foreground shrink-0" />
           <div className="flex-1">
             <label className="text-xs font-medium text-muted-foreground block mb-0.5">
@@ -89,8 +116,18 @@ const HeroSearch = () => {
           </div>
         </div>
 
-        {/* Search Button */}
-        <div className="px-2 py-2">
+        {/* Buttons */}
+        <div className="flex gap-2 px-2 py-2">
+          <Button 
+            onClick={handleNearMe}
+            variant="outline"
+            size="lg"
+            disabled={isLocating}
+            className="h-12 px-4 rounded-xl"
+          >
+            <Navigation className={`h-5 w-5 mr-2 ${isLocating ? 'animate-pulse' : ''}`} />
+            {isLocating ? "Locating..." : "Near me"}
+          </Button>
           <Button 
             onClick={handleSearch}
             size="lg"
