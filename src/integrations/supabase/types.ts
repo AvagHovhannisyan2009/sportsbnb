@@ -144,6 +144,59 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_integrations: {
+        Row: {
+          access_token: string | null
+          calendar_id: string | null
+          created_at: string
+          id: string
+          last_synced_at: string | null
+          provider: string
+          refresh_token: string | null
+          sync_enabled: boolean | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          venue_id: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          calendar_id?: string | null
+          created_at?: string
+          id?: string
+          last_synced_at?: string | null
+          provider: string
+          refresh_token?: string | null
+          sync_enabled?: boolean | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          venue_id?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          calendar_id?: string | null
+          created_at?: string
+          id?: string
+          last_synced_at?: string | null
+          provider?: string
+          refresh_token?: string | null
+          sync_enabled?: boolean | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_integrations_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_members: {
         Row: {
           id: string
