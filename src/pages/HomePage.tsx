@@ -8,6 +8,9 @@ import venueFootball from "@/assets/venue-football.jpg";
 import venueTennis from "@/assets/venue-tennis.jpg";
 import venueBasketball from "@/assets/venue-basketball.jpg";
 import venueSwimming from "@/assets/venue-swimming.jpg";
+import founderAvag from "@/assets/founder-avag.jpg";
+import founderGor from "@/assets/founder-gor.jpg";
+import founderIrina from "@/assets/founder-irina.jpg";
 
 const HomePage = () => {
   const { user, isLoading } = useAuth();
@@ -394,6 +397,73 @@ const HomePage = () => {
               <h3 className="text-xl font-semibold text-foreground mb-3">Trust</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Verified venues, secure payments, and transparent policies you can count on.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Team / Founders */}
+      <section className="py-20 md:py-28 bg-background">
+        <div className="container">
+          <div className="text-center mb-14">
+            <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-3">
+              Meet The Team
+            </p>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-5 tracking-tight">
+              The Founders
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Three ambitious students from Shirakatsy Lyceum on a mission to make sports accessible to everyone.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {/* Avag */}
+            <div className="text-center">
+              <div className="relative mb-6 mx-auto w-40 h-40">
+                <img
+                  src={founderAvag}
+                  alt="Avag Hovhannisyan"
+                  className="w-full h-full object-cover rounded-full border-4 border-primary/20"
+                />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-1">Avag Hovhannisyan</h3>
+              <p className="text-primary font-medium mb-3">Co-Founder</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Passionate about technology and sports, driving the vision to connect players with venues seamlessly.
+              </p>
+            </div>
+
+            {/* Gor */}
+            <div className="text-center">
+              <div className="relative mb-6 mx-auto w-40 h-40">
+                <img
+                  src={founderGor}
+                  alt="Gor Meliksetyan"
+                  className="w-full h-full object-cover rounded-full border-4 border-primary/20"
+                />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-1">Gor Meliksetyan</h3>
+              <p className="text-primary font-medium mb-3">Co-Founder</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Dedicated to building products that solve real problems and create lasting impact in communities.
+              </p>
+            </div>
+
+            {/* Irina */}
+            <div className="text-center">
+              <div className="relative mb-6 mx-auto w-40 h-40">
+                <img
+                  src={founderIrina}
+                  alt="Irina Grigoryan"
+                  className="w-full h-full object-cover rounded-full border-4 border-primary/20"
+                />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-1">Irina Grigoryan</h3>
+              <p className="text-primary font-medium mb-3">Co-Founder</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Focused on user experience and community building, ensuring Sportsbnb serves everyone's needs.
               </p>
             </div>
           </div>
