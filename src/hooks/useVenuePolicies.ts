@@ -15,6 +15,9 @@ export interface VenuePolicy {
   grace_period_minutes: number;
   venue_rules: string | null;
   checkin_instructions: string | null;
+  overtime_rate_per_minute: number;
+  early_arrival_policy: 'not_allowed' | 'free_if_available' | 'charged_normal_rate';
+  early_arrival_minutes: number;
   created_at: string;
   updated_at: string;
 }

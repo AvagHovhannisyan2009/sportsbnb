@@ -16,6 +16,7 @@ import {
   LogOut,
   User,
   Code,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -37,6 +38,7 @@ const navigation = [
   { name: "Bookings", href: "/owner/bookings", icon: Clock },
   { name: "Opening Hours", href: "/owner/hours", icon: Clock },
   { name: "Pricing", href: "/owner/pricing", icon: DollarSign },
+  { name: "Equipment", href: "/owner/equipment", icon: Package },
   { name: "Policies", href: "/owner/policies", icon: FileText },
   { name: "Integrations", href: "/owner/integrations", icon: Link2 },
   { name: "Widget", href: "/owner/widget", icon: Code },

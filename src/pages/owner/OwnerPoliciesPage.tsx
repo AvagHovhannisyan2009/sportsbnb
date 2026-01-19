@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, FileText, Save, Clock, Ban, Info, CheckCircle } from "lucide-react";
+import { Loader2, FileText, Save, Clock, Ban, Info, Timer, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,8 @@ import { EmptyState } from "@/components/owner/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerVenues } from "@/hooks/useVenues";
 import { useVenuePolicy, useSaveVenuePolicy } from "@/hooks/useVenuePolicies";
+import { usePlatformCancellationPolicy } from "@/hooks/useVenueEquipment";
+import { formatPrice } from "@/lib/pricing";
 import { toast } from "sonner";
 
 const OwnerPoliciesPage = () => {
@@ -42,6 +45,9 @@ const OwnerPoliciesPage = () => {
   const [gracePeriodMinutes, setGracePeriodMinutes] = useState(15);
   const [venueRules, setVenueRules] = useState("");
   const [checkinInstructions, setCheckinInstructions] = useState("");
+  const [overtimeRatePerMinute, setOvertimeRatePerMinute] = useState(0);
+  const [earlyArrivalPolicy, setEarlyArrivalPolicy] = useState<'not_allowed' | 'free_if_available' | 'charged_normal_rate'>('not_allowed');
+  const [earlyArrivalMinutes, setEarlyArrivalMinutes] = useState(15);
 
   // Set default venue
   useEffect(() => {
@@ -51,6 +57,7 @@ const OwnerPoliciesPage = () => {
   }, [myVenues, selectedVenueId]);
 
   const { data: existingPolicy, isLoading: policyLoading } = useVenuePolicy(selectedVenueId || undefined);
+  const { data: platformCancellation } = usePlatformCancellationPolicy();
   const savePolicy = useSaveVenuePolicy();
 
   // Load existing policy
@@ -67,6 +74,9 @@ const OwnerPoliciesPage = () => {
       setGracePeriodMinutes(existingPolicy.grace_period_minutes);
       setVenueRules(existingPolicy.venue_rules || "");
       setCheckinInstructions(existingPolicy.checkin_instructions || "");
+      setOvertimeRatePerMinute(existingPolicy.overtime_rate_per_minute || 0);
+      setEarlyArrivalPolicy(existingPolicy.early_arrival_policy || 'not_allowed');
+      setEarlyArrivalMinutes(existingPolicy.early_arrival_minutes || 15);
     } else {
       // Reset to defaults
       setCancellationPolicy("flexible");
@@ -80,6 +90,9 @@ const OwnerPoliciesPage = () => {
       setGracePeriodMinutes(15);
       setVenueRules("");
       setCheckinInstructions("");
+      setOvertimeRatePerMinute(0);
+      setEarlyArrivalPolicy('not_allowed');
+      setEarlyArrivalMinutes(15);
     }
   }, [existingPolicy, selectedVenueId]);
 
@@ -131,6 +144,9 @@ const OwnerPoliciesPage = () => {
           grace_period_minutes: gracePeriodMinutes,
           venue_rules: venueRules || null,
           checkin_instructions: checkinInstructions || null,
+          overtime_rate_per_minute: overtimeRatePerMinute,
+          early_arrival_policy: earlyArrivalPolicy,
+          early_arrival_minutes: earlyArrivalMinutes,
         },
       });
       toast.success("Policies saved successfully!");
@@ -178,15 +194,126 @@ const OwnerPoliciesPage = () => {
             </div>
           ) : (
             <>
+              {/* Platform Cancellation Policy Info */}
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Platform Cancellation Policy:</strong> To ensure fairness, cancellation fees are controlled by the platform.
+                  {platformCancellation && (
+                    <ul className="mt-2 space-y-1 text-sm">
+                      {platformCancellation.tiers.map((tier, idx) => (
+                        <li key={idx}>• {tier.description} (more than {tier.hours_before}h before)</li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="mt-2 text-sm">Maximum fee is capped at {platformCancellation?.max_fee_percentage || 20}%.</p>
+                </AlertDescription>
+              </Alert>
+
+              {/* Overtime & Early Arrival */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Timer className="h-5 w-5 text-primary" />
+                    Overtime & Early Arrival
+                  </CardTitle>
+                  <CardDescription>
+                    Configure charges for customers who stay longer or arrive early
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Overtime Rate (per minute)</Label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">֏</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="10"
+                          value={overtimeRatePerMinute}
+                          onChange={(e) => setOvertimeRatePerMinute(parseFloat(e.target.value) || 0)}
+                          className="w-32"
+                        />
+                        <span className="text-sm text-muted-foreground">per minute</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Charged when customers stay beyond their booked time. 
+                        {overtimeRatePerMinute > 0 && (
+                          <span className="text-foreground font-medium">
+                            {" "}Example: 30 min overtime = {formatPrice(overtimeRatePerMinute * 30)}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <Label>Early Arrival Policy</Label>
+                      <RadioGroup 
+                        value={earlyArrivalPolicy} 
+                        onValueChange={(v) => setEarlyArrivalPolicy(v as typeof earlyArrivalPolicy)}
+                      >
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                          <RadioGroupItem value="not_allowed" id="early-not-allowed" className="mt-0.5" />
+                          <div>
+                            <Label htmlFor="early-not-allowed" className="cursor-pointer">Not Allowed</Label>
+                            <p className="text-sm text-muted-foreground">Customers must wait for their booked time</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                          <RadioGroupItem value="free_if_available" id="early-free" className="mt-0.5" />
+                          <div>
+                            <Label htmlFor="early-free" className="cursor-pointer">Free if Available</Label>
+                            <p className="text-sm text-muted-foreground">Allow early start at no extra charge if slot is open</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                          <RadioGroupItem value="charged_normal_rate" id="early-charged" className="mt-0.5" />
+                          <div>
+                            <Label htmlFor="early-charged" className="cursor-pointer">Charged at Normal Rate</Label>
+                            <p className="text-sm text-muted-foreground">Early time is billed at your regular hourly rate</p>
+                          </div>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {earlyArrivalPolicy !== 'not_allowed' && (
+                      <div className="space-y-2">
+                        <Label>Maximum Early Arrival Window</Label>
+                        <Select 
+                          value={earlyArrivalMinutes.toString()} 
+                          onValueChange={(v) => setEarlyArrivalMinutes(parseInt(v))}
+                        >
+                          <SelectTrigger className="w-48">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="15">15 minutes</SelectItem>
+                            <SelectItem value="30">30 minutes</SelectItem>
+                            <SelectItem value="45">45 minutes</SelectItem>
+                            <SelectItem value="60">1 hour</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          How early customers can start before their booked time
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Cancellation Policy */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Ban className="h-5 w-5 text-primary" />
-                    Cancellation Policy
+                    Cancellation Window
                   </CardTitle>
                   <CardDescription>
-                    Define how far in advance customers must cancel to receive a refund
+                    Set how far in advance customers should cancel (fees are platform-controlled)
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -236,7 +363,7 @@ const OwnerPoliciesPage = () => {
                   <Separator />
 
                   <div className="space-y-3">
-                    <Label>Refund Type</Label>
+                    <Label>Refund Type (within cancellation window)</Label>
                     <RadioGroup value={refundType} onValueChange={setRefundType} className="flex gap-4">
                       <div className="flex items-center gap-2">
                         <RadioGroupItem value="full" id="full-refund" />

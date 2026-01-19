@@ -466,6 +466,30 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_policies: {
+        Row: {
+          created_at: string
+          id: string
+          policy_data: Json
+          policy_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          policy_data?: Json
+          policy_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          policy_data?: Json
+          policy_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -622,6 +646,50 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_equipment: {
+        Row: {
+          created_at: string
+          description: string | null
+          equipment_type: string
+          id: string
+          is_available: boolean
+          name: string
+          price: number
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          equipment_type?: string
+          id?: string
+          is_available?: boolean
+          name: string
+          price?: number
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          equipment_type?: string
+          id?: string
+          is_available?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_equipment_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_hours: {
         Row: {
           close_time: string
@@ -668,10 +736,13 @@ export type Database = {
           cancellation_policy: string
           checkin_instructions: string | null
           created_at: string
+          early_arrival_minutes: number | null
+          early_arrival_policy: string | null
           grace_period_minutes: number
           id: string
           max_duration_hours: number
           min_duration_hours: number
+          overtime_rate_per_minute: number | null
           refund_type: string
           time_slot_increment: number
           updated_at: string
@@ -685,10 +756,13 @@ export type Database = {
           cancellation_policy?: string
           checkin_instructions?: string | null
           created_at?: string
+          early_arrival_minutes?: number | null
+          early_arrival_policy?: string | null
           grace_period_minutes?: number
           id?: string
           max_duration_hours?: number
           min_duration_hours?: number
+          overtime_rate_per_minute?: number | null
           refund_type?: string
           time_slot_increment?: number
           updated_at?: string
@@ -702,10 +776,13 @@ export type Database = {
           cancellation_policy?: string
           checkin_instructions?: string | null
           created_at?: string
+          early_arrival_minutes?: number | null
+          early_arrival_policy?: string | null
           grace_period_minutes?: number
           id?: string
           max_duration_hours?: number
           min_duration_hours?: number
+          overtime_rate_per_minute?: number | null
           refund_type?: string
           time_slot_increment?: number
           updated_at?: string

@@ -48,6 +48,7 @@ import OwnerHoursPage from "./pages/owner/OwnerHoursPage";
 import OwnerVenuesPage from "./pages/owner/OwnerVenuesPage";
 import OwnerBookingsPage from "./pages/owner/OwnerBookingsPage";
 import OwnerPricingPage from "./pages/owner/OwnerPricingPage";
+import OwnerEquipmentPage from "./pages/owner/OwnerEquipmentPage";
 import OwnerIntegrationsPage from "./pages/owner/OwnerIntegrationsPage";
 import OwnerPoliciesPage from "./pages/owner/OwnerPoliciesPage";
 import OwnerSettingsPage from "./pages/owner/OwnerSettingsPage";
@@ -90,6 +91,7 @@ const App = () => (
               <Route path="/owner/bookings" element={<ProtectedRoute><OwnerBookingsPage /></ProtectedRoute>} />
               <Route path="/owner/hours" element={<ProtectedRoute><OwnerHoursPage /></ProtectedRoute>} />
               <Route path="/owner/pricing" element={<ProtectedRoute><OwnerPricingPage /></ProtectedRoute>} />
+              <Route path="/owner/equipment" element={<ProtectedRoute><OwnerEquipmentPage /></ProtectedRoute>} />
               <Route path="/owner/integrations" element={<ProtectedRoute><OwnerIntegrationsPage /></ProtectedRoute>} />
               <Route path="/owner/integrations/callback" element={<ProtectedRoute><CalendarCallbackPage /></ProtectedRoute>} />
               <Route path="/owner/policies" element={<ProtectedRoute><OwnerPoliciesPage /></ProtectedRoute>} />
