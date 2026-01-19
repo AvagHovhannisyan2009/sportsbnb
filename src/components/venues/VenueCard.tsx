@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { MapPin, Star, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 
 interface VenueCardProps {
   id: string;
@@ -80,7 +81,7 @@ const VenueCard = ({
             )}
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-lg font-semibold text-foreground">֏{price.toLocaleString()}</span>
+            <span className="text-lg font-semibold text-foreground">{formatPrice(getCustomerPrice(price))}</span>
             <span className="text-sm text-muted-foreground">/ hour</span>
           </div>
         </div>

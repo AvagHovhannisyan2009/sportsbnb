@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Calendar, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, CreditCard, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 
 interface BookingDialogProps {
   isOpen: boolean;
@@ -153,7 +154,7 @@ const BookingDialog = ({
           </div>
           <div className="flex items-center justify-between py-2 border-t border-border">
             <span className="font-semibold">Total</span>
-            <span className="text-xl font-bold">֏{venue.price.toLocaleString()}</span>
+            <span className="text-xl font-bold">{formatPrice(getCustomerPrice(venue.price))}</span>
           </div>
         </div>
 
@@ -174,7 +175,7 @@ const BookingDialog = ({
             ) : (
               <>
                 <CreditCard className="h-4 w-4 mr-2" />
-                Pay ֏{venue.price.toLocaleString()}
+                Pay {formatPrice(getCustomerPrice(venue.price))}
               </>
             )}
           </Button>
