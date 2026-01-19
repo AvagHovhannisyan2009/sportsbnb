@@ -259,9 +259,9 @@ const AddVenuePage = () => {
       queryClient.invalidateQueries({ queryKey: ["venues"] });
       
       if (saveAsDraft || !canListVenues) {
-        toast.success("Venue saved as draft! Link your bank account to make it visible to players.");
+        toast.success("Venue saved as draft! Link your bank account and await admin approval to make it visible to players.");
       } else {
-        toast.success("Venue saved! It will become visible to players once your identity verification is complete.");
+        toast.success("Venue submitted for review! It will become visible to players once approved by our team.");
       }
       navigate("/owner-dashboard");
     } catch (error) {
@@ -459,10 +459,11 @@ const AddVenuePage = () => {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {SPORTS_OPTIONS.map((sport) => (
-                      <div
+                      <button
+                        type="button"
                         key={sport}
                         onClick={() => handleSportToggle(sport)}
-                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                           formData.sports.includes(sport)
                             ? "border-primary bg-primary/5"
                             : "border-border hover:border-primary/50"
@@ -473,7 +474,7 @@ const AddVenuePage = () => {
                           className="pointer-events-none"
                         />
                         <span className="text-sm font-medium">{sport}</span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                   {validationErrors.sports && (
@@ -491,10 +492,11 @@ const AddVenuePage = () => {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {AMENITY_OPTIONS.map((amenity) => (
-                      <div
+                      <button
+                        type="button"
                         key={amenity}
                         onClick={() => handleAmenityToggle(amenity)}
-                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                           formData.amenities.includes(amenity)
                             ? "border-primary bg-primary/5"
                             : "border-border hover:border-primary/50"
@@ -505,7 +507,7 @@ const AddVenuePage = () => {
                           className="pointer-events-none"
                         />
                         <span className="text-sm font-medium">{amenity}</span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </CardContent>
@@ -530,7 +532,7 @@ const AddVenuePage = () => {
                       onChange={(e) => setFormData({ ...formData, pricePerHour: e.target.value })}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Your earnings: ֏{Math.round((parseFloat(formData.pricePerHour) || 30) * 0.9).toLocaleString()}/hour after platform fee
+                      You will receive exactly ֏{(parseFloat(formData.pricePerHour) || 30).toLocaleString()}/hour. Players pay ֏{Math.ceil((parseFloat(formData.pricePerHour) || 30) * 1.05).toLocaleString()} (includes 5% platform fee).
                     </p>
                   </div>
 

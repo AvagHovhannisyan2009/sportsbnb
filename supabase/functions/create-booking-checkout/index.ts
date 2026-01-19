@@ -136,13 +136,15 @@ serve(async (req) => {
     }
     logStep("Customer lookup complete", { customerId: customerId || "new customer" });
 
-    // Calculate amounts: 90% to owner, 10% platform fee
-    const totalAmountCents = Math.round(price * 100);
-    const platformFeeCents = Math.round(totalAmountCents * 0.10); // 10% platform fee
+    // Calculate amounts: 5% platform fee added on top of owner's price
+    // Owner lists price X, customer pays X * 1.05, owner receives X
+    const ownerAmountCents = Math.round(price * 100);
+    const customerPaysCents = Math.ceil(ownerAmountCents * 1.05); // 5% platform fee
+    const platformFeeCents = customerPaysCents - ownerAmountCents;
     logStep("Amount calculation", { 
-      totalAmountCents, 
+      customerPaysCents, 
       platformFeeCents, 
-      ownerReceives: totalAmountCents - platformFeeCents 
+      ownerReceives: ownerAmountCents 
     });
 
     // Create checkout session with destination charge (90% to owner)
@@ -157,7 +159,7 @@ serve(async (req) => {
               name: `Venue Booking: ${venueName}`,
               description: `${dateLabel} at ${bookingTime} - ${venueLocation}`,
             },
-            unit_amount: totalAmountCents,
+            unit_amount: customerPaysCents,
           },
           quantity: 1,
         },

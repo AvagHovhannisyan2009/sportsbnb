@@ -443,10 +443,11 @@ const EditVenuePage = () => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {SPORTS_OPTIONS.map((sport) => (
-                    <div
+                    <button
+                      type="button"
                       key={sport}
                       onClick={() => handleSportToggle(sport)}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                         formData.sports.includes(sport)
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-primary/50"
@@ -457,7 +458,7 @@ const EditVenuePage = () => {
                         className="pointer-events-none"
                       />
                       <span className="text-sm font-medium">{sport}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </CardContent>
@@ -471,10 +472,11 @@ const EditVenuePage = () => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {AMENITY_OPTIONS.map((amenity) => (
-                    <div
+                    <button
+                      type="button"
                       key={amenity}
                       onClick={() => handleAmenityToggle(amenity)}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                         formData.amenities.includes(amenity)
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-primary/50"
@@ -485,7 +487,7 @@ const EditVenuePage = () => {
                         className="pointer-events-none"
                       />
                       <span className="text-sm font-medium">{amenity}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </CardContent>

@@ -17,6 +17,7 @@ import { useVenueHours, useBlockedDates, DAYS_OF_WEEK } from "@/hooks/useAvailab
 import { timeSlots } from "@/data/constants";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
+import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 
 const VenueDetailsPage = () => {
   const { id } = useParams();
@@ -363,7 +364,7 @@ const VenueDetailsPage = () => {
             <div className="lg:col-span-1">
               <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-3xl font-bold text-foreground">֏{venue.price_per_hour.toLocaleString()}</span>
+                  <span className="text-3xl font-bold text-foreground">{formatPrice(getCustomerPrice(venue.price_per_hour))}</span>
                   <span className="text-muted-foreground">/ hour</span>
                 </div>
 
@@ -386,7 +387,7 @@ const VenueDetailsPage = () => {
                     <Separator />
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-foreground">Total</span>
-                      <span className="text-xl font-bold text-foreground">֏{venue.price_per_hour.toLocaleString()}</span>
+                      <span className="text-xl font-bold text-foreground">{formatPrice(getCustomerPrice(venue.price_per_hour))}</span>
                     </div>
                   </div>
                 ) : (

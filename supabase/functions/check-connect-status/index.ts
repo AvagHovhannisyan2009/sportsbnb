@@ -91,12 +91,8 @@ serve(async (req) => {
         .eq('user_id', user.id);
       logStep("Profile updated with completed onboarding status");
       
-      // Activate all user's venues now that verification is complete
-      await supabaseClient
-        .from('venues')
-        .update({ is_active: true })
-        .eq('owner_id', user.id);
-      logStep("Activated user's venues");
+      // Note: Venues are NOT auto-activated. They require manual admin approval before becoming visible.
+      logStep("Stripe verification complete - venues require admin approval to become visible");
     }
 
     return new Response(JSON.stringify({
