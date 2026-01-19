@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/popover";
 import VenueCard from "@/components/venues/VenueCard";
 import { sportTypes } from "@/data/constants";
+import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 import Layout from "@/components/layout/Layout";
 import { useVenues, getVenueImage } from "@/hooks/useVenues";
 import { useAuth } from "@/hooks/useAuth";
@@ -173,8 +174,9 @@ const DiscoverPage = () => {
   const hasActiveFilters = searchQuery || selectedSport || selectedCity || 
     priceRange[0] > 0 || priceRange[1] < maxPrice || userLocation || searchLocation;
 
-  const formatPrice = (price: number) => {
-    return `֏${price.toLocaleString()}`;
+  // Format customer-facing prices (including 5% fee)
+  const formatCustomerPrice = (ownerPrice: number) => {
+    return formatPrice(getCustomerPrice(ownerPrice));
   };
 
   return (
@@ -252,7 +254,7 @@ const DiscoverPage = () => {
                       <div>
                         <Label className="text-sm font-medium">Price Range (per hour)</Label>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
+                          {formatCustomerPrice(priceRange[0])} - {formatCustomerPrice(priceRange[1])}
                         </p>
                       </div>
                       <Slider
@@ -264,8 +266,8 @@ const DiscoverPage = () => {
                         className="w-full"
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{formatPrice(0)}</span>
-                        <span>{formatPrice(maxPrice)}</span>
+                        <span>{formatCustomerPrice(0)}</span>
+                        <span>{formatCustomerPrice(maxPrice)}</span>
                       </div>
                     </div>
                   </PopoverContent>

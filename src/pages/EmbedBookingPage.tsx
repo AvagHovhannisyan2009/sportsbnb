@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { format, addDays } from "date-fns";
 import { Calendar, Clock, MapPin, DollarSign, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -215,7 +216,7 @@ const EmbedBookingPage = () => {
               Starting from
             </span>
             <span className="text-lg font-semibold" style={{ color: primaryColor }}>
-              ${venue.pricePerHour}/hr
+              {formatPrice(getCustomerPrice(venue.pricePerHour))}/hr
             </span>
           </div>
 
