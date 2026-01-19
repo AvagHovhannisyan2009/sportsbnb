@@ -17,6 +17,7 @@ import {
 import { OwnerLayout } from "@/components/owner/OwnerLayout";
 import { EmptyState } from "@/components/owner/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
+import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 import { useOwnerVenues } from "@/hooks/useVenues";
 import { toast } from "sonner";
 
@@ -143,7 +144,7 @@ const OwnerWidgetPage = () => {
                   <div className="p-4 space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Starting from</span>
-                      <span className="text-lg font-semibold text-primary">${selectedVenue?.price_per_hour}/hr</span>
+                      <span className="text-lg font-semibold text-primary">{formatPrice(getCustomerPrice(selectedVenue?.price_per_hour || 0))}/hr</span>
                     </div>
                     <Button className="w-full" asChild>
                       <a href={`/venue/${selectedVenueId}`} target="_blank" rel="noopener noreferrer">

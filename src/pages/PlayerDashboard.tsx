@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserGames } from "@/hooks/useGames";
 import { useVenues, getVenueImage } from "@/hooks/useVenues";
@@ -509,7 +510,7 @@ const PlayerDashboard = () => {
                                 <span>{venue.rating}</span>
                               </div>
                               <div className="text-sm font-medium text-foreground">
-                                ֏{venue.price_per_hour.toLocaleString()}/hr
+                                {formatPrice(getCustomerPrice(venue.price_per_hour))}/hr
                               </div>
                             </div>
                           </div>
