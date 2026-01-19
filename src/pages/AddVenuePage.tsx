@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -313,11 +313,11 @@ const AddVenuePage = () => {
               </Alert>
             )}
 
-            {/* Requirements Notice */}
+              {/* Requirements Notice */}
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                <strong>Quality Requirements:</strong> All venues must have a detailed description (100+ characters), at least 3 photos of your facility, confirm the location on map, and verify your identity before going live.
+                <strong>Quality Requirements:</strong> All venues must have a detailed description (100+ characters), at least 3 photos of your facility, and confirm the location on map. Your venue will be reviewed by our team before going live.
                 </AlertDescription>
               </Alert>
 
@@ -459,22 +459,38 @@ const AddVenuePage = () => {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {SPORTS_OPTIONS.map((sport) => (
-                      <button
-                        type="button"
+                      <div
                         key={sport}
-                        onClick={() => handleSportToggle(sport)}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleSportToggle(sport);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleSportToggle(sport);
+                          }
+                        }}
                         className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                           formData.sports.includes(sport)
                             ? "border-primary bg-primary/5"
                             : "border-border hover:border-primary/50"
                         }`}
                       >
-                        <Checkbox
-                          checked={formData.sports.includes(sport)}
-                          className="pointer-events-none"
-                        />
+                        <div className={`h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center ${
+                          formData.sports.includes(sport) ? 'bg-primary text-primary-foreground' : ''
+                        }`}>
+                          {formData.sports.includes(sport) && (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
                         <span className="text-sm font-medium">{sport}</span>
-                      </button>
+                      </div>
                     ))}
                   </div>
                   {validationErrors.sports && (
@@ -492,22 +508,38 @@ const AddVenuePage = () => {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {AMENITY_OPTIONS.map((amenity) => (
-                      <button
-                        type="button"
+                      <div
                         key={amenity}
-                        onClick={() => handleAmenityToggle(amenity)}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleAmenityToggle(amenity);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleAmenityToggle(amenity);
+                          }
+                        }}
                         className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                           formData.amenities.includes(amenity)
                             ? "border-primary bg-primary/5"
                             : "border-border hover:border-primary/50"
                         }`}
                       >
-                        <Checkbox
-                          checked={formData.amenities.includes(amenity)}
-                          className="pointer-events-none"
-                        />
+                        <div className={`h-4 w-4 shrink-0 rounded-sm border border-primary flex items-center justify-center ${
+                          formData.amenities.includes(amenity) ? 'bg-primary text-primary-foreground' : ''
+                        }`}>
+                          {formData.amenities.includes(amenity) && (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
                         <span className="text-sm font-medium">{amenity}</span>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 </CardContent>
@@ -526,7 +558,7 @@ const AddVenuePage = () => {
                       id="price"
                       type="number"
                       min="1"
-                      max="1000"
+                      max="300000"
                       placeholder="30"
                       value={formData.pricePerHour}
                       onChange={(e) => setFormData({ ...formData, pricePerHour: e.target.value })}
@@ -550,7 +582,7 @@ const AddVenuePage = () => {
                   <Alert className="border-muted bg-muted/30">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription className="text-sm">
-                      <strong>Note:</strong> Your venue will be saved but will only become visible to players once you complete identity verification. This protects both you and our players.
+                      <strong>Note:</strong> Your venue will be reviewed by our team and will become visible to players once approved. This ensures quality for our community.
                     </AlertDescription>
                   </Alert>
                 </CardContent>
