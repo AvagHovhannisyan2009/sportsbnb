@@ -183,9 +183,9 @@ const DiscoverPage = () => {
     <Layout>
       <div className="bg-background min-h-screen">
         {/* Search Header */}
-        <div className="bg-card border-b border-border sticky top-16 z-40">
-          <div className="container py-4">
-            <div className="flex flex-col md:flex-row gap-4">
+        <div className="bg-card/95 backdrop-blur-sm border-b border-border sticky top-16 z-40">
+          <div className="container py-3 md:py-4">
+            <div className="flex flex-col md:flex-row gap-3 md:gap-4">
               {/* Smart Search */}
               <div className="flex-1">
                 <SmartSearch 
@@ -194,13 +194,13 @@ const DiscoverPage = () => {
                 />
               </div>
               
-              <div className="hidden md:flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2">
                 {/* Near Me Button */}
                 <Button
-                  variant="outline"
+                  variant={userLocation ? "secondary" : "outline"}
                   onClick={handleNearMe}
                   disabled={isLocating}
-                  className="gap-2"
+                  className="h-11 md:h-12 gap-2 rounded-xl"
                 >
                   {isLocating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

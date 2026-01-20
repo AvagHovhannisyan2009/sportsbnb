@@ -176,24 +176,37 @@ const GamesPage = () => {
     <Layout>
       <div className="bg-background min-h-screen">
         {/* Search Header */}
-        <div className="bg-card border-b border-border sticky top-16 z-40">
-          <div className="container py-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search games or locations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12"
-                />
+        <div className="bg-card/95 backdrop-blur-sm border-b border-border sticky top-16 md:top-16 z-40">
+          <div className="container py-3 md:py-4">
+            <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+              {/* Search Input */}
+              <div className="relative flex-1 group">
+                <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-primary/10 to-primary/10 opacity-0 group-focus-within:opacity-100 blur transition-opacity duration-200" />
+                <div className="relative flex items-center h-11 md:h-12 bg-card border border-border rounded-xl overflow-hidden transition-all duration-200 group-focus-within:border-primary/50">
+                  <Search className="ml-3 md:ml-4 h-4 w-4 md:h-5 md:w-5 text-muted-foreground shrink-0" />
+                  <input
+                    placeholder="Search games or locations..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 h-full px-2 md:px-3 bg-transparent text-foreground placeholder:text-muted-foreground/60 focus:outline-none text-sm md:text-base"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="pr-3 md:pr-4 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-4 w-4 md:h-5 md:w-5" />
+                    </button>
+                  )}
+                </div>
               </div>
               
-              <div className="hidden md:flex items-center gap-3">
+              {/* Desktop Filters */}
+              <div className="hidden md:flex items-center gap-2">
                 {userLocation ? (
                   <Button 
                     variant="secondary" 
-                    className="h-12"
+                    className="h-11 md:h-12 rounded-xl"
                     onClick={clearLocation}
                   >
                     <MapPinOff className="h-4 w-4 mr-2" />
@@ -202,7 +215,7 @@ const GamesPage = () => {
                 ) : (
                   <Button 
                     variant="outline" 
-                    className="h-12"
+                    className="h-11 md:h-12 rounded-xl"
                     onClick={handleGetLocation}
                     disabled={isLocating}
                   >
@@ -216,7 +229,7 @@ const GamesPage = () => {
                 )}
                 
                 <Select value={selectedSport} onValueChange={setSelectedSport}>
-                  <SelectTrigger className="w-[160px] h-12">
+                  <SelectTrigger className="w-[140px] h-11 md:h-12 rounded-xl">
                     <SelectValue placeholder="Sport type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -229,7 +242,7 @@ const GamesPage = () => {
                 </Select>
                 
                 <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                  <SelectTrigger className="w-[160px] h-12">
+                  <SelectTrigger className="w-[140px] h-11 md:h-12 rounded-xl">
                     <SelectValue placeholder="Skill level" />
                   </SelectTrigger>
                   <SelectContent>
@@ -241,40 +254,41 @@ const GamesPage = () => {
                 </Select>
                 
                 {hasActiveFilters && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="rounded-xl">
                     <X className="h-4 w-4 mr-1" />
                     Clear
                   </Button>
                 )}
                 
-                <Button onClick={handleCreateGame}>
+                <Button onClick={handleCreateGame} className="rounded-xl">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Game
                 </Button>
               </div>
               
+              {/* Mobile Filter Toggle */}
               <Button
                 variant="outline"
-                className="md:hidden"
+                className="md:hidden h-11 rounded-xl"
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Filters
                 {hasActiveFilters && (
-                  <Badge className="ml-2 h-5 w-5 p-0 justify-center">
-                    {[searchQuery, selectedSport, selectedLevel].filter(Boolean).length}
+                  <Badge className="ml-2 h-5 w-5 p-0 justify-center rounded-full">
+                    {[searchQuery, selectedSport, selectedLevel, userLocation].filter(Boolean).length}
                   </Badge>
                 )}
               </Button>
             </div>
             
-            {/* Mobile Filters */}
+            {/* Mobile Filters Panel */}
             {showFilters && (
-              <div className="md:hidden pt-4 flex flex-col gap-3">
+              <div className="md:hidden pt-3 flex flex-col gap-2 animate-in slide-in-from-top-2 duration-200">
                 {userLocation ? (
                   <Button 
                     variant="secondary" 
-                    className="w-full h-12"
+                    className="h-11 w-full rounded-xl"
                     onClick={clearLocation}
                   >
                     <MapPinOff className="h-4 w-4 mr-2" />
@@ -283,7 +297,7 @@ const GamesPage = () => {
                 ) : (
                   <Button 
                     variant="outline" 
-                    className="w-full h-12"
+                    className="h-11 w-full rounded-xl"
                     onClick={handleGetLocation}
                     disabled={isLocating}
                   >
@@ -296,39 +310,41 @@ const GamesPage = () => {
                   </Button>
                 )}
                 
-                <Select value={selectedSport} onValueChange={setSelectedSport}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Sport type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sportTypes.map((sport) => (
-                      <SelectItem key={sport} value={sport}>
-                        {sport}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Skill level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
-                    <SelectItem value="all">All levels</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="grid grid-cols-2 gap-2">
+                  <Select value={selectedSport} onValueChange={setSelectedSport}>
+                    <SelectTrigger className="h-11 rounded-xl">
+                      <SelectValue placeholder="Sport" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sportTypes.map((sport) => (
+                        <SelectItem key={sport} value={sport}>
+                          {sport}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                    <SelectTrigger className="h-11 rounded-xl">
+                      <SelectValue placeholder="Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="all">All levels</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 {hasActiveFilters && (
-                  <Button variant="ghost" onClick={clearFilters}>
+                  <Button variant="ghost" onClick={clearFilters} className="rounded-xl">
                     <X className="h-4 w-4 mr-1" />
                     Clear all filters
                   </Button>
                 )}
                 
-                <Button className="w-full" onClick={handleCreateGame}>
+                <Button className="w-full rounded-xl" onClick={handleCreateGame}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Game
                 </Button>
