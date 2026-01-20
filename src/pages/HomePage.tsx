@@ -11,76 +11,75 @@ import venueSwimming from "@/assets/venue-swimming.jpg";
 import founderAvag from "@/assets/founder-avag.jpg";
 import founderGor from "@/assets/founder-gor.jpg";
 import founderIrina from "@/assets/founder-irina.jpg";
-
 const HomePage = () => {
-  const { user, isLoading } = useAuth();
-
-  const howItWorks = [
-    {
-      icon: Search,
-      title: "Find Your Venue",
-      description: "Browse verified sports facilities with real-time availability. Filter by sport, location, and amenities.",
-    },
-    {
-      icon: Calendar,
-      title: "Book Instantly",
-      description: "Reserve your slot in seconds. Secure payment, instant confirmation. No phone calls needed.",
-    },
-    {
-      icon: Users,
-      title: "Play Together",
-      description: "Join open games nearby or invite friends. Build your sports community effortlessly.",
-    },
-  ];
-
-  const forOwners = [
-    {
-      icon: Building,
-      title: "List Your Venue",
-      description: "Reach thousands of active players searching for courts, fields, and facilities.",
-    },
-    {
-      icon: Calendar,
-      title: "Manage Bookings",
-      description: "One dashboard for schedule, pricing, and reservations. Save hours every week.",
-    },
-    {
-      icon: CheckCircle,
-      title: "Grow Revenue",
-      description: "Fill empty time slots automatically. Our venues see 40% more bookings on average.",
-    },
-  ];
-
-  const benefits = [
-    { icon: Zap, text: "Instant booking confirmation" },
-    { icon: Shield, text: "Secure payment protection" },
-    { icon: Star, text: "Verified venues with reviews" },
-    { icon: Users, text: "Join games, find teammates" },
-    { icon: Calendar, text: "Real-time availability" },
-    { icon: CheckCircle, text: "24/7 customer support" },
-  ];
-
-  const featuredVenues = [
-    { name: "Football", image: venueFootball },
-    { name: "Tennis", image: venueTennis },
-    { name: "Basketball", image: venueBasketball },
-    { name: "Swimming", image: venueSwimming },
-  ];
-
-  return (
-    <div className="flex flex-col">
+  const {
+    user,
+    isLoading
+  } = useAuth();
+  const howItWorks = [{
+    icon: Search,
+    title: "Find Your Venue",
+    description: "Browse verified sports facilities with real-time availability. Filter by sport, location, and amenities."
+  }, {
+    icon: Calendar,
+    title: "Book Instantly",
+    description: "Reserve your slot in seconds. Secure payment, instant confirmation. No phone calls needed."
+  }, {
+    icon: Users,
+    title: "Play Together",
+    description: "Join open games nearby or invite friends. Build your sports community effortlessly."
+  }];
+  const forOwners = [{
+    icon: Building,
+    title: "List Your Venue",
+    description: "Reach thousands of active players searching for courts, fields, and facilities."
+  }, {
+    icon: Calendar,
+    title: "Manage Bookings",
+    description: "One dashboard for schedule, pricing, and reservations. Save hours every week."
+  }, {
+    icon: CheckCircle,
+    title: "Grow Revenue",
+    description: "Fill empty time slots automatically. Our venues see 40% more bookings on average."
+  }];
+  const benefits = [{
+    icon: Zap,
+    text: "Instant booking confirmation"
+  }, {
+    icon: Shield,
+    text: "Secure payment protection"
+  }, {
+    icon: Star,
+    text: "Verified venues with reviews"
+  }, {
+    icon: Users,
+    text: "Join games, find teammates"
+  }, {
+    icon: Calendar,
+    text: "Real-time availability"
+  }, {
+    icon: CheckCircle,
+    text: "24/7 customer support"
+  }];
+  const featuredVenues = [{
+    name: "Football",
+    image: venueFootball
+  }, {
+    name: "Tennis",
+    image: venueTennis
+  }, {
+    name: "Basketball",
+    image: venueBasketball
+  }, {
+    name: "Swimming",
+    image: venueSwimming
+  }];
+  return <div className="flex flex-col">
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
-          <img
-            src={heroImage}
-            alt="People playing sports together"
-            className="w-full h-full object-cover"
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-          />
+          <img src={heroImage} alt="People playing sports together" className="w-full h-full object-cover" loading="eager" decoding="async" fetchPriority="high" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
         </div>
 
@@ -100,20 +99,13 @@ const HomePage = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               <Link to="/venues">
-                <Button 
-                  size="xl" 
-                  className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl shadow-2xl hover:shadow-primary/25"
-                >
+                <Button size="xl" className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl shadow-2xl hover:shadow-primary/25">
                   Find a place to play
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link to="/games">
-                <Button 
-                  variant="outline" 
-                  size="xl" 
-                  className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 hover:border-white/50"
-                >
+                <Button variant="outline" size="xl" className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 hover:border-white/50">
                   Browse open games
                 </Button>
               </Link>
@@ -150,23 +142,13 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {featuredVenues.map((venue) => (
-              <Link
-                key={venue.name}
-                to="/venues"
-                className="group relative aspect-[4/5] rounded-2xl overflow-hidden"
-              >
-                <img
-                  src={venue.image}
-                  alt={venue.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+            {featuredVenues.map(venue => <Link key={venue.name} to="/venues" className="group relative aspect-[4/5] rounded-2xl overflow-hidden">
+                <img src={venue.image} alt={venue.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
                   <h3 className="font-semibold text-white text-xl">{venue.name}</h3>
                 </div>
-              </Link>
-            ))}
+              </Link>)}
           </div>
         </div>
       </section>
@@ -188,9 +170,8 @@ const HomePage = () => {
 
           <div className="grid md:grid-cols-3 gap-8 md:gap-12 mb-12">
             {howItWorks.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <div key={step.title} className="text-center">
+            const Icon = step.icon;
+            return <div key={step.title} className="text-center">
                   <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 text-primary mb-6">
                     <Icon className="h-10 w-10" />
                     <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
@@ -199,9 +180,8 @@ const HomePage = () => {
                   </div>
                   <h3 className="text-xl font-semibold text-foreground mb-3">{step.title}</h3>
                   <p className="text-muted-foreground leading-relaxed">{step.description}</p>
-                </div>
-              );
-            })}
+                </div>;
+          })}
           </div>
 
           <div className="text-center">
@@ -234,10 +214,9 @@ const HomePage = () => {
               </p>
 
               <div className="space-y-6 mb-10">
-                {forOwners.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div key={item.title} className="flex gap-5">
+                {forOwners.map(item => {
+                const Icon = item.icon;
+                return <div key={item.title} className="flex gap-5">
                       <div className="shrink-0 w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <Icon className="h-7 w-7" />
                       </div>
@@ -245,9 +224,8 @@ const HomePage = () => {
                         <h3 className="font-semibold text-foreground text-lg mb-1">{item.title}</h3>
                         <p className="text-muted-foreground">{item.description}</p>
                       </div>
-                    </div>
-                  );
-                })}
+                    </div>;
+              })}
               </div>
 
               <Link to="/list-venue">
@@ -260,11 +238,7 @@ const HomePage = () => {
 
             <div className="relative">
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-                <img
-                  src={venueBasketball}
-                  alt="Sports venue"
-                  className="w-full h-full object-cover"
-                />
+                <img src={venueBasketball} alt="Sports venue" className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
@@ -287,20 +261,15 @@ const HomePage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {benefits.map((benefit) => {
-              const Icon = benefit.icon;
-              return (
-                <div
-                  key={benefit.text}
-                  className="flex items-center gap-4 bg-secondary-foreground/5 hover:bg-secondary-foreground/10 transition-colors rounded-2xl p-6"
-                >
+            {benefits.map(benefit => {
+            const Icon = benefit.icon;
+            return <div key={benefit.text} className="flex items-center gap-4 bg-secondary-foreground/5 hover:bg-secondary-foreground/10 transition-colors rounded-2xl p-6">
                   <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
                     <Icon className="h-6 w-6 text-primary" />
                   </div>
                   <span className="text-secondary-foreground font-medium text-lg">{benefit.text}</span>
-                </div>
-              );
-            })}
+                </div>;
+          })}
           </div>
         </div>
       </section>
@@ -422,14 +391,10 @@ const HomePage = () => {
             {/* Avag */}
             <div className="text-center">
               <div className="relative mb-6 mx-auto w-40 h-40">
-                <img
-                  src={founderAvag}
-                  alt="Avag Hovhannisyan"
-                  className="w-full h-full object-cover rounded-full border-4 border-primary/20"
-                />
+                <img src={founderAvag} alt="Avag Hovhannisyan" className="w-full h-full object-cover rounded-full border-4 border-primary/20" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-1">Avag Hovhannisyan</h3>
-              <p className="text-primary font-medium mb-3">Co-Founder</p>
+              <p className="text-primary font-medium mb-3">Founder</p>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 Passionate about technology and sports, driving the vision to connect players with venues seamlessly.
               </p>
@@ -438,11 +403,7 @@ const HomePage = () => {
             {/* Gor */}
             <div className="text-center">
               <div className="relative mb-6 mx-auto w-40 h-40">
-                <img
-                  src={founderGor}
-                  alt="Gor Meliksetyan"
-                  className="w-full h-full object-cover rounded-full border-4 border-primary/20"
-                />
+                <img src={founderGor} alt="Gor Meliksetyan" className="w-full h-full object-cover rounded-full border-4 border-primary/20" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-1">Gor Meliksetyan</h3>
               <p className="text-primary font-medium mb-3">Co-Founder</p>
@@ -454,11 +415,7 @@ const HomePage = () => {
             {/* Irina */}
             <div className="text-center">
               <div className="relative mb-6 mx-auto w-40 h-40">
-                <img
-                  src={founderIrina}
-                  alt="Irina Grigoryan"
-                  className="w-full h-full object-cover rounded-full border-4 border-primary/20"
-                />
+                <img src={founderIrina} alt="Irina Grigoryan" className="w-full h-full object-cover rounded-full border-4 border-primary/20" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-1">Irina Grigoryan</h3>
               <p className="text-primary font-medium mb-3">Co-Founder</p>
@@ -482,21 +439,17 @@ const HomePage = () => {
               Your next game is just a few clicks away.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {!isLoading && !user ? (
-                <Link to="/signup">
+              {!isLoading && !user ? <Link to="/signup">
                   <Button size="xl" className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl">
                     Get started free
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                </Link>
-              ) : (
-                <Link to="/dashboard">
+                </Link> : <Link to="/dashboard">
                   <Button size="xl" className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl">
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                </Link>
-              )}
+                </Link>}
               <Link to="/venues">
                 <Button variant="outline" size="xl" className="w-full sm:w-auto h-16 px-10 text-lg rounded-xl">
                   Explore venues
@@ -506,8 +459,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-    </div>
-  );
+    </div>;
 };
-
 export default HomePage;
