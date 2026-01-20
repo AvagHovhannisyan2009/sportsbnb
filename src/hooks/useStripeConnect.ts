@@ -8,9 +8,6 @@ interface ConnectStatus {
   onboardingComplete: boolean;
   payoutsEnabled: boolean;
   chargesEnabled: boolean;
-  identityVerified: boolean;
-  pendingVerification: boolean;
-  fullyVerified: boolean;
   accountId?: string;
 }
 
@@ -87,9 +84,8 @@ export const useStripeConnect = () => {
     isCheckingStatus,
     startOnboarding,
     checkConnectStatus,
-    canListVenues: connectStatus?.onboardingComplete === true,
-    isFullyVerified: connectStatus?.fullyVerified === true,
-    identityVerified: connectStatus?.identityVerified === true,
-    pendingVerification: connectStatus?.pendingVerification === true,
+    // Simplified: just check if bank account is linked for payouts
+    canReceivePayouts: connectStatus?.payoutsEnabled === true,
+    canListVenues: true, // Always allow listing venues - no Stripe requirement
   };
 };

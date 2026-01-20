@@ -8,6 +8,7 @@ export interface Venue {
   description: string | null;
   address: string | null;
   city: string;
+  zip_code: string | null;
   image_url: string | null;
   sports: string[];
   price_per_hour: number;
