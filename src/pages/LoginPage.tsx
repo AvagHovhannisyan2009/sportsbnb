@@ -265,24 +265,24 @@ const LoginPage = () => {
       </div>
 
       {/* Right Panel - Form Side */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 bg-background">
+      <div className="flex-1 flex items-center justify-center px-4 py-6 sm:p-10 lg:p-16 bg-background">
         <div className="w-full max-w-md">
           {/* Magic Link Sent State */}
           {magicLinkSent ? (
             <>
               <button
                 onClick={handleBackToLogin}
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-10"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 md:mb-10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to login
               </button>
 
               <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle className="h-8 w-8 text-emerald-600" />
+                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4 md:mb-6">
+                  <CheckCircle className="h-7 w-7 md:h-8 md:w-8 text-emerald-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">Check your email</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-2">Check your email</h2>
                 <p className="text-muted-foreground mb-6">
                   We sent a login link to<br />
                   <span className="font-medium text-foreground">{formData.email}</span>
@@ -315,63 +315,63 @@ const LoginPage = () => {
             <>
               <button
                 onClick={handleBackToLogin}
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-10"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 md:mb-10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to login
               </button>
 
-              <div className="flex items-center gap-4 mb-8">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-                  <Shield className="h-7 w-7 text-primary" />
+              <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                <div className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-2xl bg-primary/10">
+                  <Shield className="h-6 w-6 md:h-7 md:w-7 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">Two-factor authentication</h2>
-                  <p className="text-muted-foreground">Enter the code from your authenticator app</p>
+                  <h2 className="text-xl md:text-2xl font-bold text-foreground">Two-factor auth</h2>
+                  <p className="text-sm md:text-base text-muted-foreground">Enter your authenticator code</p>
                 </div>
               </div>
 
-              <div className="space-y-8">
+              <div className="space-y-6 md:space-y-8">
                 <div className="flex justify-center">
                   <InputOTP
                     maxLength={6}
                     value={totpCode}
                     onChange={setTotpCode}
                   >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
+                    <InputOTPGroup className="gap-1.5 md:gap-2">
+                      <InputOTPSlot index={0} className="w-10 h-12 md:w-12 md:h-14 text-lg" />
+                      <InputOTPSlot index={1} className="w-10 h-12 md:w-12 md:h-14 text-lg" />
+                      <InputOTPSlot index={2} className="w-10 h-12 md:w-12 md:h-14 text-lg" />
+                      <InputOTPSlot index={3} className="w-10 h-12 md:w-12 md:h-14 text-lg" />
+                      <InputOTPSlot index={4} className="w-10 h-12 md:w-12 md:h-14 text-lg" />
+                      <InputOTPSlot index={5} className="w-10 h-12 md:w-12 md:h-14 text-lg" />
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
 
                 <Button 
                   onClick={handleMfaVerify} 
-                  className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                  className="w-full h-11 md:h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
                   size="lg" 
                   disabled={totpCode.length !== 6 || isVerifyingMfa}
                 >
                   {isVerifyingMfa ? "Verifying..." : "Verify & Continue"}
                 </Button>
 
-                <p className="text-center text-sm text-muted-foreground">
-                  Open your authenticator app to view your verification code
+                <p className="text-center text-xs md:text-sm text-muted-foreground">
+                  Open your authenticator app to view your code
                 </p>
               </div>
             </>
           ) : (
             <>
               {/* Mobile Logo */}
-              <div className="lg:hidden mb-8">
+              <div className="lg:hidden mb-6">
                 <Link to="/" className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                    <span className="text-lg font-bold text-primary-foreground">S</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                    <span className="text-base font-bold text-primary-foreground">S</span>
                   </div>
-                  <span className="text-xl font-semibold text-foreground">Sportsbnb</span>
+                  <span className="text-lg font-semibold text-foreground">Sportsbnb</span>
                 </Link>
               </div>
 
@@ -384,20 +384,20 @@ const LoginPage = () => {
               </Link>
 
               {/* Welcome Header */}
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Welcome back</h2>
-                <p className="text-muted-foreground">
+              <div className="mb-5 md:mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1 md:mb-2 tracking-tight">Welcome back</h2>
+                <p className="text-sm md:text-base text-muted-foreground">
                   Sign in to continue your sports journey
                 </p>
               </div>
 
               {/* Form Card */}
-              <div className="bg-card rounded-2xl border border-border/50 shadow-xl shadow-black/5 p-8">
+              <div className="bg-card rounded-xl md:rounded-2xl border border-border/50 shadow-xl shadow-black/5 p-5 md:p-8">
                 {/* Google Sign In Button */}
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-12 text-base font-medium border-2 hover:bg-accent transition-all"
+                  className="w-full h-11 md:h-12 text-sm md:text-base font-medium border-2 hover:bg-accent transition-all"
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
                 >
@@ -426,39 +426,40 @@ const LoginPage = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-12 text-base font-medium border-2 hover:bg-accent transition-all mt-3"
+                  className="w-full h-11 md:h-12 text-sm md:text-base font-medium border-2 hover:bg-accent transition-all mt-2 md:mt-3"
                   onClick={() => setAuthMode("magic-link")}
                   disabled={isLoading}
                 >
-                  <Mail className="h-5 w-5 mr-3" />
+                  <Mail className="h-4 w-4 md:h-5 md:w-5 mr-2 md:mr-3" />
                   Continue with Email Link
                 </Button>
 
                 {/* Divider */}
-                <div className="relative my-6">
+                <div className="relative my-4 md:my-6">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="bg-card px-4 text-xs text-muted-foreground uppercase tracking-wider">
+                    <span className="bg-card px-3 md:px-4 text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">
                       or sign in with password
                     </span>
                   </div>
                 </div>
 
+
                 {authMode === "magic-link" ? (
-                  <form onSubmit={handleMagicLinkSubmit} className="space-y-5">
-                    <div className="space-y-2">
+                  <form onSubmit={handleMagicLinkSubmit} className="space-y-4 md:space-y-5">
+                    <div className="space-y-1.5 md:space-y-2">
                       <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
                       <div className="relative">
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Mail className="absolute left-3 md:left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                         <Input
                           id="email"
                           type="email"
                           placeholder="you@example.com"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors"
+                          className="h-11 md:h-12 pl-10 md:pl-11 text-sm md:text-base border-2 focus:border-primary transition-colors"
                           required
                         />
                       </div>
@@ -466,7 +467,7 @@ const LoginPage = () => {
 
                     <Button 
                       type="submit" 
-                      className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                      className="w-full h-11 md:h-12 text-sm md:text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
                       size="lg" 
                       disabled={isLoading}
                     >
@@ -492,39 +493,39 @@ const LoginPage = () => {
                     </button>
                   </form>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="space-y-2">
+                  <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
+                    <div className="space-y-1.5 md:space-y-2">
                       <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
                       <div className="relative">
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Mail className="absolute left-3 md:left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                         <Input
                           id="email"
                           type="email"
                           placeholder="you@example.com"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors"
+                          className="h-11 md:h-12 pl-10 md:pl-11 text-sm md:text-base border-2 focus:border-primary transition-colors"
                           required
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1.5 md:space-y-2">
                       <div className="flex items-center justify-between">
                         <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                        <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">
+                        <Link to="/forgot-password" className="text-xs md:text-sm text-primary hover:underline font-medium">
                           Forgot password?
                         </Link>
                       </div>
                       <div className="relative">
-                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Lock className="absolute left-3 md:left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                         <Input
                           id="password"
                           type="password"
                           placeholder="Enter your password"
                           value={formData.password}
                           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors"
+                          className="h-11 md:h-12 pl-10 md:pl-11 text-sm md:text-base border-2 focus:border-primary transition-colors"
                           required
                         />
                       </div>
@@ -532,7 +533,7 @@ const LoginPage = () => {
 
                     <Button 
                       type="submit" 
-                      className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                      className="w-full h-11 md:h-12 text-sm md:text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
                       size="lg" 
                       disabled={isLoading}
                     >
@@ -543,7 +544,7 @@ const LoginPage = () => {
               </div>
 
               {/* Sign Up Link */}
-              <p className="text-center text-muted-foreground mt-8">
+              <p className="text-center text-sm md:text-base text-muted-foreground mt-5 md:mt-8">
                 Don't have an account?{" "}
                 <Link to="/signup" className="text-primary hover:underline font-semibold">
                   Create one

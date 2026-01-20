@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   format,
   startOfWeek,
@@ -8,12 +8,12 @@ import {
   isSameDay,
   parseISO,
   setHours,
-  setMinutes,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Booking {
   id: string;
@@ -58,6 +58,8 @@ export function WeekCalendar({
   resourceName = "Court 1",
 }: WeekCalendarProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [selectedDayIndex, setSelectedDayIndex] = useState(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
+  const isMobile = useIsMobile();
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 }); // Monday
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -91,11 +93,169 @@ export function WeekCalendar({
     return getBlockedForDay(day).length > 0;
   };
 
-  const parseTime = (timeStr: string) => {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    return hours + minutes / 60;
-  };
+  // Mobile: Single day view
+  if (isMobile) {
+    const selectedDay = weekDays[selectedDayIndex];
+    const dayBookings = getBookingsForDay(selectedDay);
+    const isBlocked = isDayBlocked(selectedDay);
 
+    return (
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
+        {/* Mobile Header */}
+        <div className="p-3 border-b border-border">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-foreground text-sm">{resourceName}</h3>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-8 px-2"
+                onClick={() => {
+                  setCurrentWeek(new Date());
+                  setSelectedDayIndex(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
+                }}
+              >
+                Today
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Day selector - horizontal scroll */}
+          <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+            {weekDays.map((day, index) => (
+              <button
+                key={day.toISOString()}
+                onClick={() => setSelectedDayIndex(index)}
+                className={cn(
+                  "flex flex-col items-center min-w-[44px] py-2 px-2 rounded-lg transition-colors",
+                  selectedDayIndex === index
+                    ? "bg-primary text-primary-foreground"
+                    : isSameDay(day, new Date())
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted/50 text-foreground"
+                )}
+              >
+                <span className="text-[10px] font-medium opacity-80">{format(day, "EEE")}</span>
+                <span className="text-sm font-semibold">{format(day, "d")}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile Action Buttons */}
+        <div className="flex gap-2 p-3 border-b border-border">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1 h-9 text-xs"
+            onClick={onBlockTime ? () => onBlockTime(selectedDay) : undefined}
+          >
+            <Ban className="h-3.5 w-3.5 mr-1.5" />
+            Block
+          </Button>
+          <Button 
+            size="sm" 
+            className="flex-1 h-9 text-xs"
+            onClick={onNewBooking ? () => onNewBooking(selectedDay, "09:00") : undefined}
+          >
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            New Booking
+          </Button>
+        </div>
+
+        {/* Mobile Time Grid - Single Day */}
+        <div className="max-h-[400px] overflow-y-auto">
+          {HOURS.map((hour) => {
+            const hourBookings = dayBookings.filter((b) => {
+              const bookingHour = parseInt(b.booking_time.split(":")[0]);
+              return bookingHour === hour;
+            });
+            const isClosed = isOutsideOpeningHours(selectedDay, hour);
+
+            return (
+              <div
+                key={hour}
+                className={cn(
+                  "flex border-b border-border/50 min-h-[56px]",
+                  isClosed && "bg-muted/50",
+                  isBlocked && "bg-destructive/10"
+                )}
+              >
+                <div className="w-14 p-2 text-xs text-muted-foreground text-right pr-2 py-3 flex-shrink-0 border-r border-border/50">
+                  {format(setHours(new Date(), hour), "h a")}
+                </div>
+                <div className="flex-1 relative p-1">
+                  {hourBookings.map((booking) => (
+                    <div
+                      key={booking.id}
+                      onClick={() => onBookingClick?.(booking)}
+                      className={cn(
+                        "rounded-md p-2 cursor-pointer transition-all active:scale-[0.98]",
+                        booking.status === "confirmed"
+                          ? "bg-primary text-primary-foreground"
+                          : booking.status === "pending"
+                          ? "bg-amber-500 text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                      style={{
+                        minHeight: `${Math.max(booking.duration_hours * 48, 44)}px`,
+                      }}
+                    >
+                      <div className="text-xs font-medium truncate">
+                        {booking.customer_name || "Booking"}
+                      </div>
+                      <div className="text-[10px] opacity-80 truncate">
+                        {booking.booking_time} • {booking.duration_hours}h
+                      </div>
+                    </div>
+                  ))}
+                  {isBlocked && !isClosed && hourBookings.length === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs text-destructive/70">Blocked</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Mobile Legend */}
+        <div className="flex items-center justify-center gap-3 p-2 border-t border-border bg-muted/30">
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded bg-primary" />
+            <span className="text-[10px] text-muted-foreground">Confirmed</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded bg-amber-500" />
+            <span className="text-[10px] text-muted-foreground">Pending</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded bg-destructive/30" />
+            <span className="text-[10px] text-muted-foreground">Blocked</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: Full week view
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
       {/* Header */}
@@ -213,7 +373,7 @@ export function WeekCalendar({
                             booking.status === "confirmed"
                               ? "bg-primary text-primary-foreground"
                               : booking.status === "pending"
-                              ? "bg-amber-500 text-white"
+                              ? "bg-amber-500 text-primary-foreground"
                               : "bg-muted text-muted-foreground"
                           )}
                           style={{
