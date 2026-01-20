@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, Plus, Gamepad2, Building, Shield, MessageCircle } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useAdmin";
@@ -14,19 +15,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, signOut, isLoading } = useAuth();
   const { data: isAdmin } = useIsAdmin();
 
   const navLinks = [
-    { href: "/venues", label: "Venues" },
-    { href: "/games", label: "Games" },
-    { href: "/community", label: "Community" },
-    ...(user ? [{ href: "/dashboard", label: "My Activity" }] : []),
+    { href: "/venues", label: t('nav.venues') },
+    { href: "/games", label: t('nav.games') },
+    { href: "/community", label: t('nav.community') },
+    ...(user ? [{ href: "/dashboard", label: t('nav.myActivity') }] : []),
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -75,6 +78,7 @@ const Header = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
+          <LanguageSwitcher />
           {!isLoading && user ? (
             <>
               {/* Create Button with Dropdown */}
@@ -82,20 +86,20 @@ const Header = () => {
                 <DropdownMenuTrigger asChild>
                   <Button size="sm" className="gap-1.5">
                     <Plus className="h-4 w-4" />
-                    Create
+                    {t('common.create')}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
                     <Link to="/create-game" className="flex items-center gap-2">
                       <Gamepad2 className="h-4 w-4" />
-                      Create Game
+                      {t('nav.createGame')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/add-venue" className="flex items-center gap-2">
                       <Building className="h-4 w-4" />
-                      List Venue
+                      {t('nav.listVenue')}
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -128,16 +132,16 @@ const Header = () => {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard">My Activity</Link>
+                    <Link to="/dashboard">{t('nav.myActivity')}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/profile">Profile</Link>
+                    <Link to="/profile">{t('common.profile')}</Link>
                   </DropdownMenuItem>
                   {user.user_metadata?.user_type === "owner" && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link to="/owner-dashboard">Owner Dashboard</Link>
+                        <Link to="/owner-dashboard">{t('owner.dashboard')}</Link>
                       </DropdownMenuItem>
                     </>
                   )}
@@ -147,7 +151,7 @@ const Header = () => {
                       <DropdownMenuItem asChild>
                         <Link to="/admin" className="flex items-center gap-2">
                           <Shield className="h-4 w-4" />
-                          Admin Dashboard
+                          {t('common.admin')}
                         </Link>
                       </DropdownMenuItem>
                     </>
@@ -155,7 +159,7 @@ const Header = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                     <LogOut className="h-4 w-4 mr-2" />
-                    Sign out
+                    {t('common.signOut')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -163,10 +167,10 @@ const Header = () => {
           ) : !isLoading ? (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm">Sign in</Button>
+                <Button variant="ghost" size="sm">{t('common.signIn')}</Button>
               </Link>
               <Link to="/signup">
-                <Button size="sm">Get started</Button>
+                <Button size="sm">{t('common.getStarted')}</Button>
               </Link>
             </>
           ) : null}
@@ -200,37 +204,40 @@ const Header = () => {
               </Link>
             ))}
             <div className="pt-4 border-t border-border mt-2 flex flex-col gap-2">
+              <div className="px-2 pb-2">
+                <LanguageSwitcher />
+              </div>
               {!isLoading && user ? (
                 <>
                   {/* Mobile Create Options */}
                   <Link to="/create-game" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="outline" className="w-full justify-start">
                       <Gamepad2 className="h-4 w-4 mr-2" />
-                      Create Game
+                      {t('nav.createGame')}
                     </Button>
                   </Link>
                   <Link to="/add-venue" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="outline" className="w-full justify-start">
                       <Building className="h-4 w-4 mr-2" />
-                      List Venue
+                      {t('nav.listVenue')}
                     </Button>
                   </Link>
                   <Link to="/messages" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="outline" className="w-full justify-start relative">
                       <MessageCircle className="h-4 w-4 mr-2" />
-                      Messages
+                      {t('common.messages')}
                       <ChatBadge />
                     </Button>
                   </Link>
                   <div className="border-t border-border my-2" />
                   <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">Profile</Button>
+                    <Button variant="ghost" className="w-full justify-start">{t('common.profile')}</Button>
                   </Link>
                   {isAdmin && (
                     <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start">
                         <Shield className="h-4 w-4 mr-2" />
-                        Admin Dashboard
+                        {t('common.admin')}
                       </Button>
                     </Link>
                   )}
@@ -243,16 +250,16 @@ const Header = () => {
                     }}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
-                    Sign out
+                    {t('common.signOut')}
                   </Button>
                 </>
               ) : !isLoading ? (
                 <>
                   <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">Sign in</Button>
+                    <Button variant="ghost" className="w-full justify-start">{t('common.signIn')}</Button>
                   </Link>
                   <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full">Get started</Button>
+                    <Button className="w-full">{t('common.getStarted')}</Button>
                   </Link>
                 </>
               ) : null}
