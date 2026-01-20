@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,13 +21,15 @@ L.Icon.Default.mergeOptions({
 interface VenueLocationPickerProps {
   address: string;
   city: string;
+  zipCode?: string;
   onAddressChange: (address: string) => void;
   onCityChange: (city: string) => void;
+  onZipCodeChange?: (zipCode: string) => void;
   onLocationConfirm: (lat: number, lng: number, confirmed: boolean) => void;
   latitude?: number | null;
   longitude?: number | null;
   locationConfirmed?: boolean;
-  validationErrors?: { address?: string; city?: string; location?: string };
+  validationErrors?: { address?: string; city?: string; zipCode?: string; location?: string };
 }
 
 interface MapClickHandlerProps {
@@ -57,8 +60,10 @@ const MapCenterUpdater: React.FC<MapCenterUpdaterProps> = ({ center }) => {
 export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
   address,
   city,
+  zipCode = "",
   onAddressChange,
   onCityChange,
+  onZipCodeChange,
   onLocationConfirm,
   latitude,
   longitude,
@@ -139,14 +144,30 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
           )}
         </div>
 
-        {/* City Display */}
-        {city && (
-          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg text-sm">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">City:</span>
-            <span className="font-medium">{city}</span>
+        {/* City and Zip Code */}
+        <div className="grid grid-cols-2 gap-4">
+          {city && (
+            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg text-sm">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">City:</span>
+              <span className="font-medium">{city}</span>
+            </div>
+          )}
+          <div className="space-y-1">
+            <Label htmlFor="zipCode" className="text-sm">Zip Code / Postal Code</Label>
+            <Input
+              id="zipCode"
+              placeholder="e.g., 0010"
+              value={zipCode}
+              onChange={(e) => onZipCodeChange?.(e.target.value)}
+              className={validationErrors.zipCode ? "border-destructive" : ""}
+              maxLength={10}
+            />
+            {validationErrors.zipCode && (
+              <p className="text-sm text-destructive">{validationErrors.zipCode}</p>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Map */}
         <div className="relative rounded-lg overflow-hidden border border-border">

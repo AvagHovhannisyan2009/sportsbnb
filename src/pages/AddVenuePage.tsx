@@ -48,6 +48,7 @@ const AddVenuePage = () => {
     description: "",
     address: "",
     city: "",
+    zipCode: "",
     sports: [] as string[],
     amenities: [] as string[],
     pricePerHour: "30",
@@ -242,12 +243,13 @@ const AddVenuePage = () => {
           description: formData.description.trim(),
           address: formData.address.trim(),
           city: formData.city.trim(),
+          zip_code: formData.zipCode.trim() || null,
           sports: formData.sports,
           amenities: formData.amenities,
           price_per_hour: parseFloat(formData.pricePerHour) || 30,
           is_indoor: formData.isIndoor,
-          is_active: false, // Always start as inactive - will be activated after full verification
-          image_url: imageUrls[0], // Primary image
+          is_active: false, // Always start as inactive - requires admin approval
+          image_url: imageUrls[0],
           latitude: formData.latitude,
           longitude: formData.longitude,
           location_confirmed: formData.locationConfirmed,
@@ -373,6 +375,7 @@ const AddVenuePage = () => {
               <VenueLocationPicker
                 address={formData.address}
                 city={formData.city}
+                zipCode={formData.zipCode}
                 onAddressChange={(address) => {
                   setFormData(prev => ({ ...prev, address }));
                   setValidationErrors(prev => ({ ...prev, address: '' }));
@@ -380,6 +383,9 @@ const AddVenuePage = () => {
                 onCityChange={(city) => {
                   setFormData(prev => ({ ...prev, city }));
                   setValidationErrors(prev => ({ ...prev, city: '' }));
+                }}
+                onZipCodeChange={(zipCode) => {
+                  setFormData(prev => ({ ...prev, zipCode }));
                 }}
                 onLocationConfirm={handleLocationConfirm}
                 latitude={formData.latitude}

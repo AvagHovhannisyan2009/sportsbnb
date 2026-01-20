@@ -18,6 +18,7 @@ import { ManualBookingDialog } from "@/components/owner/schedule/ManualBookingDi
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerVenues } from "@/hooks/useVenues";
 import { useVenueHours, useBlockedDates, useAddBlockedDate } from "@/hooks/useAvailability";
+import { useVenueBookings } from "@/hooks/useVenueBookings";
 import { useOwnerAnalytics } from "@/hooks/useOwnerAnalytics";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -26,7 +27,7 @@ const OwnerSchedulePage = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading } = useAuth();
   const { data: myVenues = [], isLoading: venuesLoading } = useOwnerVenues(user?.id);
-  const { data: analytics, refetch: refetchAnalytics } = useOwnerAnalytics();
+  const { data: analytics } = useOwnerAnalytics();
 
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -42,6 +43,7 @@ const OwnerSchedulePage = () => {
 
   const { data: venueHours = [] } = useVenueHours(selectedVenueId || undefined);
   const { data: blockedDates = [] } = useBlockedDates(selectedVenueId || undefined);
+  const { data: venueBookings = [], refetch: refetchBookings } = useVenueBookings(selectedVenueId || undefined);
   const addBlockedDate = useAddBlockedDate();
 
   useEffect(() => {
@@ -65,19 +67,17 @@ const OwnerSchedulePage = () => {
 
   const selectedVenue = myVenues.find((v) => v.id === selectedVenueId);
 
-  // Format bookings for calendar
-  const bookings = (analytics?.recentBookings || [])
-    .filter((b: any) => !selectedVenueId || b.venue_id === selectedVenueId)
-    .map((b: any) => ({
-      id: b.id,
-      booking_date: b.booking_date,
-      booking_time: b.booking_time || "10:00",
-      duration_hours: b.duration_hours || 1,
-      venue_name: b.venue_name,
-      total_price: b.total_price,
-      status: b.status || "confirmed",
-      customer_name: b.customer_name || "Customer",
-    }));
+  // Format bookings for calendar - now uses dedicated venue bookings hook
+  const bookings = venueBookings.map((b) => ({
+    id: b.id,
+    booking_date: b.booking_date,
+    booking_time: b.booking_time || "10:00",
+    duration_hours: b.duration_hours || 1,
+    venue_name: b.venue_name,
+    total_price: b.total_price,
+    status: b.status || "confirmed",
+    customer_name: b.customer_name || "Customer",
+  }));
 
   const handleBlockTime = async (data: any) => {
     if (!selectedVenueId) return;
@@ -95,7 +95,7 @@ const OwnerSchedulePage = () => {
   };
 
   const handleBookingCreated = () => {
-    refetchAnalytics();
+    refetchBookings();
   };
 
   return (
