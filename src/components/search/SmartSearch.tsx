@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { MapPin, Loader2, X, Search, Building, Gamepad2, Tag } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { MapPin, Loader2, X, Search, Building, Gamepad2, Tag, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,12 +29,16 @@ interface SmartSearchProps {
   placeholder?: string;
   className?: string;
   onLocationSelect?: (lat: number, lng: number, address: string) => void;
+  size?: "default" | "lg";
+  autoFocus?: boolean;
 }
 
 export const SmartSearch: React.FC<SmartSearchProps> = ({
   placeholder = "Search venues, games, or locations...",
   className,
   onLocationSelect,
+  size = "default",
+  autoFocus = false,
 }) => {
   const navigate = useNavigate();
   const [inputValue, setInputValue] = useState("");
@@ -43,6 +46,7 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
@@ -52,6 +56,7 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setIsFocused(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -176,6 +181,7 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
     setInputValue("");
     setSuggestions([]);
     setIsOpen(false);
+    setIsFocused(false);
 
     switch (suggestion.type) {
       case "venue":
@@ -221,29 +227,31 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
         break;
       case "Escape":
         setIsOpen(false);
+        inputRef.current?.blur();
         break;
     }
   };
 
   const getIcon = (type: SearchSuggestion["type"]) => {
+    const iconClass = "h-4 w-4 shrink-0";
     switch (type) {
       case "venue":
-        return <Building className="h-4 w-4 text-primary" />;
+        return <Building className={cn(iconClass, "text-primary")} />;
       case "game":
-        return <Gamepad2 className="h-4 w-4 text-green-500" />;
+        return <Gamepad2 className={cn(iconClass, "text-green-500")} />;
       case "sport":
-        return <Tag className="h-4 w-4 text-orange-500" />;
+        return <Tag className={cn(iconClass, "text-orange-500")} />;
       case "location":
-        return <MapPin className="h-4 w-4 text-muted-foreground" />;
+        return <MapPin className={cn(iconClass, "text-muted-foreground")} />;
     }
   };
 
   const getTypeLabel = (type: SearchSuggestion["type"]) => {
     switch (type) {
-      case "venue": return "Venue";
-      case "game": return "Game";
-      case "sport": return "Sport";
-      case "location": return "Location";
+      case "venue": return "Venues";
+      case "game": return "Games";
+      case "sport": return "Sports";
+      case "location": return "Locations";
     }
   };
 
@@ -254,67 +262,126 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
     return acc;
   }, {} as Record<string, SearchSuggestion[]>);
 
+  const handleClear = () => {
+    setInputValue("");
+    setSuggestions([]);
+    setIsOpen(false);
+    inputRef.current?.focus();
+  };
+
+  const inputHeight = size === "lg" ? "h-14 md:h-14" : "h-11 md:h-12";
+  const iconSize = size === "lg" ? "h-5 w-5" : "h-4 w-4 md:h-5 md:w-5";
+
   return (
-    <div ref={containerRef} className={cn("relative", className)}>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          onFocus={() => suggestions.length > 0 && setIsOpen(true)}
-          placeholder={placeholder}
-          className="pl-10 pr-10 h-12"
+    <div ref={containerRef} className={cn("relative w-full", className)}>
+      {/* Search Input Container */}
+      <div 
+        className={cn(
+          "relative group transition-all duration-200",
+          isFocused && "scale-[1.01]"
+        )}
+      >
+        {/* Glow effect on focus */}
+        <div 
+          className={cn(
+            "absolute -inset-0.5 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 opacity-0 blur transition-opacity duration-300",
+            isFocused && "opacity-100"
+          )} 
         />
-        {isLoading && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
-        )}
-        {!isLoading && inputValue && (
-          <button
-            type="button"
-            onClick={() => {
-              setInputValue("");
-              setSuggestions([]);
-              setIsOpen(false);
+        
+        {/* Input wrapper */}
+        <div className={cn(
+          "relative flex items-center gap-2 bg-card border border-border rounded-xl overflow-hidden transition-all duration-200",
+          isFocused ? "border-primary/50 shadow-lg" : "hover:border-muted-foreground/30",
+          inputHeight
+        )}>
+          {/* Search icon */}
+          <div className="pl-3 md:pl-4 flex items-center">
+            {isLoading ? (
+              <Loader2 className={cn(iconSize, "animate-spin text-primary")} />
+            ) : (
+              <Search className={cn(iconSize, "text-muted-foreground transition-colors", isFocused && "text-primary")} />
+            )}
+          </div>
+          
+          {/* Input */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onFocus={() => {
+              setIsFocused(true);
+              if (suggestions.length > 0) setIsOpen(true);
             }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        )}
+            placeholder={placeholder}
+            autoFocus={autoFocus}
+            className={cn(
+              "flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/60 focus:outline-none",
+              size === "lg" ? "text-base" : "text-sm md:text-base",
+              "min-w-0"
+            )}
+          />
+          
+          {/* Clear button */}
+          {inputValue && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="pr-3 md:pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className={iconSize} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Suggestions dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-popover border border-border rounded-xl shadow-lg overflow-hidden">
-          <div className="max-h-80 overflow-auto">
+        <div className={cn(
+          "absolute z-50 w-full mt-2 bg-popover border border-border rounded-xl shadow-xl overflow-hidden",
+          "animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200"
+        )}>
+          <div className="max-h-[60vh] md:max-h-80 overflow-auto">
             {Object.entries(groupedSuggestions).map(([type, items]) => (
               <div key={type}>
-                <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground bg-muted/50 uppercase tracking-wider">
-                  {getTypeLabel(type as SearchSuggestion["type"])}s
+                {/* Group header */}
+                <div className="px-3 py-2 flex items-center gap-2 text-xs font-medium text-muted-foreground bg-muted/30 border-b border-border/50">
+                  {getIcon(type as SearchSuggestion["type"])}
+                  <span className="uppercase tracking-wider">{getTypeLabel(type as SearchSuggestion["type"])}</span>
                 </div>
-                <ul>
-                  {items.map((suggestion, idx) => {
+                
+                {/* Items */}
+                <ul className="py-1">
+                  {items.map((suggestion) => {
                     const globalIndex = suggestions.indexOf(suggestion);
+                    const isSelected = globalIndex === selectedIndex;
+                    
                     return (
                       <li
                         key={suggestion.id}
                         className={cn(
-                          "px-3 py-2.5 cursor-pointer flex items-center gap-3 transition-colors",
-                          globalIndex === selectedIndex
-                            ? "bg-accent text-accent-foreground"
-                            : "hover:bg-muted"
+                          "px-3 py-2.5 md:py-3 cursor-pointer flex items-center gap-3 transition-all duration-150",
+                          isSelected
+                            ? "bg-primary/10 border-l-2 border-l-primary"
+                            : "hover:bg-muted/50 border-l-2 border-l-transparent"
                         )}
                         onClick={() => handleSelect(suggestion)}
                         onMouseEnter={() => setSelectedIndex(globalIndex)}
                       >
-                        {getIcon(suggestion.type)}
+                        <div className={cn(
+                          "h-9 w-9 md:h-10 md:w-10 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                          isSelected ? "bg-primary/20" : "bg-muted/50"
+                        )}>
+                          {getIcon(suggestion.type)}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">{suggestion.title}</div>
+                          <div className="font-medium text-sm md:text-base text-foreground truncate">
+                            {suggestion.title}
+                          </div>
                           {suggestion.subtitle && (
-                            <div className="text-xs text-muted-foreground truncate">
+                            <div className="text-xs md:text-sm text-muted-foreground truncate">
                               {suggestion.subtitle}
                             </div>
                           )}
@@ -326,9 +393,34 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
               </div>
             ))}
           </div>
-          <div className="px-3 py-1.5 text-xs text-muted-foreground border-t border-border bg-muted/30">
-            Press ↵ to select • Esc to close
+          
+          {/* Footer hint */}
+          <div className="px-3 py-2 text-xs text-muted-foreground border-t border-border bg-muted/20 flex items-center gap-4">
+            <span className="hidden md:flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">↑↓</kbd>
+              navigate
+            </span>
+            <span className="hidden md:flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">↵</kbd>
+              select
+            </span>
+            <span className="md:hidden flex items-center gap-1">
+              <Sparkles className="h-3 w-3" />
+              Tap to select
+            </span>
           </div>
+        </div>
+      )}
+
+      {/* Empty state when focused but no results */}
+      {isOpen && inputValue.length >= 2 && suggestions.length === 0 && !isLoading && (
+        <div className={cn(
+          "absolute z-50 w-full mt-2 bg-popover border border-border rounded-xl shadow-xl overflow-hidden p-6 text-center",
+          "animate-in fade-in-0 zoom-in-95 duration-200"
+        )}>
+          <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">No results found for "{inputValue}"</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">Try a different search term</p>
         </div>
       )}
     </div>
