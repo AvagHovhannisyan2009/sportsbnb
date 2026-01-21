@@ -243,9 +243,14 @@ const ProfilePage = () => {
       await refreshProfile();
       setAvatarFile(null);
       toast.success("Profile updated successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
+
+      if (error?.code === '23505' && String(error?.message || '').includes('profiles_username')) {
+        toast.error("Username is already taken. Please choose another.");
+      } else {
+        toast.error("Failed to update profile");
+      }
     } finally {
       setIsSaving(false);
     }
