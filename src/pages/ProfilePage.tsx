@@ -222,7 +222,8 @@ const ProfilePage = () => {
         avatar_url: avatarUrl,
       } : {
         full_name: formData.fullName,
-        username: formData.username || null,
+        // Only include username if it has a value (to avoid unique constraint on empty string)
+        ...(formData.username?.trim() ? { username: formData.username.trim() } : {}),
         phone: formData.phone || null,
         city: formData.city || null,
         date_of_birth: formData.dateOfBirth || null,
