@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Search, Filter, MapPin, X, Loader2, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 };
 
 const DiscoverPage = () => {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,13 +78,13 @@ const DiscoverPage = () => {
       setSearchLocation({
         lat: parseFloat(lat),
         lng: parseFloat(lng),
-        address: "Selected location",
+        address: t('common.location'),
       });
     }
     if (sport) {
       setSelectedSport(sport);
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   // Auto-set city from user profile on first load
   useEffect(() => {
@@ -97,7 +99,7 @@ const DiscoverPage = () => {
 
   const handleNearMe = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
+      toast.error(t('errors.networkError'));
       return;
     }
 
@@ -111,11 +113,11 @@ const DiscoverPage = () => {
         setSearchLocation(null);
         setSelectedCity("");
         setIsLocating(false);
-        toast.success("Showing venues near you!");
+        toast.success(t('common.success'));
       },
       (error) => {
         console.error("Geolocation error:", error);
-        toast.error("Unable to get your location");
+        toast.error(t('errors.networkError'));
         setIsLocating(false);
       }
     );
@@ -189,7 +191,7 @@ const DiscoverPage = () => {
               {/* Smart Search */}
               <div className="flex-1">
                 <SmartSearch 
-                  placeholder="Search venues, games, or locations..."
+                  placeholder={t('venues.searchPlaceholder')}
                   onLocationSelect={handleLocationSearch}
                 />
               </div>
@@ -207,13 +209,13 @@ const DiscoverPage = () => {
                   ) : (
                     <Navigation className="h-4 w-4" />
                   )}
-                  Near me
+                  {t('common.nearMe')}
                 </Button>
 
                 <Select value={selectedCity} onValueChange={setSelectedCity}>
                   <SelectTrigger className="w-[160px] h-12">
                     <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="City" />
+                    <SelectValue placeholder={t('common.city')} />
                   </SelectTrigger>
                   <SelectContent>
                     {cities.map((city) => (
@@ -226,7 +228,7 @@ const DiscoverPage = () => {
 
                 <Select value={selectedSport} onValueChange={setSelectedSport}>
                   <SelectTrigger className="w-[160px] h-12">
-                    <SelectValue placeholder="Sport type" />
+                    <SelectValue placeholder={t('venues.filterBySport')} />
                   </SelectTrigger>
                   <SelectContent>
                     {sportTypes.map((sport) => (
@@ -241,7 +243,7 @@ const DiscoverPage = () => {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="h-12 gap-2">
-                      Price
+                      {t('common.price')}
                       {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                         <Badge variant="secondary" className="ml-1 h-5 px-1.5">
                           ✓
@@ -252,7 +254,7 @@ const DiscoverPage = () => {
                   <PopoverContent className="w-80" align="end">
                     <div className="space-y-4">
                       <div>
-                        <Label className="text-sm font-medium">Price Range (per hour)</Label>
+                        <Label className="text-sm font-medium">{t('venues.filterByPrice')}</Label>
                         <p className="text-sm text-muted-foreground mt-1">
                           {formatCustomerPrice(priceRange[0])} - {formatCustomerPrice(priceRange[1])}
                         </p>
@@ -276,7 +278,7 @@ const DiscoverPage = () => {
                 {hasActiveFilters && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     <X className="h-4 w-4 mr-1" />
-                    Clear
+                    {t('common.clear')}
                   </Button>
                 )}
               </div>
@@ -287,7 +289,7 @@ const DiscoverPage = () => {
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="h-4 w-4 mr-2" />
-                Filters
+                {t('venues.activeFilters')}
                 {hasActiveFilters && (
                   <Badge className="ml-2 h-5 w-5 p-0 justify-center">!</Badge>
                 )}
@@ -308,12 +310,12 @@ const DiscoverPage = () => {
                   ) : (
                     <Navigation className="h-4 w-4" />
                   )}
-                  Near me
+                  {t('common.nearMe')}
                 </Button>
 
                 <Select value={selectedSport} onValueChange={setSelectedSport}>
                   <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Sport type" />
+                    <SelectValue placeholder={t('venues.filterBySport')} />
                   </SelectTrigger>
                   <SelectContent>
                     {sportTypes.map((sport) => (
@@ -325,7 +327,7 @@ const DiscoverPage = () => {
                 </Select>
                 
                 <div className="space-y-2 p-3 border border-border rounded-lg">
-                  <Label className="text-sm font-medium">Price Range</Label>
+                  <Label className="text-sm font-medium">{t('venues.filterByPrice')}</Label>
                   <p className="text-sm text-muted-foreground">
                     {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
                   </p>
@@ -342,7 +344,7 @@ const DiscoverPage = () => {
                 {hasActiveFilters && (
                   <Button variant="ghost" onClick={clearFilters}>
                     <X className="h-4 w-4 mr-1" />
-                    Clear all filters
+                    {t('venues.clearFilters')}
                   </Button>
                 )}
               </div>
@@ -353,10 +355,10 @@ const DiscoverPage = () => {
               <div className="mt-3 flex items-center gap-2">
                 <Badge variant="secondary" className="gap-1">
                   <Navigation className="h-3 w-3" />
-                  {searchLocation?.address || "Your location"}
+                  {searchLocation?.address || t('common.location')}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
-                  Sorting by distance
+                  {t('venues.sortByDistance')}
                 </span>
               </div>
             )}
@@ -367,9 +369,9 @@ const DiscoverPage = () => {
         <div className="container py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">Venues</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-1">{t('common.venues')}</h1>
               <p className="text-muted-foreground">
-                {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"} available
+                {filteredVenues.length} {filteredVenues.length === 1 ? t('common.venue') : t('common.venues')} {t('common.available')}
               </p>
             </div>
           </div>
@@ -377,7 +379,7 @@ const DiscoverPage = () => {
           {isLoading ? (
             <div className="text-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading venues...</p>
+              <p className="text-muted-foreground">{t('common.loading')}</p>
             </div>
           ) : filteredVenues.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -400,12 +402,12 @@ const DiscoverPage = () => {
           ) : (
             <div className="text-center py-16">
               <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No venues found</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">{t('venues.noVenuesFound')}</h3>
               <p className="text-muted-foreground mb-4">
-                Try adjusting your filters or search query
+                {t('venues.noVenuesFoundDesc')}
               </p>
               <Button variant="outline" onClick={clearFilters}>
-                Clear filters
+                {t('venues.clearFilters')}
               </Button>
             </div>
           )}

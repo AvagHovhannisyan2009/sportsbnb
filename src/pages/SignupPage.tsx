@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ const signupSchema = z.object({
 
 const SignupPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
@@ -69,11 +71,11 @@ const SignupPage = () => {
 
   const getStrengthLabel = (score: number) => {
     if (score === 0) return { label: "", color: "" };
-    if (score <= 20) return { label: "Very Weak", color: "text-destructive" };
-    if (score <= 40) return { label: "Weak", color: "text-orange-500" };
-    if (score <= 60) return { label: "Fair", color: "text-yellow-500" };
-    if (score <= 80) return { label: "Good", color: "text-primary/70" };
-    return { label: "Strong", color: "text-primary" };
+    if (score <= 20) return { label: t('auth.passwordWeak'), color: "text-destructive" };
+    if (score <= 40) return { label: t('auth.passwordWeak'), color: "text-orange-500" };
+    if (score <= 60) return { label: t('auth.passwordFair'), color: "text-yellow-500" };
+    if (score <= 80) return { label: t('auth.passwordGood'), color: "text-primary/70" };
+    return { label: t('auth.passwordStrong'), color: "text-primary" };
   };
 
   const validateField = (name: string, value: string) => {
@@ -82,33 +84,33 @@ const SignupPage = () => {
     switch (name) {
       case "name":
         if (value.length < 2) {
-          newErrors.name = "Name must be at least 2 characters";
+          newErrors.name = t('auth.errors.invalidEmail');
         } else {
           delete newErrors.name;
         }
         break;
       case "email":
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          newErrors.email = "Please enter a valid email address";
+          newErrors.email = t('auth.errors.invalidEmail');
         } else {
           delete newErrors.email;
         }
         break;
       case "password":
         if (value.length < 8) {
-          newErrors.password = "Password must be at least 8 characters";
+          newErrors.password = t('auth.errors.invalidPassword');
         } else {
           delete newErrors.password;
         }
         if (formData.confirmPassword && value !== formData.confirmPassword) {
-          newErrors.confirmPassword = "Passwords don't match";
+          newErrors.confirmPassword = t('auth.errors.passwordMismatch');
         } else if (formData.confirmPassword) {
           delete newErrors.confirmPassword;
         }
         break;
       case "confirmPassword":
         if (value !== formData.password) {
-          newErrors.confirmPassword = "Passwords don't match";
+          newErrors.confirmPassword = t('auth.errors.passwordMismatch');
         } else {
           delete newErrors.confirmPassword;
         }
@@ -137,7 +139,7 @@ const SignupPage = () => {
         }
       });
       setErrors(fieldErrors);
-      toast.error("Please fix the errors in the form");
+      toast.error(t('errors.validation'));
       return;
     }
 
@@ -163,7 +165,7 @@ const SignupPage = () => {
       return;
     }
 
-    toast.success("Account created successfully!");
+    toast.success(t('common.success'));
     // Redirect to appropriate page with replace to prevent back navigation issues
     if (userType === "player") {
       navigate("/onboarding/player", { replace: true });
@@ -226,28 +228,28 @@ const SignupPage = () => {
           {/* Hero Text */}
           <div className="max-w-lg">
             <h1 className="text-4xl lg:text-5xl font-bold text-white mb-5 leading-tight tracking-tight">
-              Your game is<br />waiting for you.
+              {t('home.heroTitle')}<br />{t('home.heroHighlight')}
             </h1>
             <p className="text-lg text-white/80 leading-relaxed">
-              Join thousands of players discovering new venues, making friends, and staying active every day.
+              {t('home.heroDescription')}
             </p>
             
             {/* Trust Indicators */}
             <div className="flex items-center gap-6 mt-8">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                <span className="text-white/70 text-sm">10,000+ players</span>
+                <span className="text-white/70 text-sm">10,000+ {t('common.players')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <span className="text-white/70 text-sm">Join the community</span>
+                <span className="text-white/70 text-sm">{t('home.joinCommunity')}</span>
               </div>
             </div>
           </div>
           
           {/* Footer */}
           <div className="text-sm text-white/40">
-            © {new Date().getFullYear()} Sportsbnb. All rights reserved.
+            {t('footer.copyright', { year: new Date().getFullYear() })}
           </div>
         </div>
       </div>
@@ -270,14 +272,14 @@ const SignupPage = () => {
             className="hidden lg:inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to home
+            {t('common.back')}
           </Link>
 
           {/* Welcome Header */}
           <div className="mb-6">
-            <h2 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Create your account</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-2 tracking-tight">{t('auth.createAccount')}</h2>
             <p className="text-muted-foreground">
-              Join the growing sports community
+              {t('home.joinCommunity')}
             </p>
           </div>
 
@@ -309,7 +311,7 @@ const SignupPage = () => {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Continue with Google
+              {t('auth.continueWithGoogle')}
             </Button>
 
             {/* Divider */}
@@ -319,7 +321,7 @@ const SignupPage = () => {
               </div>
               <div className="relative flex justify-center">
                 <span className="bg-card px-4 text-xs text-muted-foreground uppercase tracking-wider">
-                  or sign up with email
+                  {t('auth.orContinueWith')}
                 </span>
               </div>
             </div>
@@ -327,7 +329,7 @@ const SignupPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* User Type Selection */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">I want to</Label>
+                <Label className="text-sm font-medium">{t('auth.userType')}</Label>
                 <RadioGroup
                   value={userType}
                   onValueChange={(value) => setUserType(value as "player" | "owner")}
@@ -344,7 +346,7 @@ const SignupPage = () => {
                       className="flex flex-col items-center justify-center rounded-xl border-2 border-input bg-background p-4 hover:bg-accent/50 hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
                     >
                       <User className="h-6 w-6 mb-2 text-muted-foreground peer-data-[state=checked]:text-primary" />
-                      <span className="font-medium text-sm">Play Sports</span>
+                      <span className="font-medium text-sm">{t('auth.playerType')}</span>
                     </Label>
                   </div>
                   <div>
@@ -358,7 +360,7 @@ const SignupPage = () => {
                       className="flex flex-col items-center justify-center rounded-xl border-2 border-input bg-background p-4 hover:bg-accent/50 hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
                     >
                       <Building className="h-6 w-6 mb-2 text-muted-foreground peer-data-[state=checked]:text-primary" />
-                      <span className="font-medium text-sm">List Venues</span>
+                      <span className="font-medium text-sm">{t('auth.ownerType')}</span>
                     </Label>
                   </div>
                 </RadioGroup>
@@ -366,7 +368,7 @@ const SignupPage = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium">
-                  {userType === "player" ? "Full name" : "Business name"}
+                  {t('auth.fullName')}
                 </Label>
                 <div className="relative">
                   <UserCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -374,7 +376,7 @@ const SignupPage = () => {
                     id="name"
                     name="name"
                     type="text"
-                    placeholder={userType === "player" ? "John Doe" : "My Sports Center"}
+                    placeholder={t('auth.fullNamePlaceholder')}
                     value={formData.name}
                     onChange={handleChange}
                     className={`h-12 pl-11 text-base border-2 transition-colors ${errors.name ? "border-destructive focus:border-destructive" : "focus:border-primary"}`}
@@ -387,14 +389,14 @@ const SignupPage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
+                <Label htmlFor="email" className="text-sm font-medium">{t('auth.email')}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t('auth.emailPlaceholder')}
                     value={formData.email}
                     onChange={handleChange}
                     className={`h-12 pl-11 text-base border-2 transition-colors ${errors.email ? "border-destructive focus:border-destructive" : "focus:border-primary"}`}
@@ -407,14 +409,14 @@ const SignupPage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium">{t('auth.password')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Create a strong password"
+                    placeholder={t('auth.passwordPlaceholder')}
                     value={formData.password}
                     onChange={handleChange}
                     className={`h-12 pl-11 pr-11 text-base border-2 transition-colors ${errors.password ? "border-destructive focus:border-destructive" : "focus:border-primary"}`}
@@ -432,47 +434,41 @@ const SignupPage = () => {
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center gap-2">
                       <Progress value={passwordStrength.score} className="h-1.5 flex-1" />
-                      {strengthInfo.label && (
-                        <span className={`text-xs font-medium ${strengthInfo.color}`}>
-                          {strengthInfo.label}
-                        </span>
-                      )}
+                      <span className={`text-xs font-medium ${strengthInfo.color}`}>
+                        {strengthInfo.label}
+                      </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-1 text-xs">
-                      {[
-                        { key: "length", label: "8+ characters" },
-                        { key: "lowercase", label: "Lowercase" },
-                        { key: "uppercase", label: "Uppercase" },
-                        { key: "number", label: "Number" },
-                      ].map(({ key, label }) => (
-                        <div key={key} className="flex items-center gap-1">
-                          {passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? (
-                            <Check className="h-3 w-3 text-primary" />
-                          ) : (
-                            <X className="h-3 w-3 text-muted-foreground" />
-                          )}
-                          <span className={passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? "text-foreground" : "text-muted-foreground"}>
-                            {label}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-2 gap-1.5 text-xs">
+                      <div className={`flex items-center gap-1 ${passwordStrength.checks.length ? "text-primary" : "text-muted-foreground"}`}>
+                        {passwordStrength.checks.length ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                        {t('auth.passwordRequirements.length')}
+                      </div>
+                      <div className={`flex items-center gap-1 ${passwordStrength.checks.uppercase ? "text-primary" : "text-muted-foreground"}`}>
+                        {passwordStrength.checks.uppercase ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                        {t('auth.passwordRequirements.uppercase')}
+                      </div>
+                      <div className={`flex items-center gap-1 ${passwordStrength.checks.lowercase ? "text-primary" : "text-muted-foreground"}`}>
+                        {passwordStrength.checks.lowercase ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                        {t('auth.passwordRequirements.lowercase')}
+                      </div>
+                      <div className={`flex items-center gap-1 ${passwordStrength.checks.number ? "text-primary" : "text-muted-foreground"}`}>
+                        {passwordStrength.checks.number ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                        {t('auth.passwordRequirements.number')}
+                      </div>
                     </div>
                   </div>
-                )}
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm password</Label>
+                <Label htmlFor="confirmPassword" className="text-sm font-medium">{t('auth.confirmPassword')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
+                    placeholder={t('auth.confirmPasswordPlaceholder')}
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     className={`h-12 pl-11 pr-11 text-base border-2 transition-colors ${errors.confirmPassword ? "border-destructive focus:border-destructive" : "focus:border-primary"}`}
@@ -489,36 +485,34 @@ const SignupPage = () => {
                 {errors.confirmPassword && (
                   <p className="text-sm text-destructive">{errors.confirmPassword}</p>
                 )}
-                {formData.confirmPassword && formData.password === formData.confirmPassword && !errors.confirmPassword && (
-                  <p className="text-sm text-primary flex items-center gap-1">
-                    <Check className="h-4 w-4" /> Passwords match
-                  </p>
-                )}
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all mt-2" 
-                size="lg" 
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                size="lg"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating account..." : "Create account"}
+                {isLoading ? t('common.loading') : t('auth.createAccount')}
               </Button>
 
-              <p className="text-xs text-center text-muted-foreground pt-2">
-                By signing up, you agree to our{" "}
-                <Link to="/terms" className="text-primary hover:underline">Terms</Link>
-                {" "}and{" "}
-                <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+              <p className="text-xs text-center text-muted-foreground">
+                {t('auth.termsAgree')}{" "}
+                <Link to="/terms" className="text-primary hover:underline">
+                  {t('common.terms')}
+                </Link>{" "}
+                {t('auth.and')}{" "}
+                <Link to="/privacy" className="text-primary hover:underline">
+                  {t('common.privacy')}
+                </Link>
               </p>
             </form>
           </div>
 
-          {/* Sign In Link */}
-          <p className="text-center text-muted-foreground mt-6">
-            Already have an account?{" "}
-            <Link to="/login" className="text-primary hover:underline font-semibold">
-              Sign in
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            {t('auth.alreadyHaveAccount')}{" "}
+            <Link to="/login" className="font-medium text-primary hover:underline">
+              {t('auth.signIn')}
             </Link>
           </p>
         </div>
