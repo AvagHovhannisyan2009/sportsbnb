@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { Calendar, Clock, MapPin, Star, Users, X, Loader2, Plus, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +38,6 @@ interface Booking {
 
 const PlayerDashboard = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const { user, profile, isLoading: authLoading } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [pastBookings, setPastBookings] = useState<Booking[]>([]);
@@ -113,12 +111,12 @@ const PlayerDashboard = () => {
       if (error) throw error;
 
       if (data?.success) {
-        toast.success(t('dashboard.bookingCancelled'));
+        toast.success(`Booking cancelled. ֏${data.amount.toLocaleString()} refunded.`);
         setBookings(bookings.filter((b) => b.id !== bookingId));
       }
     } catch (error) {
       console.error("Error cancelling booking:", error);
-      toast.error(t('booking.cancel.error'));
+      toast.error("Failed to cancel booking. Please try again.");
     } finally {
       setCancellingBookingId(null);
     }
@@ -149,7 +147,7 @@ const PlayerDashboard = () => {
     return (
       <Layout>
         <div className="container py-16 text-center">
-          <p className="text-muted-foreground">{t('common.loading')}</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </Layout>
     );
@@ -164,18 +162,18 @@ const PlayerDashboard = () => {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              {t('dashboard.welcome')}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
+              Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
             </h1>
-            <p className="text-muted-foreground">{t('dashboard.overview')}</p>
+            <p className="text-muted-foreground">Here's what's coming up for you.</p>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
-              { label: t('dashboard.upcomingBookings'), value: bookings.length.toString() },
-              { label: t('common.games'), value: totalGames.toString() },
-              { label: t('games.hostedGames'), value: (userGames?.hosted?.length || 0).toString() },
-              { label: t('games.joinedGames'), value: (userGames?.joined?.length || 0).toString() },
+              { label: "Upcoming Bookings", value: bookings.length.toString() },
+              { label: "Games", value: totalGames.toString() },
+              { label: "Games Hosted", value: (userGames?.hosted?.length || 0).toString() },
+              { label: "Games Joined", value: (userGames?.joined?.length || 0).toString() },
             ].map((stat) => (
               <Card key={stat.label}>
                 <CardContent className="pt-6">
@@ -189,10 +187,10 @@ const PlayerDashboard = () => {
           {/* Tabs for Upcoming and History */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
             <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="upcoming">{t('common.upcoming')}</TabsTrigger>
+              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
               <TabsTrigger value="history" className="gap-2">
                 <History className="h-4 w-4" />
-                {t('common.past')}
+                History
               </TabsTrigger>
             </TabsList>
 
@@ -202,9 +200,9 @@ const PlayerDashboard = () => {
                 {/* Upcoming Bookings */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-foreground">{t('dashboard.upcomingBookings')}</h2>
+                    <h2 className="text-xl font-semibold text-foreground">Upcoming Bookings</h2>
                     <Link to="/venues" className="text-sm text-primary hover:underline">
-                      {t('dashboard.findVenue')}
+                      Book more
                     </Link>
                   </div>
 
@@ -213,7 +211,7 @@ const PlayerDashboard = () => {
                       <Card>
                         <CardContent className="py-8 text-center">
                           <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" />
-                          <p className="text-muted-foreground">{t('common.loading')}</p>
+                          <p className="text-muted-foreground">Loading bookings...</p>
                         </CardContent>
                       </Card>
                     ) : bookings.length > 0 ? (
@@ -250,18 +248,18 @@ const PlayerDashboard = () => {
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
-                                        <AlertDialogTitle>{t('dashboard.cancelBooking')}</AlertDialogTitle>
+                                        <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          {t('dashboard.cancelBookingConfirm')}
+                                          This will cancel your booking at {booking.venue_name} and issue a full refund of ֏{booking.total_price.toLocaleString()}. This action cannot be undone.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
-                                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                                        <AlertDialogCancel>Keep Booking</AlertDialogCancel>
                                         <AlertDialogAction
                                           onClick={() => handleCancelBooking(booking.id)}
                                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                         >
-                                          {t('common.confirm')}
+                                          Cancel & Refund
                                         </AlertDialogAction>
                                       </AlertDialogFooter>
                                     </AlertDialogContent>
@@ -290,9 +288,9 @@ const PlayerDashboard = () => {
                     ) : (
                       <Card>
                         <CardContent className="py-8 text-center">
-                          <p className="text-muted-foreground mb-4">{t('dashboard.noUpcomingBookings')}</p>
+                          <p className="text-muted-foreground mb-4">No upcoming bookings</p>
                           <Link to="/venues">
-                            <Button size="sm">{t('dashboard.findVenue')}</Button>
+                            <Button size="sm">Find a venue</Button>
                           </Link>
                         </CardContent>
                       </Card>
@@ -303,9 +301,9 @@ const PlayerDashboard = () => {
                 {/* Your Games */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-foreground">{t('games.myGames')}</h2>
+                    <h2 className="text-xl font-semibold text-foreground">Your Games</h2>
                     <Link to="/games" className="text-sm text-primary hover:underline">
-                      {t('dashboard.findGame')}
+                      Find more
                     </Link>
                   </div>
 
@@ -314,7 +312,7 @@ const PlayerDashboard = () => {
                       <Card>
                         <CardContent className="py-8 text-center">
                           <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" />
-                          <p className="text-muted-foreground">{t('common.loading')}</p>
+                          <p className="text-muted-foreground">Loading games...</p>
                         </CardContent>
                       </Card>
                     ) : upcomingGames.length > 0 ? (
@@ -327,7 +325,7 @@ const PlayerDashboard = () => {
                                   <div className="flex items-center gap-2 mb-2">
                                     <Badge variant="secondary">{game.sport}</Badge>
                                     {game.isHost && (
-                                      <Badge variant="outline">{t('common.host')}</Badge>
+                                      <Badge variant="outline">Hosting</Badge>
                                     )}
                                   </div>
                                   <h3 className="font-semibold text-foreground">{game.title}</h3>
@@ -358,15 +356,15 @@ const PlayerDashboard = () => {
                     ) : (
                       <Card>
                         <CardContent className="py-8 text-center">
-                          <p className="text-muted-foreground mb-4">{t('dashboard.noUpcomingGames')}</p>
+                          <p className="text-muted-foreground mb-4">No upcoming games</p>
                           <div className="flex flex-col sm:flex-row gap-2 justify-center">
                             <Link to="/games">
-                              <Button size="sm" variant="outline">{t('dashboard.findGame')}</Button>
+                              <Button size="sm" variant="outline">Find games</Button>
                             </Link>
                             <Link to="/create-game">
                               <Button size="sm">
                                 <Plus className="h-4 w-4 mr-1" />
-                                {t('dashboard.createGame')}
+                                Create game
                               </Button>
                             </Link>
                           </div>
@@ -383,7 +381,7 @@ const PlayerDashboard = () => {
               <div className="grid lg:grid-cols-2 gap-8">
                 {/* Past Bookings */}
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-4">{t('dashboard.pastBookings')}</h2>
+                  <h2 className="text-xl font-semibold text-foreground mb-4">Past Bookings</h2>
                   <div className="space-y-4">
                     {pastBookings.length > 0 ? (
                       pastBookings.map((booking) => (
@@ -406,9 +404,16 @@ const PlayerDashboard = () => {
                                     <Calendar className="h-3 w-3" />
                                     <span>{format(new Date(booking.booking_date), "MMM d, yyyy")}</span>
                                   </div>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    <span>{booking.booking_time}</span>
+                                  </div>
                                 </div>
-                                <div className="mt-1 text-sm text-muted-foreground">
-                                  ֏{booking.total_price.toLocaleString()}
+                                <div className="mt-1 flex items-center justify-between">
+                                  <span className="text-sm font-medium text-foreground">
+                                    ֏{booking.total_price.toLocaleString()}
+                                  </span>
+                                  <Badge variant="secondary" className="text-xs">Completed</Badge>
                                 </div>
                               </div>
                             </div>
@@ -418,7 +423,7 @@ const PlayerDashboard = () => {
                     ) : (
                       <Card>
                         <CardContent className="py-8 text-center">
-                          <p className="text-muted-foreground">{t('dashboard.noUpcomingBookingsDesc')}</p>
+                          <p className="text-muted-foreground">No past bookings</p>
                         </CardContent>
                       </Card>
                     )}
@@ -427,7 +432,7 @@ const PlayerDashboard = () => {
 
                 {/* Past Games */}
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-4">{t('games.pastGames')}</h2>
+                  <h2 className="text-xl font-semibold text-foreground mb-4">Past Games</h2>
                   <div className="space-y-4">
                     {pastGames.length > 0 ? (
                       pastGames.map((game) => (
@@ -438,14 +443,21 @@ const PlayerDashboard = () => {
                                 <div className="flex items-center gap-2 mb-1">
                                   <Badge variant="secondary">{game.sport}</Badge>
                                   {game.isHost && (
-                                    <Badge variant="outline">{t('common.host')}</Badge>
+                                    <Badge variant="outline">Hosted</Badge>
                                   )}
                                 </div>
-                                <h3 className="font-semibold text-foreground">{game.title}</h3>
+                                <h3 className="font-medium text-foreground">{game.title}</h3>
                               </div>
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              {format(new Date(game.game_date), "MMM d, yyyy")}
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>{format(new Date(game.game_date), "MMM d, yyyy")}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                              <MapPin className="h-3 w-3" />
+                              <span className="truncate">{game.location}</span>
                             </div>
                           </CardContent>
                         </Card>
@@ -453,7 +465,7 @@ const PlayerDashboard = () => {
                     ) : (
                       <Card>
                         <CardContent className="py-8 text-center">
-                          <p className="text-muted-foreground">{t('dashboard.noUpcomingGamesDesc')}</p>
+                          <p className="text-muted-foreground">No past games</p>
                         </CardContent>
                       </Card>
                     )}
@@ -463,44 +475,62 @@ const PlayerDashboard = () => {
             </TabsContent>
           </Tabs>
 
-          {/* Recommended Venues */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">{t('common.recommended')}</h2>
-              <Link to="/venues" className="text-sm text-primary hover:underline">
-                {t('common.seeAll')}
-              </Link>
-            </div>
-            <div className="grid md:grid-cols-3 gap-4">
-              {savedVenues.map((venue) => (
-                <Link key={venue.id} to={`/venue/${venue.id}`}>
-                  <Card className="hover:shadow-md transition-shadow overflow-hidden">
-                    <div className="aspect-video relative">
-                      <img
-                        src={getVenueImage(venue)}
-                        alt={venue.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-foreground mb-1 truncate">{venue.name}</h3>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                        <MapPin className="h-3 w-3" />
-                        <span className="truncate">{venue.city}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-primary text-primary" />
-                          <span className="text-sm font-medium">{venue.rating}</span>
-                        </div>
-                        <span className="text-sm font-medium">{formatPrice(getCustomerPrice(venue.price_per_hour))}/{t('common.hour')}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
+          {/* Recommended Venues - only show in upcoming tab */}
+          {activeTab === "upcoming" && (
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-foreground">
+                  {recentVenues.length > 0 ? "Your Recent Venues" : "Recommended Venues"}
+                </h2>
+                <Link to="/venues" className="text-sm text-primary hover:underline">
+                  See all
                 </Link>
-              ))}
+              </div>
+
+              {savedVenues.length > 0 ? (
+                <div className="grid md:grid-cols-3 gap-4">
+                  {savedVenues.map((venue) => (
+                    <Link key={venue.id} to={`/venue/${venue.id}`}>
+                      <Card className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex gap-3">
+                            <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+                              <img
+                                src={getVenueImage(venue)}
+                                alt={venue.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="font-medium text-foreground text-sm mb-1 truncate">
+                                {venue.name}
+                              </h3>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
+                                <Star className="h-3 w-3 fill-primary text-primary" />
+                                <span>{venue.rating}</span>
+                              </div>
+                              <div className="text-sm font-medium text-foreground">
+                                {formatPrice(getCustomerPrice(venue.price_per_hour))}/hr
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <p className="text-muted-foreground mb-4">No venues available yet</p>
+                    <Link to="/venues">
+                      <Button size="sm">Explore venues</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </Layout>

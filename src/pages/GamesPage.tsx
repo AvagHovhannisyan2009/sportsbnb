@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { Search, Filter, X, Plus, Loader2, Calendar, MapPin, Users, Clock, LayoutGrid, Map, Navigation, MapPinOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ import { toast } from "sonner";
 type GameWithDistance = Game & { distance?: number | null };
 
 const GameCard = ({ game }: { game: GameWithDistance }) => {
-  const { t } = useTranslation();
   const spotsLeft = game.max_players - (game.participant_count || 0);
   const isFull = spotsLeft <= 0;
 
@@ -42,16 +40,16 @@ const GameCard = ({ game }: { game: GameWithDistance }) => {
           <div className="flex items-center gap-2 mb-2">
             <Badge variant="secondary">{game.sport}</Badge>
             <Badge className={levelColors[game.skill_level] || levelColors.all}>
-              {game.skill_level === "all" ? t('skillLevels.allLevels') : t(`skillLevels.${game.skill_level}`)}
+              {game.skill_level === "all" ? "All levels" : game.skill_level}
             </Badge>
           </div>
           <h3 className="font-semibold text-foreground text-lg">{game.title}</h3>
         </div>
         <div className="text-right shrink-0">
           <div className={`text-lg font-semibold ${isFull ? "text-muted-foreground" : "text-primary"}`}>
-            {spotsLeft} {t('common.spots')}
+            {spotsLeft} spots
           </div>
-          <div className="text-sm text-muted-foreground">{t('games.spotsLeft')}</div>
+          <div className="text-sm text-muted-foreground">of {game.max_players} left</div>
         </div>
       </div>
 
@@ -62,8 +60,8 @@ const GameCard = ({ game }: { game: GameWithDistance }) => {
           {game.distance !== null && game.distance !== undefined && (
             <Badge variant="outline" className="ml-auto text-xs">
               {game.distance < 1 
-                ? `${Math.round(game.distance * 1000)}m ${t('common.away')}`
-                : `${game.distance.toFixed(1)}km ${t('common.away')}`
+                ? `${Math.round(game.distance * 1000)}m away`
+                : `${game.distance.toFixed(1)}km away`
               }
             </Badge>
           )}
@@ -80,18 +78,18 @@ const GameCard = ({ game }: { game: GameWithDistance }) => {
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
-          <span>{t('games.hostedBy')} {game.host?.full_name || t('common.user')}</span>
+          <span>Hosted by {game.host?.full_name || "Anonymous"}</span>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         <Link to={`/game/${game.id}`} className="flex-1">
           <Button variant={isFull ? "secondary" : "default"} className="w-full" disabled={isFull}>
-            {isFull ? t('common.full') : t('games.requestToJoin')}
+            {isFull ? "Full" : "Request to Join"}
           </Button>
         </Link>
         <Link to={`/game/${game.id}`}>
-          <Button variant="outline">{t('common.viewDetails')}</Button>
+          <Button variant="outline">Details</Button>
         </Link>
       </div>
     </div>
@@ -100,7 +98,6 @@ const GameCard = ({ game }: { game: GameWithDistance }) => {
 
 const GamesPage = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("");
@@ -119,7 +116,7 @@ const GamesPage = () => {
 
   const handleGetLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      toast.error(t('errors.networkError'));
+      toast.error("Geolocation is not supported by your browser");
       return;
     }
 
@@ -131,32 +128,32 @@ const GamesPage = () => {
           lng: position.coords.longitude,
         });
         setIsLocating(false);
-        toast.success(t('common.success'));
+        toast.success("Showing games near you!");
       },
       (error) => {
         setIsLocating(false);
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            toast.error(t('errors.forbidden'));
+            toast.error("Location permission denied");
             break;
           case error.POSITION_UNAVAILABLE:
-            toast.error(t('errors.networkError'));
+            toast.error("Location information unavailable");
             break;
           case error.TIMEOUT:
-            toast.error(t('errors.networkError'));
+            toast.error("Location request timed out");
             break;
           default:
-            toast.error(t('errors.networkError'));
+            toast.error("Unable to get your location");
         }
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
     );
-  }, [t]);
+  }, []);
 
   const clearLocation = useCallback(() => {
     setUserLocation(null);
-    toast.info(t('common.clear'));
-  }, [t]);
+    toast.info("Location filter cleared");
+  }, []);
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -188,7 +185,7 @@ const GamesPage = () => {
                 <div className="relative flex items-center h-11 md:h-12 bg-card border border-border rounded-xl overflow-hidden transition-all duration-200 group-focus-within:border-primary/50">
                   <Search className="ml-3 md:ml-4 h-4 w-4 md:h-5 md:w-5 text-muted-foreground shrink-0" />
                   <input
-                    placeholder={t('games.searchPlaceholder')}
+                    placeholder="Search games or locations..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="flex-1 h-full px-2 md:px-3 bg-transparent text-foreground placeholder:text-muted-foreground/60 focus:outline-none text-sm md:text-base"
@@ -213,7 +210,7 @@ const GamesPage = () => {
                     onClick={clearLocation}
                   >
                     <MapPinOff className="h-4 w-4 mr-2" />
-                    {t('common.nearMe')}
+                    Near Me
                   </Button>
                 ) : (
                   <Button 
@@ -227,13 +224,13 @@ const GamesPage = () => {
                     ) : (
                       <Navigation className="h-4 w-4 mr-2" />
                     )}
-                    {t('common.nearMe')}
+                    Near Me
                   </Button>
                 )}
                 
                 <Select value={selectedSport} onValueChange={setSelectedSport}>
                   <SelectTrigger className="w-[140px] h-11 md:h-12 rounded-xl">
-                    <SelectValue placeholder={t('games.filterBySport')} />
+                    <SelectValue placeholder="Sport type" />
                   </SelectTrigger>
                   <SelectContent>
                     {sportTypes.map((sport) => (
@@ -246,26 +243,26 @@ const GamesPage = () => {
                 
                 <Select value={selectedLevel} onValueChange={setSelectedLevel}>
                   <SelectTrigger className="w-[140px] h-11 md:h-12 rounded-xl">
-                    <SelectValue placeholder={t('games.filterByLevel')} />
+                    <SelectValue placeholder="Skill level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="beginner">{t('skillLevels.beginner')}</SelectItem>
-                    <SelectItem value="intermediate">{t('skillLevels.intermediate')}</SelectItem>
-                    <SelectItem value="advanced">{t('skillLevels.advanced')}</SelectItem>
-                    <SelectItem value="all">{t('skillLevels.allLevels')}</SelectItem>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                    <SelectItem value="all">All levels</SelectItem>
                   </SelectContent>
                 </Select>
                 
                 {hasActiveFilters && (
                   <Button variant="ghost" size="sm" onClick={clearFilters} className="rounded-xl">
                     <X className="h-4 w-4 mr-1" />
-                    {t('common.clear')}
+                    Clear
                   </Button>
                 )}
                 
                 <Button onClick={handleCreateGame} className="rounded-xl">
                   <Plus className="h-4 w-4 mr-2" />
-                  {t('games.createGame')}
+                  Create Game
                 </Button>
               </div>
               
@@ -276,7 +273,7 @@ const GamesPage = () => {
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="h-4 w-4 mr-2" />
-                {t('venues.activeFilters')}
+                Filters
                 {hasActiveFilters && (
                   <Badge className="ml-2 h-5 w-5 p-0 justify-center rounded-full">
                     {[searchQuery, selectedSport, selectedLevel, userLocation].filter(Boolean).length}
@@ -295,7 +292,7 @@ const GamesPage = () => {
                     onClick={clearLocation}
                   >
                     <MapPinOff className="h-4 w-4 mr-2" />
-                    {t('common.nearMe')}
+                    Near Me (Active)
                   </Button>
                 ) : (
                   <Button 
@@ -309,14 +306,14 @@ const GamesPage = () => {
                     ) : (
                       <Navigation className="h-4 w-4 mr-2" />
                     )}
-                    {t('games.nearbyGames')}
+                    Games Near Me
                   </Button>
                 )}
                 
                 <div className="grid grid-cols-2 gap-2">
                   <Select value={selectedSport} onValueChange={setSelectedSport}>
                     <SelectTrigger className="h-11 rounded-xl">
-                      <SelectValue placeholder={t('games.filterBySport')} />
+                      <SelectValue placeholder="Sport" />
                     </SelectTrigger>
                     <SelectContent>
                       {sportTypes.map((sport) => (
@@ -329,13 +326,13 @@ const GamesPage = () => {
                   
                   <Select value={selectedLevel} onValueChange={setSelectedLevel}>
                     <SelectTrigger className="h-11 rounded-xl">
-                      <SelectValue placeholder={t('games.filterByLevel')} />
+                      <SelectValue placeholder="Level" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="beginner">{t('skillLevels.beginner')}</SelectItem>
-                      <SelectItem value="intermediate">{t('skillLevels.intermediate')}</SelectItem>
-                      <SelectItem value="advanced">{t('skillLevels.advanced')}</SelectItem>
-                      <SelectItem value="all">{t('skillLevels.allLevels')}</SelectItem>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="all">All levels</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -343,13 +340,13 @@ const GamesPage = () => {
                 {hasActiveFilters && (
                   <Button variant="ghost" onClick={clearFilters} className="rounded-xl">
                     <X className="h-4 w-4 mr-1" />
-                    {t('venues.clearFilters')}
+                    Clear all filters
                   </Button>
                 )}
                 
                 <Button className="w-full rounded-xl" onClick={handleCreateGame}>
                   <Plus className="h-4 w-4 mr-2" />
-                  {t('games.createGame')}
+                  Create Game
                 </Button>
               </div>
             )}
@@ -360,16 +357,16 @@ const GamesPage = () => {
         <div className="container py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">{t('games.title')}</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Open Games</h1>
               <p className="text-muted-foreground">
-                {games.length} {games.length === 1 ? t('common.game') : t('common.games')} {t('games.spotsLeft')}
+                {games.length} {games.length === 1 ? "game" : "games"} looking for players
               </p>
             </div>
             <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "grid" | "map")}>
-              <ToggleGroupItem value="grid" aria-label={t('games.gridView')}>
+              <ToggleGroupItem value="grid" aria-label="Grid view">
                 <LayoutGrid className="h-4 w-4" />
               </ToggleGroupItem>
-              <ToggleGroupItem value="map" aria-label={t('games.mapView')}>
+              <ToggleGroupItem value="map" aria-label="Map view">
                 <Map className="h-4 w-4" />
               </ToggleGroupItem>
             </ToggleGroup>
@@ -378,7 +375,7 @@ const GamesPage = () => {
           {isLoading ? (
             <div className="text-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">{t('common.loading')}</p>
+              <p className="text-muted-foreground">Loading games...</p>
             </div>
           ) : games.length > 0 ? (
             viewMode === "map" ? (
@@ -395,22 +392,22 @@ const GamesPage = () => {
               <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <Search className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">{t('games.noGamesFound')}</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No games found</h3>
               <p className="text-muted-foreground mb-4">
                 {hasActiveFilters 
-                  ? t('games.noGamesFoundDesc')
-                  : t('games.noGamesFoundDesc')
+                  ? "Try adjusting your filters or create your own game"
+                  : "Be the first to create a game and find players!"
                 }
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 {hasActiveFilters && (
                   <Button variant="outline" onClick={clearFilters}>
-                    {t('venues.clearFilters')}
+                    Clear filters
                   </Button>
                 )}
                 <Button onClick={handleCreateGame}>
                   <Plus className="h-4 w-4 mr-2" />
-                  {t('games.createGame')}
+                  Create Game
                 </Button>
               </div>
             </div>
