@@ -136,6 +136,48 @@ serve(async (req) => {
       }
     }
 
+    // Trigger Make.com webhook for new booking
+    try {
+      const webhookPayload = {
+        event_type: "booking_created",
+        venue_id: session.metadata?.venueId,
+        data: {
+          booking: {
+            id: booking.id,
+            booking_date: booking.booking_date,
+            booking_time: booking.booking_time,
+            duration_hours: booking.duration_hours,
+            total_price: booking.total_price,
+            status: booking.status,
+          },
+          venue: {
+            id: session.metadata?.venueId,
+            name: session.metadata?.venueName,
+          },
+          customer: {
+            email: userEmail,
+            user_id: user.id,
+          },
+        },
+      };
+      
+      await fetch(
+        `${Deno.env.get("SUPABASE_URL")}/functions/v1/webhook-dispatcher`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+          },
+          body: JSON.stringify(webhookPayload),
+        }
+      );
+      console.log("Webhook dispatcher called for booking_created");
+    } catch (webhookError) {
+      console.error("Failed to call webhook dispatcher:", webhookError);
+      // Don't throw - booking is still successful
+    }
+
     return new Response(JSON.stringify({ booking }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

@@ -71,6 +71,48 @@ serve(async (req) => {
       throw new Error("Failed to update booking status");
     }
 
+    // Trigger Make.com webhook for booking cancellation
+    try {
+      const webhookPayload = {
+        event_type: "booking_cancelled",
+        venue_id: booking.venue_id,
+        data: {
+          booking: {
+            id: booking.id,
+            booking_date: booking.booking_date,
+            booking_time: booking.booking_time,
+            venue_name: booking.venue_name,
+            total_price: booking.total_price,
+            refund_amount: refund.amount / 100,
+            refund_id: refund.id,
+          },
+          venue: {
+            id: booking.venue_id,
+            name: booking.venue_name,
+          },
+          customer: {
+            user_id: user.id,
+          },
+        },
+      };
+      
+      await fetch(
+        `${Deno.env.get("SUPABASE_URL")}/functions/v1/webhook-dispatcher`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+          },
+          body: JSON.stringify(webhookPayload),
+        }
+      );
+      console.log("Webhook dispatcher called for booking_cancelled");
+    } catch (webhookError) {
+      console.error("Failed to call webhook dispatcher:", webhookError);
+      // Don't throw - refund is still successful
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
