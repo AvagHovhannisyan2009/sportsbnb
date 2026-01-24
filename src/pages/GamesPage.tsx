@@ -353,20 +353,20 @@ const GamesPage = () => {
           </div>
         </div>
 
-        {/* Results */}
-        <div className="container py-8">
+        {/* Results - Pickup Games Listing */}
+        <main className="container py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">Open Games</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Pickup Games & Sports Matches</h1>
               <p className="text-muted-foreground">
-                {games.length} {games.length === 1 ? "game" : "games"} looking for players
+                {games.length} {games.length === 1 ? "game" : "games"} looking for players near you
               </p>
             </div>
             <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "grid" | "map")}>
-              <ToggleGroupItem value="grid" aria-label="Grid view">
+              <ToggleGroupItem value="grid" aria-label="View games as grid">
                 <LayoutGrid className="h-4 w-4" />
               </ToggleGroupItem>
-              <ToggleGroupItem value="map" aria-label="Map view">
+              <ToggleGroupItem value="map" aria-label="View games on map">
                 <Map className="h-4 w-4" />
               </ToggleGroupItem>
             </ToggleGroup>
@@ -392,11 +392,11 @@ const GamesPage = () => {
               <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <Search className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">No games found</h3>
+              <h2 className="text-lg font-semibold text-foreground mb-2">No games found 😔</h2>
               <p className="text-muted-foreground mb-4">
                 {hasActiveFilters 
-                  ? "Try adjusting your filters or create your own game"
-                  : "Be the first to create a game and find players!"
+                  ? "Try adjusting your filters or host your own game"
+                  : "Be the first to host a game and find players!"
                 }
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -407,12 +407,12 @@ const GamesPage = () => {
                 )}
                 <Button onClick={handleCreateGame}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Game
+                  Host a Game
                 </Button>
               </div>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </Layout>
   );

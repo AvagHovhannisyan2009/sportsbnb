@@ -363,13 +363,13 @@ const DiscoverPage = () => {
           </div>
         </div>
 
-        {/* Results */}
-        <div className="container py-8">
+        {/* Results - Sports Venues Listing */}
+        <main className="container py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">Venues</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Sports Venues Near You</h1>
               <p className="text-muted-foreground">
-                {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"} available
+                {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"} available for booking
               </p>
             </div>
           </div>
@@ -400,16 +400,16 @@ const DiscoverPage = () => {
           ) : (
             <div className="text-center py-16">
               <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No venues found</h3>
+              <h2 className="text-lg font-semibold text-foreground mb-2">No venues found 😔</h2>
               <p className="text-muted-foreground mb-4">
-                Try adjusting your filters or search query
+                Try adjusting your filters or searching a different area
               </p>
               <Button variant="outline" onClick={clearFilters}>
                 Clear filters
               </Button>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </Layout>
   );
