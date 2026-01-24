@@ -71,12 +71,12 @@ const HomePage = () => {
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center">
+      {/* Hero Section - Sports Venue Booking */}
+      <section className="relative min-h-[90vh] flex items-center" aria-label="Find and book sports venues near you">
         <div className="absolute inset-0 z-0">
           <img
             src={heroImage}
-            alt="People playing sports together"
+            alt="Athletes playing basketball, football, and tennis at premium sports facilities - Book sports venues online"
             className="w-full h-full object-cover"
             loading="eager"
             decoding="async"
@@ -98,7 +98,7 @@ const HomePage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Link to="/venues">
+              <Link to="/venues" aria-label="Search and book sports venues">
                 <Button
                   size="xl"
                   className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl shadow-2xl hover:shadow-primary/25"
@@ -107,7 +107,7 @@ const HomePage = () => {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/games">
+              <Link to="/games" aria-label="Browse pickup games near you">
                 <Button
                   variant="outline"
                   size="xl"
@@ -131,15 +131,15 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Featured Categories */}
-      <section className="py-20 md:py-28 bg-background">
+      {/* Featured Categories - Book Courts by Sport */}
+      <section className="py-20 md:py-28 bg-background" aria-labelledby="sports-categories">
         <div className="container">
           <div className="text-center mb-14">
             <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-3">
               {t('home.popularCategories')}
             </p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-5 tracking-tight">
-              {t('venues.allSports')}. {t('common.venues')}.
+            <h2 id="sports-categories" className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-5 tracking-tight">
+              Book Courts & Fields by Sport
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               {t('venues.subtitle')}
@@ -152,11 +152,13 @@ const HomePage = () => {
                 key={venue.name}
                 to="/venues"
                 className="group relative aspect-[4/5] rounded-2xl overflow-hidden"
+                aria-label={`Book ${venue.name} courts and venues`}
               >
                 <img
                   src={venue.image}
-                  alt={venue.name}
+                  alt={`${venue.name} court rental - Book ${venue.name} venues near you`}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -254,7 +256,7 @@ const HomePage = () => {
 
             <div className="relative">
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-                <img src={venueBasketball} alt="Sports venue" className="w-full h-full object-cover" />
+                <img src={venueBasketball} alt="Basketball court facility - List your sports venue on Sportsbnb" className="w-full h-full object-cover" loading="lazy" />
               </div>
             </div>
           </div>
