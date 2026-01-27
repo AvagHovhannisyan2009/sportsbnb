@@ -65,48 +65,15 @@ const App = () => (
       <AuthProvider>
         <CurrencyProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Layout showMobileNav={false}><HomePage /></Layout>} />
-              {/* Venues - renamed from Discover */}
-              <Route path="/venues" element={<DiscoverPage />} />
-              <Route path="/discover" element={<Navigate to="/venues" replace />} />
-              {/* Games */}
-              <Route path="/games" element={<GamesPage />} />
-              <Route path="/community" element={<CommunityPage />} />
-              <Route path="/create-game" element={<ProtectedRoute><CreateGamePage /></ProtectedRoute>} />
-              <Route path="/game/:id" element={<GameDetailsPage />} />
-              <Route path="/game/:id/join-success" element={<ProtectedRoute><GameJoinSuccessPage /></ProtectedRoute>} />
-              {/* Venue Details */}
-              <Route path="/venue/:id" element={<VenueDetailsPage />} />
-              {/* Dashboards */}
-              <Route path="/dashboard" element={<ProtectedRoute><PlayerDashboard /></ProtectedRoute>} />
-              <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-              
-              {/* New Owner Dashboard Routes */}
-              <Route path="/owner-dashboard" element={<ProtectedRoute><OwnerOverviewPage /></ProtectedRoute>} />
-              <Route path="/owner/venues" element={<ProtectedRoute><OwnerVenuesPage /></ProtectedRoute>} />
-              <Route path="/owner/schedule" element={<ProtectedRoute><OwnerSchedulePageNew /></ProtectedRoute>} />
-              <Route path="/owner/bookings" element={<ProtectedRoute><OwnerBookingsPage /></ProtectedRoute>} />
-              <Route path="/owner/hours" element={<ProtectedRoute><OwnerHoursPage /></ProtectedRoute>} />
-              <Route path="/owner/pricing" element={<ProtectedRoute><OwnerPricingPage /></ProtectedRoute>} />
-              <Route path="/owner/equipment" element={<ProtectedRoute><OwnerEquipmentPage /></ProtectedRoute>} />
-              <Route path="/owner/integrations" element={<ProtectedRoute><OwnerIntegrationsPage /></ProtectedRoute>} />
-              <Route path="/owner/integrations/callback" element={<ProtectedRoute><CalendarCallbackPage /></ProtectedRoute>} />
-              <Route path="/owner/policies" element={<ProtectedRoute><OwnerPoliciesPage /></ProtectedRoute>} />
-              <Route path="/owner/settings" element={<ProtectedRoute><OwnerSettingsPage /></ProtectedRoute>} />
-              <Route path="/owner/widget" element={<ProtectedRoute><OwnerWidgetPage /></ProtectedRoute>} />
-              
-              {/* Embed booking widget (public) */}
-              <Route path="/embed/booking/:venueId" element={<EmbedBookingPage />} />
-              
-              {/* Auth callback for magic link */}
-              <Route path="/auth/callback" element={<AuthCallbackPage />} />
-              
-              {/* Legacy owner routes */}
-              <Route path="/owner-schedule" element={<ProtectedRoute><OwnerSchedulePage /></ProtectedRoute>} />
+            <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+              <h1>✓ Sportsbnb App Loaded</h1>
+              <p>Supabase Connected: Check console</p>
+            </div>
+          </TooltipProvider>
+        </CurrencyProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+);
               
               {/* Venue Management */}
               <Route path="/add-venue" element={<ProtectedRoute><AddVenuePage /></ProtectedRoute>} />
@@ -115,35 +82,5 @@ const App = () => (
               <Route path="/my-venues" element={<ProtectedRoute><MyVenuesPage /></ProtectedRoute>} />
               {/* Auth */}
               <Route path="/signup" element={<SignupPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              {/* Onboarding */}
-              <Route path="/onboarding/player" element={<ProtectedRoute><PlayerOnboarding /></ProtectedRoute>} />
-              <Route path="/onboarding/owner" element={<ProtectedRoute><OwnerOnboarding /></ProtectedRoute>} />
-              <Route path="/list-venue" element={<ProtectedRoute><OwnerOnboarding /></ProtectedRoute>} />
-              {/* Settings - redirect to profile */}
-              <Route path="/settings" element={<Navigate to="/profile" replace />} />
-              {/* Info Pages */}
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/faq" element={<FAQPage />} />
-              <Route path="/privacy" element={<PrivacyPolicyPage />} />
-              <Route path="/terms" element={<TermsOfServicePage />} />
-              <Route path="/cookies" element={<CookiePolicyPage />} />
-              <Route path="/install" element={<InstallPage />} />
-              {/* Profile & Billing */}
-              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-              <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
-              {/* Admin */}
-              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </CurrencyProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
 
 export default App;
