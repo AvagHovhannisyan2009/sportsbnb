@@ -7,7 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { CurrencyProvider } from "@/hooks/useCurrency";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/admin/AdminRoute";
-import HomePage from "./pages/HomePage3D";
+import HomePage from "./pages/HomePage";
 import DiscoverPage from "./pages/DiscoverPage";
 import CommunityPage from "./pages/CommunityPage";
 import GamesPage from "./pages/GamesPage";
