@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Search, Calendar, Users, Building, ArrowRight, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
+import Hero3DWrapper from "@/components/home/3d/Hero3DWrapper";
+import SectionDivider3D from "@/components/home/3d/SectionDivider3D";
 import heroImage from "@/assets/hero-sports-premium.jpg";
 import venueFootball from "@/assets/venue-football.jpg";
 import venueTennis from "@/assets/venue-tennis.jpg";
@@ -72,7 +74,8 @@ const HomePage = () => {
   return (
     <div className="flex flex-col">
       {/* Hero Section - Sports Venue Booking */}
-      <section className="relative min-h-[90vh] flex items-center" aria-label="Find and book sports venues near you">
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden" aria-label="Find and book sports venues near you">
+        {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
             src={heroImage}
@@ -85,7 +88,10 @@ const HomePage = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
         </div>
 
-        <div className="container relative z-10 py-24 md:py-32">
+        {/* 3D Scene Overlay */}
+        <Hero3DWrapper className="absolute inset-0 z-[1] pointer-events-none" />
+
+        <div className="container relative z-10 py-24 md:py-32 pointer-events-auto">
           <div className="max-w-3xl mx-auto text-center mb-12">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 tracking-tight">
               {t('home.heroTitle')}
@@ -131,6 +137,9 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Divider */}
+      <SectionDivider3D variant="gradient" />
+
       {/* Featured Categories - Book Courts by Sport */}
       <section className="py-20 md:py-28 bg-background" aria-labelledby="sports-categories">
         <div className="container">
@@ -169,6 +178,9 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* Divider */}
+      <SectionDivider3D variant="wave" />
 
       {/* How It Works - Players */}
       <section className="py-20 md:py-28 bg-muted/30">
@@ -262,6 +274,9 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* Divider */}
+      <SectionDivider3D variant="dots" />
 
       {/* Benefits */}
       <section className="py-20 md:py-28 bg-secondary">
