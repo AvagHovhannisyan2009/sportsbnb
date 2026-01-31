@@ -157,7 +157,22 @@ const SignupPage = () => {
     });
 
     if (error) {
-      toast.error(getGenericAuthError(error, 'signup'));
+      // Helpful diagnostics in preview/dev while still keeping production safe.
+      // This also ensures we can pinpoint issues that would otherwise be hidden
+      // by generic copy.
+      // eslint-disable-next-line no-console
+      console.error('SIGNUP_ERROR', {
+        message: (error as any)?.message,
+        code: (error as any)?.code,
+        status: (error as any)?.status,
+        name: (error as any)?.name,
+      });
+
+      const message = import.meta.env.DEV
+        ? ((error as any)?.message || getGenericAuthError(error, 'signup'))
+        : getGenericAuthError(error, 'signup');
+
+      toast.error(message);
       setIsLoading(false);
       setIsSigningUp(false);
       return;
