@@ -9,7 +9,7 @@ import ScrollReveal from "@/components/motion/ScrollReveal";
 import FadeIn from "@/components/motion/FadeIn";
 import StaggerChildren from "@/components/motion/StaggerChildren";
 import DepthPanel from "@/components/home/premium/DepthPanel";
-import BookingCard3D from "@/components/home/premium/BookingCard3D";
+
 import SectionDivider from "@/components/home/premium/SectionDivider";
 import heroImage from "@/assets/hero-sports-premium.jpg";
 import venueFootball from "@/assets/venue-football.jpg";
@@ -84,51 +84,43 @@ const HomePage = () => {
         backgroundAlt="Athletes playing basketball, football, and tennis at premium sports facilities - Book sports venues online"
       >
         <div className="container py-24 md:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left: Content */}
-            <div className="text-center lg:text-left">
-              <FadeIn delay={0.1}>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 tracking-tight">
-                  {t('home.heroTitle')}
-                  <br />
-                  <span className="text-primary">{t('home.heroHighlight')}</span>
-                </h1>
-              </FadeIn>
+          <div className="max-w-3xl mx-auto text-center">
+            <FadeIn delay={0.1}>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 tracking-tight">
+                {t('home.heroTitle')}
+                <br />
+                <span className="text-primary">{t('home.heroHighlight')}</span>
+              </h1>
+            </FadeIn>
 
-              <FadeIn delay={0.2}>
-                <p className="text-lg md:text-xl text-white/80 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                  {t('home.heroDescription')}
-                </p>
-              </FadeIn>
+            <FadeIn delay={0.2}>
+              <p className="text-lg md:text-xl text-white/80 mb-10 leading-relaxed max-w-xl mx-auto">
+                {t('home.heroDescription')}
+              </p>
+            </FadeIn>
 
-              <FadeIn delay={0.3}>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12 lg:mb-0">
-                  <Link to="/venues" aria-label="Search and book sports venues">
-                    <Button
-                      size="xl"
-                      className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl shadow-2xl hover:shadow-primary/25 transition-all duration-300"
-                    >
-                      {t('home.findVenue')}
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
-                  <Link to="/games" aria-label="Browse pickup games near you">
-                    <Button
-                      variant="outline"
-                      size="xl"
-                      className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 hover:border-white/50 transition-all duration-300"
-                    >
-                      {t('home.browseGames')}
-                    </Button>
-                  </Link>
-                </div>
-              </FadeIn>
-            </div>
-
-            {/* Right: Product Preview Card (Desktop only) */}
-            <div className="hidden lg:block">
-              <BookingCard3D className="max-w-md ml-auto" />
-            </div>
+            <FadeIn delay={0.3}>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/venues" aria-label="Search and book sports venues">
+                  <Button
+                    size="xl"
+                    className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl shadow-2xl hover:shadow-primary/25 transition-all duration-300"
+                  >
+                    {t('home.findVenue')}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link to="/games" aria-label="Browse pickup games near you">
+                  <Button
+                    variant="outline"
+                    size="xl"
+                    className="w-full sm:w-auto h-16 px-10 text-lg font-semibold rounded-xl bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 hover:border-white/50 transition-all duration-300"
+                  >
+                    {t('home.browseGames')}
+                  </Button>
+                </Link>
+              </div>
+            </FadeIn>
           </div>
 
           {/* Search Bar */}
