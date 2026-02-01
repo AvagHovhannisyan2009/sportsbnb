@@ -3,7 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://ifphycktfuymugqxvvbi.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_p8QtG5w15zljlkjk7k7ICQ_UJGKZ-6n';
+// Lovable Cloud exposes the public client key as VITE_SUPABASE_PUBLISHABLE_KEY.
+// Some older/generated templates expect VITE_SUPABASE_ANON_KEY; treat it as an alias.
+const SUPABASE_ANON_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  'sb_publishable_p8QtG5w15zljlkjk7k7ICQ_UJGKZ-6n';
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
