@@ -190,7 +190,8 @@ const LoginPage = () => {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      // Always complete OAuth via our callback route so the app can finalize the session.
+      redirect_uri: `${window.location.origin}/auth/callback`,
     });
 
     if (error) {
@@ -202,7 +203,8 @@ const LoginPage = () => {
   const handleAppleSignIn = async () => {
     setIsLoading(true);
     const { error } = await lovable.auth.signInWithOAuth("apple", {
-      redirect_uri: window.location.origin,
+      // Always complete OAuth via our callback route so the app can finalize the session.
+      redirect_uri: `${window.location.origin}/auth/callback`,
     });
 
     if (error) {
