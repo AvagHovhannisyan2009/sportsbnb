@@ -127,6 +127,8 @@ const SignupPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const authCallbackUrl = `${window.location.origin}/auth/callback`;
     
     // Validate all fields
     const result = signupSchema.safeParse(formData);
@@ -145,11 +147,12 @@ const SignupPage = () => {
     setIsLoading(true);
     setIsSigningUp(true);
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: formData.email.trim(),
       password: formData.password,
       options: {
-        emailRedirectTo: window.location.origin,
+        // Ensure all email confirmations/magic links land on our callback route.
+        emailRedirectTo: authCallbackUrl,
         data: {
           full_name: formData.name.trim(),
           user_type: userType,
@@ -179,6 +182,16 @@ const SignupPage = () => {
       return;
     }
 
+    // If email confirmations are enabled, data.session will usually be null.
+    // Don’t send users into protected onboarding routes before they’re actually signed in.
+    if (!data.session) {
+      toast.success("Account created — check your email to confirm, then sign in.");
+      setIsLoading(false);
+      setIsSigningUp(false);
+      navigate("/login", { replace: true });
+      return;
+    }
+
     toast.success("Account created successfully!");
     // Redirect to appropriate page with replace to prevent back navigation issues
     if (userType === "player") {
@@ -193,7 +206,7 @@ const SignupPage = () => {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth/callback`,
     });
 
     if (error) {
@@ -205,7 +218,7 @@ const SignupPage = () => {
   const handleAppleSignIn = async () => {
     setIsLoading(true);
     const { error } = await lovable.auth.signInWithOAuth("apple", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth/callback`,
     });
 
     if (error) {
