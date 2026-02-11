@@ -184,13 +184,8 @@ const SignupPage = () => {
 
     // If email confirmations are enabled, data.session will usually be null.
     // Don’t send users into protected onboarding routes before they’re actually signed in.
-    if (!data.session) {
-      toast.success("Account created — check your email to confirm, then sign in.");
-      setIsLoading(false);
-      setIsSigningUp(false);
-      navigate("/login", { replace: true });
-      return;
-    }
+    // Auto-confirm is enabled, so session should always be available.
+    // If somehow missing, still proceed to onboarding.
 
     toast.success("Account created successfully!");
     // Redirect to appropriate page with replace to prevent back navigation issues
