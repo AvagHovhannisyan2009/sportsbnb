@@ -166,30 +166,30 @@ export function OwnerLayout({ children, title, subtitle }: OwnerLayoutProps) {
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64 pb-14 md:pb-0">
+      <div className="lg:pl-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center gap-3 md:gap-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 md:px-4 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6">
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden h-9 w-9"
+            className="lg:hidden"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1">
             {title && (
               <div>
-                <h1 className="text-base md:text-lg font-semibold text-foreground truncate">{title}</h1>
+                <h1 className="text-lg font-semibold text-foreground">{title}</h1>
                 {subtitle && (
-                  <p className="text-xs md:text-sm text-muted-foreground truncate hidden md:block">{subtitle}</p>
+                  <p className="text-sm text-muted-foreground">{subtitle}</p>
                 )}
               </div>
             )}
           </div>
 
-          <Link to="/" className="hidden md:block">
+          <Link to="/">
             <Button variant="ghost" size="sm">
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back to site
@@ -198,7 +198,7 @@ export function OwnerLayout({ children, title, subtitle }: OwnerLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-3 md:p-4 lg:p-6">{children}</main>
+        <main className="p-4 lg:p-6">{children}</main>
       </div>
     </div>
   );
