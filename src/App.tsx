@@ -13,6 +13,10 @@ import CommunityPage from "./pages/CommunityPage";
 import GamesPage from "./pages/GamesPage";
 import CreateGamePage from "./pages/CreateGamePage";
 import GameDetailsPage from "./pages/GameDetailsPage";
+import TeamsPage from "./pages/TeamsPage";
+import CreateTeamPage from "./pages/CreateTeamPage";
+import TeamDetailsPage from "./pages/TeamDetailsPage";
+import JoinTeamPage from "./pages/JoinTeamPage";
 import GameJoinSuccessPage from "./pages/GameJoinSuccessPage";
 import VenueDetailsPage from "./pages/VenueDetailsPage";
 import PlayerDashboard from "./pages/PlayerDashboard";
@@ -78,6 +82,11 @@ const App = () => (
               <Route path="/create-game" element={<ProtectedRoute><CreateGamePage /></ProtectedRoute>} />
               <Route path="/game/:id" element={<GameDetailsPage />} />
               <Route path="/game/:id/join-success" element={<ProtectedRoute><GameJoinSuccessPage /></ProtectedRoute>} />
+              {/* Teams */}
+              <Route path="/teams" element={<TeamsPage />} />
+              <Route path="/create-team" element={<ProtectedRoute><CreateTeamPage /></ProtectedRoute>} />
+              <Route path="/team/:id" element={<TeamDetailsPage />} />
+              <Route path="/join-team/:code" element={<JoinTeamPage />} />
               {/* Venue Details */}
               <Route path="/venue/:id" element={<VenueDetailsPage />} />
               {/* Dashboards */}

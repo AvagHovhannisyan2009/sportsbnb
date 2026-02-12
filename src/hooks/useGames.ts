@@ -267,6 +267,8 @@ export const useCreateGame = () => {
       duration_hours: number;
       max_players: number;
       price_per_player?: number;
+      play_mode?: "individual" | "team";
+      team_id?: string;
     }) => {
       const { data, error } = await supabase
         .from("games")
@@ -274,7 +276,7 @@ export const useCreateGame = () => {
           ...gameData,
           is_public: true,
           status: "open",
-        })
+        } as any)
         .select()
         .single();
 
