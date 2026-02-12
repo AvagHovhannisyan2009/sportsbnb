@@ -155,7 +155,14 @@ export function ManualBookingDialog({
         notes: notes || null,
       });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        if (insertError.code === '23505') {
+          toast.error("This time slot was just booked. Please select another time.");
+          setIsSubmitting(false);
+          return;
+        }
+        throw insertError;
+      }
 
       toast.success("Booking created successfully!");
       

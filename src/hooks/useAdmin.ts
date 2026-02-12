@@ -109,7 +109,20 @@ export const useAllUsers = () => {
     queryFn: async () => {
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select(`
+          id,
+          user_id,
+          user_type,
+          full_name,
+          username,
+          email,
+          phone,
+          city,
+          avatar_url,
+          onboarding_completed,
+          created_at,
+          updated_at
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

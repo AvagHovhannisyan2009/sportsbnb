@@ -83,6 +83,19 @@ serve(async (req) => {
 
     if (bookingError) {
       console.error("Booking insert error:", bookingError);
+      // Handle unique constraint violation (race condition - slot just booked)
+      if (bookingError.code === '23505') {
+        // Refund the payment since the slot is taken
+        try {
+          await stripe.refunds.create({
+            payment_intent: paymentIntentId,
+            reason: 'duplicate',
+          });
+        } catch (refundErr) {
+          console.error("Refund failed after duplicate booking:", refundErr);
+        }
+        throw new Error("This time slot was just booked by another customer. Your payment has been refunded.");
+      }
       throw new Error("Failed to create booking");
     }
 
