@@ -26,6 +26,28 @@ const escapeHtml = (str: string): string => {
     .replace(/'/g, '&#x27;');
 };
 
+// Simple in-memory rate limiter
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 3600000; // 1 hour
+const RATE_LIMIT_MAX = 5; // 5 requests per hour per IP
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return false;
+  }
+  
+  entry.count++;
+  return true;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -33,12 +55,47 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Rate limiting
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (!checkRateLimit(clientIp)) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const { name, email, subject, message }: ContactEmailRequest = await req.json();
 
     // Validate inputs
     if (!name || !email || !subject || !message) {
       return new Response(
         JSON.stringify({ error: "All fields are required" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Length validation
+    if (name.length > 200 || email.length > 320 || subject.length > 500 || message.length > 5000) {
+      return new Response(
+        JSON.stringify({ error: "Input exceeds maximum length" }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -74,9 +131,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (supportEmailResponse.error) {
       console.error("Failed to send support email:", supportEmailResponse.error);
       return new Response(
-        JSON.stringify({ 
-          error: `Failed to send notification email: ${supportEmailResponse.error.message}` 
-        }),
+        JSON.stringify({ error: "Failed to send message. Please try again later." }),
         {
           status: 500,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -106,9 +161,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (confirmationEmailResponse.error) {
       console.error("Failed to send confirmation email:", confirmationEmailResponse.error);
       return new Response(
-        JSON.stringify({ 
-          error: `Failed to send confirmation email: ${confirmationEmailResponse.error.message}` 
-        }),
+        JSON.stringify({ error: "Failed to send confirmation email. Please try again later." }),
         {
           status: 500,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -126,7 +179,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in send-contact-email function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "An unexpected error occurred. Please try again later." }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
