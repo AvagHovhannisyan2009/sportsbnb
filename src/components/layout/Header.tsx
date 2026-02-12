@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Plus, Gamepad2, Building, Shield, MessageCircle } from "lucide-react";
+import { Menu, X, LogOut, Plus, Gamepad2, Building, Shield, MessageCircle, Users } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useAdmin";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 import { ChatBadge } from "@/components/chat/ChatBadge";
@@ -25,6 +25,7 @@ const Header = () => {
   const navLinks = [
     { href: "/venues", label: "Venues" },
     { href: "/games", label: "Games" },
+    { href: "/teams", label: "Teams" },
     { href: "/community", label: "Community" },
     ...(user ? [{ href: "/dashboard", label: "My Activity" }] : []),
   ];
@@ -96,6 +97,12 @@ const Header = () => {
                     <Link to="/add-venue" className="flex items-center gap-2">
                       <Building className="h-4 w-4" />
                       List Venue
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/create-team" className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Create Team
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

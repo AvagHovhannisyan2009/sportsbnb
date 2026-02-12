@@ -1,12 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Search, Users, LayoutDashboard, User } from "lucide-react";
+import { Search, Users, LayoutDashboard, User, Shield } from "lucide-react";
 
 const MobileNav = () => {
   const location = useLocation();
 
   const navItems = [
-    { href: "/discover", label: "Discover", icon: Search },
+    { href: "/venues", label: "Venues", icon: Search },
     { href: "/games", label: "Games", icon: Users },
+    { href: "/teams", label: "Teams", icon: Shield },
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/profile", label: "Profile", icon: User },
   ];
@@ -15,7 +16,7 @@ const MobileNav = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="grid grid-cols-4 h-16">
+      <div className="grid grid-cols-5 h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (

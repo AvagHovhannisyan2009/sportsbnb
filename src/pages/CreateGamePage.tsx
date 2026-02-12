@@ -17,6 +17,7 @@ import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateGame } from "@/hooks/useGames";
 import { useVenues } from "@/hooks/useVenues";
+import { useUserTeams } from "@/hooks/useTeams";
 import { sportTypes, timeSlots } from "@/data/constants";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
@@ -26,6 +27,7 @@ const CreateGamePage = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const { data: venues = [] } = useVenues();
+  const { data: userTeams } = useUserTeams();
   const createGame = useCreateGame();
 
   const [formData, setFormData] = useState({
@@ -42,7 +44,12 @@ const CreateGamePage = () => {
     pricePerPlayer: "0",
     latitude: null as number | null,
     longitude: null as number | null,
+    playMode: "individual",
+    teamId: "",
   });
+
+  // All teams the user has
+  const allTeams = [...(userTeams?.owned || []), ...(userTeams?.member || [])];
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -113,6 +120,8 @@ const CreateGamePage = () => {
         duration_hours: parseInt(formData.durationHours),
         max_players: parseInt(formData.maxPlayers),
         price_per_player: parseFloat(formData.pricePerPlayer) || 0,
+        play_mode: formData.playMode as "individual" | "team",
+        team_id: formData.teamId || undefined,
       });
 
       toast.success("Game created successfully!");
@@ -218,6 +227,66 @@ const CreateGamePage = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Play Mode */}
+            {allTeams.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Play Mode
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, playMode: "individual", teamId: "" })}
+                      className={`p-4 rounded-lg border text-center transition-colors ${
+                        formData.playMode === "individual"
+                          ? "border-primary bg-primary/5 text-foreground"
+                          : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                      }`}
+                    >
+                      <p className="font-medium">Individual</p>
+                      <p className="text-xs mt-1">Play as yourself</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, playMode: "team" })}
+                      className={`p-4 rounded-lg border text-center transition-colors ${
+                        formData.playMode === "team"
+                          ? "border-primary bg-primary/5 text-foreground"
+                          : "border-border text-muted-foreground hover:border-muted-foreground/50"
+                      }`}
+                    >
+                      <p className="font-medium">As Team</p>
+                      <p className="text-xs mt-1">Play with your team</p>
+                    </button>
+                  </div>
+                  {formData.playMode === "team" && (
+                    <div className="space-y-2">
+                      <Label>Select Team *</Label>
+                      <Select
+                        value={formData.teamId}
+                        onValueChange={(value) => setFormData({ ...formData, teamId: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose your team" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allTeams.map((team) => (
+                            <SelectItem key={team.id} value={team.id}>
+                              {team.name} ({team.sport})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Location */}
             <Card>

@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.booking-notifications]
 verify_jwt = false
+
+[functions.generate-ai-image]
+verify_jwt = false
