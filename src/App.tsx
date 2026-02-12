@@ -60,6 +60,7 @@ import OwnerWidgetPage from "./pages/owner/OwnerWidgetPage";
 import CalendarCallbackPage from "./pages/owner/CalendarCallbackPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import EmbedBookingPage from "./pages/EmbedBookingPage";
+import DevToolsPage from "./pages/DevToolsPage";
 
 const queryClient = new QueryClient();
 
@@ -144,6 +145,8 @@ const App = () => (
               <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
               {/* Admin */}
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              {/* Dev Tools */}
+              <Route path="/dev-tools" element={<DevToolsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
