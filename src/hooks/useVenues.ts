@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { generateMockVenues } from "@/lib/mockData";
 
 export interface Venue {
   id: string;
@@ -55,12 +54,6 @@ export const useVenues = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      
-      // If no real venues, return mock data from JSONPlaceholder
-      if (!data || data.length === 0) {
-        return generateMockVenues();
-      }
-      
       return data as Venue[];
     },
   });

@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { generateMockGames } from "@/lib/mockData";
 
 export interface Game {
   id: string;
@@ -92,10 +91,7 @@ export const useGames = (filters?: {
       const { data: games, error: gamesError } = await query;
       if (gamesError) throw gamesError;
 
-      // If no real games, return mock data from JSONPlaceholder
-      if (!games || games.length === 0) {
-        return generateMockGames();
-      }
+      if (!games || games.length === 0) return [];
 
       // Get host profiles
       const hostIds = [...new Set(games.map(g => g.host_id))];

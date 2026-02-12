@@ -1101,14 +1101,6 @@ export type Database = {
         Args: { _room_id: string; _user_id: string }
         Returns: boolean
       }
-      is_team_captain: {
-        Args: { p_team_id: string; p_user_id: string }
-        Returns: boolean
-      }
-      is_team_member: {
-        Args: { p_team_id: string; p_user_id: string }
-        Returns: boolean
-      }
       is_user_blocked: {
         Args: { p_room_id: string; p_user_id: string }
         Returns: boolean
