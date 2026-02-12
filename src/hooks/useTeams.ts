@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { generateMockTeams } from "@/lib/mockData";
 
 export interface Team {
   id: string;
@@ -57,23 +58,24 @@ export const useTeams = (filters?: { sport?: string; search?: string }) => {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Get member counts
-      if (data && data.length > 0) {
-        const teamIds = data.map(t => t.id);
-        const { data: members } = await supabase
-          .from("team_members")
-          .select("team_id")
-          .in("team_id", teamIds);
-
-        const countMap = new Map<string, number>();
-        members?.forEach(m => {
-          countMap.set(m.team_id, (countMap.get(m.team_id) || 0) + 1);
-        });
-
-        return data.map(t => ({ ...t, member_count: countMap.get(t.id) || 0 })) as Team[];
+      // If no real teams, return mock data from JSONPlaceholder
+      if (!data || data.length === 0) {
+        return generateMockTeams();
       }
 
-      return (data || []) as Team[];
+      // Get member counts
+      const teamIds = data.map(t => t.id);
+      const { data: members } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .in("team_id", teamIds);
+
+      const countMap = new Map<string, number>();
+      members?.forEach(m => {
+        countMap.set(m.team_id, (countMap.get(m.team_id) || 0) + 1);
+      });
+
+      return data.map(t => ({ ...t, member_count: countMap.get(t.id) || 0 })) as Team[];
     },
   });
 };
