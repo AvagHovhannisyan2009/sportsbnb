@@ -11,20 +11,6 @@ const AuthCallbackPage = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // If this is an OAuth PKCE callback (Apple/Google), exchange the code for a session.
-        // This is required when the provider returns `?code=...` instead of tokens in the hash.
-        const url = new URL(window.location.href);
-        if (url.searchParams.get("code")) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(window.location.href);
-          if (exchangeError) {
-            console.error("OAuth code exchange error:", exchangeError);
-            setStatus("error");
-            setMessage(exchangeError.message || "Authentication failed");
-            setTimeout(() => navigate("/login"), 3000);
-            return;
-          }
-        }
-
         // Get session from URL hash
         const { data: { session }, error } = await supabase.auth.getSession();
 

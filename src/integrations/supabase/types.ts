@@ -490,30 +490,6 @@ export type Database = {
         }
         Relationships: []
       }
-      platform_settings: {
-        Row: {
-          created_at: string
-          id: string
-          setting_key: string
-          setting_value: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          setting_key: string
-          setting_value?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          setting_key?: string
-          setting_value?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -837,8 +813,6 @@ export type Database = {
           latitude: number | null
           location_confirmed: boolean | null
           longitude: number | null
-          make_webhook_events: string[] | null
-          make_webhook_url: string | null
           name: string
           owner_id: string
           price_per_hour: number
@@ -861,8 +835,6 @@ export type Database = {
           latitude?: number | null
           location_confirmed?: boolean | null
           longitude?: number | null
-          make_webhook_events?: string[] | null
-          make_webhook_url?: string | null
           name: string
           owner_id: string
           price_per_hour?: number
@@ -885,8 +857,6 @@ export type Database = {
           latitude?: number | null
           location_confirmed?: boolean | null
           longitude?: number | null
-          make_webhook_events?: string[] | null
-          make_webhook_url?: string | null
           name?: string
           owner_id?: string
           price_per_hour?: number

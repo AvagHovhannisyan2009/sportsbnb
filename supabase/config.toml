@@ -1,1 +1,13 @@
 project_id = "aeyqnrwmqmvsfendqypd"
+
+[functions.calendar-auth]
+verify_jwt = false
+
+[functions.calendar-sync]
+verify_jwt = false
+
+[functions.widget-data]
+verify_jwt = false
+
+[functions.booking-notifications]
+verify_jwt = false

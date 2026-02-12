@@ -142,7 +142,7 @@ const VenueDetailsPage = () => {
             <div className="aspect-[4/3] rounded-xl overflow-hidden">
               <img
                 src={venueImage}
-                alt={`${venue.name} - ${venue.sports.join(", ")} court rental in ${location}`}
+                alt={venue.name}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -151,9 +151,8 @@ const VenueDetailsPage = () => {
                 <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden bg-muted">
                   <img
                     src={venueImage}
-                    alt={`${venue.name} sports facility view ${i}`}
+                    alt={`${venue.name} view ${i}`}
                     className="w-full h-full object-cover opacity-80"
-                    loading="lazy"
                   />
                 </div>
               ))}
@@ -161,12 +160,12 @@ const VenueDetailsPage = () => {
           </div>
         </div>
 
-        <main className="container pb-16">
+        <div className="container pb-16">
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content */}
-            <article className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-8">
               {/* Header */}
-              <header>
+              <div>
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   {venue.sports.map((sport) => (
                     <Badge key={sport} variant="secondary">
@@ -177,7 +176,7 @@ const VenueDetailsPage = () => {
                     <Badge variant="outline">Indoor</Badge>
                   )}
                 </div>
-                <h1 className="text-3xl font-bold text-foreground mb-3">{venue.name} - Book Online</h1>
+                <h1 className="text-3xl font-bold text-foreground mb-3">{venue.name}</h1>
                 <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
@@ -189,7 +188,7 @@ const VenueDetailsPage = () => {
                     <span>({venue.review_count} reviews)</span>
                   </div>
                 </div>
-              </header>
+              </div>
 
               <Separator />
 
@@ -359,7 +358,7 @@ const VenueDetailsPage = () => {
                   />
                 )}
               </div>
-            </article>
+            </div>
 
             {/* Booking Card */}
             <div className="lg:col-span-1">
@@ -443,7 +442,7 @@ const VenueDetailsPage = () => {
               </div>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     </Layout>
   );

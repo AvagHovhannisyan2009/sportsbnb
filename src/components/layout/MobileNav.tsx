@@ -1,27 +1,25 @@
 import { Link, useLocation } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { Search, Users, LayoutDashboard, User, Building2, Calendar, ClipboardList } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const MobileNav = () => {
   const location = useLocation();
-  const { t } = useTranslation();
   const { profile } = useAuth();
 
   const isOwner = profile?.user_type === "owner";
 
   const playerNavItems = [
-    { href: "/discover", label: t('nav.discover'), icon: Search },
-    { href: "/games", label: t('nav.games'), icon: Users },
-    { href: "/dashboard", label: t('nav.dashboard'), icon: LayoutDashboard },
-    { href: "/profile", label: t('common.profile'), icon: User },
+    { href: "/discover", label: "Discover", icon: Search },
+    { href: "/games", label: "Games", icon: Users },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/profile", label: "Profile", icon: User },
   ];
 
   const ownerNavItems = [
-    { href: "/owner/venues", label: t('nav.venues'), icon: Building2 },
-    { href: "/owner/schedule", label: t('nav.schedule'), icon: Calendar },
-    { href: "/owner/bookings", label: t('nav.bookings'), icon: ClipboardList },
-    { href: "/profile", label: t('common.profile'), icon: User },
+    { href: "/owner/venues", label: "Venues", icon: Building2 },
+    { href: "/owner/schedule", label: "Schedule", icon: Calendar },
+    { href: "/owner/bookings", label: "Bookings", icon: ClipboardList },
+    { href: "/profile", label: "Profile", icon: User },
   ];
 
   const navItems = isOwner ? ownerNavItems : playerNavItems;

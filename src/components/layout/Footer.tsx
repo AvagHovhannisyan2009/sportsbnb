@@ -1,24 +1,21 @@
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 
 const Footer = () => {
-  const { t } = useTranslation();
-
   const footerLinks = {
     product: [
-      { href: "/discover", label: t('footer.discoverVenues') },
-      { href: "/games", label: t('footer.findGames') },
-      { href: "/list-venue", label: t('footer.listYourVenue') },
+      { href: "/discover", label: "Discover Venues" },
+      { href: "/games", label: "Find Games" },
+      { href: "/list-venue", label: "List Your Venue" },
     ],
     company: [
-      { href: "/about", label: t('common.about') },
-      { href: "/contact", label: t('common.contact') },
-      { href: "/faq", label: t('common.faq') },
+      { href: "/about", label: "About" },
+      { href: "/contact", label: "Contact" },
+      { href: "/faq", label: "FAQ" },
     ],
     legal: [
-      { href: "/privacy", label: t('common.privacy') },
-      { href: "/terms", label: t('common.terms') },
-      { href: "/cookies", label: t('common.cookies') },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/terms", label: "Terms of Service" },
+      { href: "/cookies", label: "Cookie Policy" },
     ],
   };
 
@@ -34,12 +31,12 @@ const Footer = () => {
               <span className="text-lg font-semibold text-foreground">Sportsbnb</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {t('footer.tagline')}
+              Book sports facilities and find games. Making sports more accessible, one booking at a time.
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold text-foreground mb-4">{t('footer.product')}</h4>
+            <h4 className="font-semibold text-foreground mb-4">Product</h4>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.href}>
@@ -55,7 +52,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-semibold text-foreground mb-4">{t('footer.company')}</h4>
+            <h4 className="font-semibold text-foreground mb-4">Company</h4>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
@@ -71,7 +68,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-semibold text-foreground mb-4">{t('footer.legal')}</h4>
+            <h4 className="font-semibold text-foreground mb-4">Legal</h4>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.href}>
@@ -89,7 +86,7 @@ const Footer = () => {
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            {t('footer.copyright', { year: new Date().getFullYear() })}
+            © {new Date().getFullYear()} Sportsbnb. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">

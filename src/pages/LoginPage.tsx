@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,14 +9,12 @@ import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/hooks/useAuth";
 import { getGenericAuthError } from "@/lib/authErrors";
-import { lovable } from "@/integrations/lovable/index";
 import authHero from "@/assets/auth-hero.jpg";
 
 type AuthMode = "password" | "magic-link";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("password");
@@ -32,12 +29,14 @@ const LoginPage = () => {
   const [totpCode, setTotpCode] = useState("");
   const [isVerifyingMfa, setIsVerifyingMfa] = useState(false);
 
+  // Redirect if already authenticated
   useEffect(() => {
     if (!authLoading && user) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, authLoading, navigate]);
 
+  // Resend cooldown timer
   useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
@@ -48,28 +47,31 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email: formData.email,
       password: formData.password,
     });
 
     if (error) {
-      toast.error(getGenericAuthError(error, "login"));
+      toast.error(getGenericAuthError(error, 'login'));
       setIsLoading(false);
       return;
     }
 
+    // Check if MFA is required
     const { data: factorsData } = await supabase.auth.mfa.listFactors();
-    const verifiedFactors = factorsData?.totp?.filter((f) => f.status === "verified") || [];
-
+    const verifiedFactors = factorsData?.totp?.filter(f => f.status === 'verified') || [];
+    
     if (verifiedFactors.length > 0) {
+      // MFA is enabled, need to verify
       setMfaFactorId(verifiedFactors[0].id);
       setMfaRequired(true);
       setIsLoading(false);
       return;
     }
 
+    // No MFA, proceed with normal login
     await handleLoginSuccess(data.user?.id);
     setIsLoading(false);
   };
@@ -77,7 +79,7 @@ const LoginPage = () => {
   const handleMagicLinkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email) {
-      toast.error(t('auth.emailPlaceholder'));
+      toast.error("Please enter your email address");
       return;
     }
 
@@ -91,7 +93,7 @@ const LoginPage = () => {
     });
 
     if (error) {
-      toast.error(getGenericAuthError(error, "login"));
+      toast.error(getGenericAuthError(error, 'login'));
       setIsLoading(false);
       return;
     }
@@ -99,12 +101,12 @@ const LoginPage = () => {
     setMagicLinkSent(true);
     setResendCooldown(30);
     setIsLoading(false);
-    toast.success(t('auth.magicLinkSent'));
+    toast.success("Check your email for the login link!");
   };
 
   const handleResendMagicLink = async () => {
     if (resendCooldown > 0) return;
-
+    
     setIsLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
       email: formData.email,
@@ -114,25 +116,25 @@ const LoginPage = () => {
     });
 
     if (error) {
-      toast.error(t('errors.tryAgain'));
+      toast.error("Failed to resend. Please try again.");
     } else {
       setResendCooldown(30);
-      toast.success(t('common.sent'));
+      toast.success("New link sent!");
     }
     setIsLoading(false);
   };
 
   const handleMfaVerify = async () => {
     if (!mfaFactorId || totpCode.length !== 6) return;
-
+    
     setIsVerifyingMfa(true);
-
+    
     const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
       factorId: mfaFactorId,
     });
 
     if (challengeError) {
-      toast.error(t('errors.somethingWrong'));
+      toast.error("Failed to create MFA challenge");
       setIsVerifyingMfa(false);
       return;
     }
@@ -144,22 +146,21 @@ const LoginPage = () => {
     });
 
     if (verifyError) {
-      toast.error(t('auth.errors.invalidCredentials'));
+      toast.error("Invalid verification code");
       setTotpCode("");
       setIsVerifyingMfa(false);
       return;
     }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // MFA verified, proceed with login
+    const { data: { user } } = await supabase.auth.getUser();
     await handleLoginSuccess(user?.id);
     setIsVerifyingMfa(false);
   };
 
   const handleLoginSuccess = async (userId: string | undefined) => {
-    toast.success(t('auth.welcomeBack'));
-
+    toast.success("Welcome back!");
+    
     if (userId) {
       const { data: profile } = await supabase
         .from("profiles")
@@ -189,30 +190,20 @@ const LoginPage = () => {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    const { error } = await lovable.auth.signInWithOAuth("google", {
-      // Always complete OAuth via our callback route so the app can finalize the session.
-      redirect_uri: `${window.location.origin}/auth/callback`,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
     if (error) {
-      toast.error(getGenericAuthError(error, "login"));
+      toast.error(getGenericAuthError(error, 'login'));
       setIsLoading(false);
     }
   };
 
-  const handleAppleSignIn = async () => {
-    setIsLoading(true);
-    const { error } = await lovable.auth.signInWithOAuth("apple", {
-      // Always complete OAuth via our callback route so the app can finalize the session.
-      redirect_uri: `${window.location.origin}/auth/callback`,
-    });
-
-    if (error) {
-      toast.error(getGenericAuthError(error, "login"));
-      setIsLoading(false);
-    }
-  };
-
+  // Show loading while checking auth state
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -223,52 +214,60 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel */}
+      {/* Left Panel - Emotional Brand Side */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Background Image */}
         <img
           src={authHero}
           alt="Athletes playing sports"
           className="absolute inset-0 w-full h-full object-cover"
         />
+        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
-
+        
+        {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-10 lg:p-14 w-full">
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/30 transition-transform group-hover:scale-105">
               <span className="text-lg font-bold text-primary-foreground">S</span>
             </div>
             <span className="text-xl font-semibold text-white">Sportsbnb</span>
           </Link>
-
+          
+          {/* Hero Text */}
           <div className="max-w-lg">
             <h1 className="text-4xl lg:text-5xl font-bold text-white mb-5 leading-tight tracking-tight">
-              {t('home.heroTitle')}
-              <br />
-              {t('home.heroHighlight')}
+              Find your game.<br />Join your people.
             </h1>
-            <p className="text-lg text-white/80 leading-relaxed">{t('home.heroDescription')}</p>
-
+            <p className="text-lg text-white/80 leading-relaxed">
+              Sportsbnb helps you discover venues, join open games, and stay active with your community.
+            </p>
+            
+            {/* Trust Indicators */}
             <div className="flex items-center gap-6 mt-8">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                <span className="text-white/70 text-sm">10,000+ {t('common.players')}</span>
+                <span className="text-white/70 text-sm">10,000+ players</span>
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />
-                <span className="text-white/70 text-sm">{t('venues.amenities')}</span>
+                <span className="text-white/70 text-sm">Verified venues</span>
               </div>
             </div>
           </div>
-
+          
+          {/* Footer */}
           <div className="text-sm text-white/40">
-            {t('footer.copyright', { year: new Date().getFullYear() })}
+            © {new Date().getFullYear()} Sportsbnb. All rights reserved.
           </div>
         </div>
       </div>
 
-      {/* Right Panel */}
+      {/* Right Panel - Form Side */}
       <div className="flex-1 flex items-center justify-center px-4 py-6 sm:p-10 lg:p-16 bg-background">
         <div className="w-full max-w-md">
+          {/* Magic Link Sent State */}
           {magicLinkSent ? (
             <>
               <button
@@ -276,19 +275,16 @@ const LoginPage = () => {
                 className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 md:mb-10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                {t('auth.backToLogin')}
+                Back to login
               </button>
 
               <div className="text-center">
                 <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4 md:mb-6">
                   <CheckCircle className="h-7 w-7 md:h-8 md:w-8 text-emerald-600" />
                 </div>
-                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-2">
-                  {t('auth.magicLinkSent')}
-                </h2>
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-2">Check your email</h2>
                 <p className="text-muted-foreground mb-6">
-                  {t('auth.magicLinkSentDesc')}
-                  <br />
+                  We sent a login link to<br />
                   <span className="font-medium text-foreground">{formData.email}</span>
                 </p>
 
@@ -299,16 +295,20 @@ const LoginPage = () => {
                   className="w-full"
                 >
                   {resendCooldown > 0 ? (
-                    `${t('auth.resendIn')} ${resendCooldown}s`
+                    `Resend in ${resendCooldown}s`
                   ) : isLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      {t('common.loading')}
+                      Sending...
                     </>
                   ) : (
-                    t('auth.resendLink')
+                    "Resend link"
                   )}
                 </Button>
+
+                <p className="text-sm text-muted-foreground mt-6">
+                  Didn't receive it? Check your spam folder or try another email.
+                </p>
               </div>
             </>
           ) : mfaRequired ? (
@@ -318,7 +318,7 @@ const LoginPage = () => {
                 className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 md:mb-10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                {t('auth.backToLogin')}
+                Back to login
               </button>
 
               <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
@@ -326,18 +326,18 @@ const LoginPage = () => {
                   <Shield className="h-6 w-6 md:h-7 md:w-7 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-xl md:text-2xl font-bold text-foreground">
-                    {t('auth.mfa.title')}
-                  </h2>
-                  <p className="text-sm md:text-base text-muted-foreground">
-                    {t('auth.mfa.enterCode')}
-                  </p>
+                  <h2 className="text-xl md:text-2xl font-bold text-foreground">Two-factor auth</h2>
+                  <p className="text-sm md:text-base text-muted-foreground">Enter your authenticator code</p>
                 </div>
               </div>
 
               <div className="space-y-6 md:space-y-8">
                 <div className="flex justify-center">
-                  <InputOTP maxLength={6} value={totpCode} onChange={setTotpCode}>
+                  <InputOTP
+                    maxLength={6}
+                    value={totpCode}
+                    onChange={setTotpCode}
+                  >
                     <InputOTPGroup className="gap-1.5 md:gap-2">
                       <InputOTPSlot index={0} className="w-10 h-12 md:w-12 md:h-14 text-lg" />
                       <InputOTPSlot index={1} className="w-10 h-12 md:w-12 md:h-14 text-lg" />
@@ -349,14 +349,18 @@ const LoginPage = () => {
                   </InputOTP>
                 </div>
 
-                <Button
-                  onClick={handleMfaVerify}
-                  className="w-full h-11 md:h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                  size="lg"
+                <Button 
+                  onClick={handleMfaVerify} 
+                  className="w-full h-11 md:h-12 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                  size="lg" 
                   disabled={totpCode.length !== 6 || isVerifyingMfa}
                 >
-                  {isVerifyingMfa ? t('auth.mfa.verifying') : t('auth.mfa.verify')}
+                  {isVerifyingMfa ? "Verifying..." : "Verify & Continue"}
                 </Button>
+
+                <p className="text-center text-xs md:text-sm text-muted-foreground">
+                  Open your authenticator app to view your code
+                </p>
               </div>
             </>
           ) : (
@@ -376,19 +380,20 @@ const LoginPage = () => {
                 className="hidden lg:inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                {t('common.back')}
+                Back to home
               </Link>
 
+              {/* Welcome Header */}
               <div className="mb-5 md:mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1 md:mb-2 tracking-tight">
-                  {t('auth.welcomeBack')}
-                </h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1 md:mb-2 tracking-tight">Welcome back</h2>
                 <p className="text-sm md:text-base text-muted-foreground">
-                  {t('auth.welcomeBackDesc')}
+                  Sign in to continue your sports journey
                 </p>
               </div>
 
+              {/* Form Card */}
               <div className="bg-card rounded-xl md:rounded-2xl border border-border/50 shadow-xl shadow-black/5 p-5 md:p-8">
+                {/* Google Sign In Button */}
                 <Button
                   type="button"
                   variant="outline"
@@ -414,22 +419,10 @@ const LoginPage = () => {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  {t('auth.continueWithGoogle')}
+                  Continue with Google
                 </Button>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full h-11 md:h-12 text-sm md:text-base font-medium border-2 hover:bg-accent transition-all mt-2 md:mt-3"
-                  onClick={handleAppleSignIn}
-                  disabled={isLoading}
-                >
-                  <svg className="h-5 w-5 mr-2 md:mr-3" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-                  </svg>
-                  {t('auth.continueWithApple', 'Continue with Apple')}
-                </Button>
-
+                {/* Magic Link Button */}
                 <Button
                   type="button"
                   variant="outline"
@@ -438,32 +431,32 @@ const LoginPage = () => {
                   disabled={isLoading}
                 >
                   <Mail className="h-4 w-4 md:h-5 md:w-5 mr-2 md:mr-3" />
-                  {t('auth.sendMagicLink')}
+                  Continue with Email Link
                 </Button>
 
+                {/* Divider */}
                 <div className="relative my-4 md:my-6">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center">
                     <span className="bg-card px-3 md:px-4 text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider">
-                      {t('auth.orContinueWith')}
+                      or sign in with password
                     </span>
                   </div>
                 </div>
 
+
                 {authMode === "magic-link" ? (
                   <form onSubmit={handleMagicLinkSubmit} className="space-y-4 md:space-y-5">
                     <div className="space-y-1.5 md:space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium">
-                        {t('auth.email')}
-                      </Label>
+                      <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 md:left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                         <Input
                           id="email"
                           type="email"
-                          placeholder={t('auth.emailPlaceholder')}
+                          placeholder="you@example.com"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           className="h-11 md:h-12 pl-10 md:pl-11 text-sm md:text-base border-2 focus:border-primary transition-colors"
@@ -472,20 +465,20 @@ const LoginPage = () => {
                       </div>
                     </div>
 
-                    <Button
-                      type="submit"
-                      className="w-full h-11 md:h-12 text-sm md:text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                      size="lg"
+                    <Button 
+                      type="submit" 
+                      className="w-full h-11 md:h-12 text-sm md:text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                      size="lg" 
                       disabled={isLoading}
                     >
                       {isLoading ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          {t('common.loading')}
+                          Sending link...
                         </>
                       ) : (
                         <>
-                          {t('auth.sendMagicLink')}
+                          Send magic link
                           <ArrowRight className="h-4 w-4 ml-2" />
                         </>
                       )}
@@ -496,21 +489,19 @@ const LoginPage = () => {
                       onClick={() => setAuthMode("password")}
                       className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {t('auth.usePassword')}
+                      Sign in with password instead
                     </button>
                   </form>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
                     <div className="space-y-1.5 md:space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium">
-                        {t('auth.email')}
-                      </Label>
+                      <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 md:left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                         <Input
                           id="email"
                           type="email"
-                          placeholder={t('auth.emailPlaceholder')}
+                          placeholder="you@example.com"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           className="h-11 md:h-12 pl-10 md:pl-11 text-sm md:text-base border-2 focus:border-primary transition-colors"
@@ -521,14 +512,9 @@ const LoginPage = () => {
 
                     <div className="space-y-1.5 md:space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="password" className="text-sm font-medium">
-                          {t('auth.password')}
-                        </Label>
-                        <Link
-                          to="/forgot-password"
-                          className="text-xs md:text-sm text-primary hover:underline font-medium"
-                        >
-                          {t('auth.forgotPassword')}
+                        <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                        <Link to="/forgot-password" className="text-xs md:text-sm text-primary hover:underline font-medium">
+                          Forgot password?
                         </Link>
                       </div>
                       <div className="relative">
@@ -536,7 +522,7 @@ const LoginPage = () => {
                         <Input
                           id="password"
                           type="password"
-                          placeholder={t('auth.passwordPlaceholder')}
+                          placeholder="Enter your password"
                           value={formData.password}
                           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                           className="h-11 md:h-12 pl-10 md:pl-11 text-sm md:text-base border-2 focus:border-primary transition-colors"
@@ -545,22 +531,23 @@ const LoginPage = () => {
                       </div>
                     </div>
 
-                    <Button
-                      type="submit"
-                      className="w-full h-11 md:h-12 text-sm md:text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                      size="lg"
+                    <Button 
+                      type="submit" 
+                      className="w-full h-11 md:h-12 text-sm md:text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+                      size="lg" 
                       disabled={isLoading}
                     >
-                      {isLoading ? t('common.loading') : t('auth.signIn')}
+                      {isLoading ? "Signing in..." : "Sign in"}
                     </Button>
                   </form>
                 )}
               </div>
 
+              {/* Sign Up Link */}
               <p className="text-center text-sm md:text-base text-muted-foreground mt-5 md:mt-8">
-                {t('auth.newHere')}{" "}
+                Don't have an account?{" "}
                 <Link to="/signup" className="text-primary hover:underline font-semibold">
-                  {t('auth.createAccount')}
+                  Create one
                 </Link>
               </p>
             </>

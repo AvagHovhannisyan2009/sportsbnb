@@ -222,8 +222,7 @@ const ProfilePage = () => {
         avatar_url: avatarUrl,
       } : {
         full_name: formData.fullName,
-        // Only include username if it has a value (to avoid unique constraint on empty string)
-        ...(formData.username?.trim() ? { username: formData.username.trim() } : {}),
+        username: formData.username || null,
         phone: formData.phone || null,
         city: formData.city || null,
         date_of_birth: formData.dateOfBirth || null,
@@ -243,14 +242,9 @@ const ProfilePage = () => {
       await refreshProfile();
       setAvatarFile(null);
       toast.success("Profile updated successfully!");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating profile:", error);
-
-      if (error?.code === '23505' && String(error?.message || '').includes('profiles_username')) {
-        toast.error("Username is already taken. Please choose another.");
-      } else {
-        toast.error("Failed to update profile");
-      }
+      toast.error("Failed to update profile");
     } finally {
       setIsSaving(false);
     }

@@ -39,7 +39,6 @@ import MyVenuesPage from "./pages/MyVenuesPage";
 import OwnerSchedulePage from "./pages/OwnerSchedulePage";
 import MessagesPage from "./pages/MessagesPage";
 import NotFound from "./pages/NotFound";
-import InstallPage from "./pages/InstallPage";
 import Layout from "./components/layout/Layout";
 
 // Owner Dashboard Pages
@@ -61,12 +60,12 @@ import EmbedBookingPage from "./pages/EmbedBookingPage";
 const queryClient = new QueryClient();
 
 const App = () => (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CurrencyProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <CurrencyProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Layout showMobileNav={false}><HomePage /></Layout>} />
@@ -131,7 +130,6 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/terms" element={<TermsOfServicePage />} />
               <Route path="/cookies" element={<CookiePolicyPage />} />
-              <Route path="/install" element={<InstallPage />} />
               {/* Profile & Billing */}
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />

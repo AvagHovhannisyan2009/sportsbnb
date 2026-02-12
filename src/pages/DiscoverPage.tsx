@@ -183,9 +183,9 @@ const DiscoverPage = () => {
     <Layout>
       <div className="bg-background min-h-screen">
         {/* Search Header */}
-        <div className="bg-card/95 backdrop-blur-sm border-b border-border sticky top-16 z-40">
-          <div className="container py-3 md:py-4">
-            <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+        <div className="bg-card border-b border-border sticky top-16 z-40">
+          <div className="container py-4">
+            <div className="flex flex-col md:flex-row gap-4">
               {/* Smart Search */}
               <div className="flex-1">
                 <SmartSearch 
@@ -194,13 +194,13 @@ const DiscoverPage = () => {
                 />
               </div>
               
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-3">
                 {/* Near Me Button */}
                 <Button
-                  variant={userLocation ? "secondary" : "outline"}
+                  variant="outline"
                   onClick={handleNearMe}
                   disabled={isLocating}
-                  className="h-11 md:h-12 gap-2 rounded-xl"
+                  className="gap-2"
                 >
                   {isLocating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -363,13 +363,13 @@ const DiscoverPage = () => {
           </div>
         </div>
 
-        {/* Results - Sports Venues Listing */}
-        <main className="container py-8">
+        {/* Results */}
+        <div className="container py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">Sports Venues Near You</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Venues</h1>
               <p className="text-muted-foreground">
-                {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"} available for booking
+                {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"} available
               </p>
             </div>
           </div>
@@ -400,16 +400,16 @@ const DiscoverPage = () => {
           ) : (
             <div className="text-center py-16">
               <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-lg font-semibold text-foreground mb-2">No venues found 😔</h2>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No venues found</h3>
               <p className="text-muted-foreground mb-4">
-                Try adjusting your filters or searching a different area
+                Try adjusting your filters or search query
               </p>
               <Button variant="outline" onClick={clearFilters}>
                 Clear filters
               </Button>
             </div>
           )}
-        </main>
+        </div>
       </div>
     </Layout>
   );

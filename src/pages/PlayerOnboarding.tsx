@@ -143,13 +143,6 @@ const PlayerOnboarding = () => {
     setIsSubmitting(true);
 
     try {
-      const username = formData.username.trim();
-      if (!username) {
-        toast.error("Please enter a username");
-        setCurrentStep(1);
-        return;
-      }
-
       let avatarUrl = avatarPreview;
 
       // Upload avatar if a new file was selected
@@ -176,7 +169,7 @@ const PlayerOnboarding = () => {
         .from('profiles')
         .update({
           full_name: formData.fullName,
-          username,
+          username: formData.username,
           date_of_birth: formData.dateOfBirth || null,
           gender: formData.gender || null,
           city: formData.city || null,
@@ -195,16 +188,8 @@ const PlayerOnboarding = () => {
       await refreshProfile();
       toast.success("Profile completed!");
       navigate("/dashboard");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Onboarding error:", error);
-
-      // Unique username constraint
-      if (error?.code === '23505' && String(error?.message || '').includes('profiles_username')) {
-        toast.error("Username is already taken. Please choose another.");
-        setCurrentStep(1);
-        return;
-      }
-
       toast.error("Failed to save profile. Please try again.");
     } finally {
       setIsSubmitting(false);

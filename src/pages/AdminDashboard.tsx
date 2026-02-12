@@ -57,7 +57,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Layout from "@/components/layout/Layout";
-import { PlatformWebhooksConfig } from "@/components/admin/PlatformWebhooksConfig";
 import {
   useAdminStats,
   useAllUsers,
@@ -197,7 +196,6 @@ const AdminDashboard = () => {
               <TabsTrigger value="venues">Venues</TabsTrigger>
               <TabsTrigger value="bookings">Bookings</TabsTrigger>
               <TabsTrigger value="games">Games</TabsTrigger>
-              <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -584,11 +582,6 @@ const AdminDashboard = () => {
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            {/* Webhooks Tab */}
-            <TabsContent value="webhooks">
-              <PlatformWebhooksConfig />
             </TabsContent>
           </Tabs>
         </div>

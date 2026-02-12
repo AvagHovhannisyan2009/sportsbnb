@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/select";
 import { OwnerLayout } from "@/components/owner/OwnerLayout";
 import { EmptyState } from "@/components/owner/EmptyState";
-import { MakeWebhookConfig } from "@/components/owner/MakeWebhookConfig";
 import { useOwnerVenues } from "@/hooks/useVenues";
 import { useCalendarIntegrations } from "@/hooks/useCalendarIntegrations";
 import { toast } from "sonner";
@@ -300,15 +299,6 @@ const OwnerIntegrationsPage = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Make.com Integration */}
-          {selectedVenueId && (
-            <MakeWebhookConfig
-              venueId={selectedVenueId}
-              initialWebhookUrl={(myVenues.find(v => v.id === selectedVenueId) as any)?.make_webhook_url}
-              initialEvents={(myVenues.find(v => v.id === selectedVenueId) as any)?.make_webhook_events}
-            />
-          )}
         </div>
       )}
 

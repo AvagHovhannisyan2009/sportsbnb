@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { MapPin, Loader2, X, Search, Navigation } from "lucide-react";
+import { MapPin, Loader2, X, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export interface PhotonPlace {
@@ -39,7 +40,6 @@ interface LocationAutocompleteProps {
   error?: string;
   defaultLatitude?: number;
   defaultLongitude?: number;
-  size?: "default" | "lg";
 }
 
 export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
@@ -52,14 +52,12 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   error,
   defaultLatitude,
   defaultLongitude,
-  size = "default",
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<PhotonPlace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
@@ -74,7 +72,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        setIsFocused(false);
       }
     };
 
@@ -158,7 +155,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     setInputValue(place.formattedAddress);
     setSuggestions([]);
     setIsOpen(false);
-    setIsFocused(false);
     onSelect(place);
   };
 
@@ -190,70 +186,45 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         break;
       case "Escape":
         setIsOpen(false);
-        inputRef.current?.blur();
         break;
     }
   };
 
-  const inputHeight = size === "lg" ? "h-12" : "h-10 md:h-11";
-  const iconSize = size === "lg" ? "h-5 w-5" : "h-4 w-4";
+  const getTypeIcon = (type?: string) => {
+    // Could be extended with different icons for different place types
+    return <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />;
+  };
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
-      {/* Input container */}
-      <div className="relative group">
-        {/* Glow effect */}
-        <div 
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onFocus={() => suggestions.length > 0 && setIsOpen(true)}
+          placeholder={placeholder}
+          disabled={disabled}
           className={cn(
-            "absolute -inset-0.5 rounded-lg bg-gradient-to-r from-primary/15 to-primary/15 opacity-0 blur transition-opacity duration-200",
-            isFocused && !error && "opacity-100"
-          )} 
-        />
-        
-        <div className={cn(
-          "relative flex items-center bg-card border rounded-lg overflow-hidden transition-all duration-200",
-          error ? "border-destructive" : isFocused ? "border-primary/50" : "border-input hover:border-muted-foreground/30",
-          inputHeight
-        )}>
-          {/* Search icon */}
-          <div className="pl-3 flex items-center">
-            {isLoading ? (
-              <Loader2 className={cn(iconSize, "animate-spin text-primary")} />
-            ) : (
-              <Search className={cn(iconSize, "text-muted-foreground transition-colors", isFocused && "text-primary")} />
-            )}
-          </div>
-          
-          {/* Input */}
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onFocus={() => {
-              setIsFocused(true);
-              if (suggestions.length > 0) setIsOpen(true);
-            }}
-            placeholder={placeholder}
-            disabled={disabled}
-            className={cn(
-              "flex-1 px-2 bg-transparent text-foreground placeholder:text-muted-foreground/60 focus:outline-none text-sm",
-              disabled && "opacity-50 cursor-not-allowed"
-            )}
-          />
-          
-          {/* Clear button */}
-          {inputValue && !disabled && (
-            <button
-              type="button"
-              onClick={handleClear}
-              className="pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className={iconSize} />
-            </button>
+            "pl-10 pr-10",
+            error && "border-destructive",
           )}
-        </div>
+        />
+        {isLoading && (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+        )}
+        {!isLoading && inputValue && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {error && (
@@ -262,31 +233,23 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
       {/* Suggestions dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div className={cn(
-          "absolute z-50 w-full mt-1.5 bg-popover border border-border rounded-lg shadow-xl overflow-hidden",
-          "animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
-        )}>
+        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
           <ul className="max-h-60 overflow-auto py-1">
             {suggestions.map((place, index) => (
               <li
                 key={`${place.latitude}-${place.longitude}-${index}`}
                 className={cn(
-                  "px-3 py-2.5 cursor-pointer flex items-center gap-3 transition-all duration-150",
+                  "px-3 py-2 cursor-pointer flex items-start gap-3 transition-colors",
                   index === selectedIndex
-                    ? "bg-primary/10 border-l-2 border-l-primary"
-                    : "hover:bg-muted/50 border-l-2 border-l-transparent"
+                    ? "bg-accent text-accent-foreground"
+                    : "hover:bg-muted"
                 )}
                 onClick={() => handleSelect(place)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
-                <div className={cn(
-                  "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-                  index === selectedIndex ? "bg-primary/20" : "bg-muted/50"
-                )}>
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                </div>
+                {getTypeIcon(place.type)}
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm text-foreground truncate">{place.name}</div>
+                  <div className="font-medium text-sm truncate">{place.name}</div>
                   <div className="text-xs text-muted-foreground truncate">
                     {place.city && place.country
                       ? `${place.city}, ${place.country}`
@@ -297,21 +260,9 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
               </li>
             ))}
           </ul>
-          <div className="px-3 py-1.5 text-xs text-muted-foreground border-t border-border bg-muted/20 flex items-center gap-1">
-            <Navigation className="h-3 w-3" />
+          <div className="px-3 py-1.5 text-xs text-muted-foreground border-t border-border bg-muted/30">
             Powered by OpenStreetMap
           </div>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {isOpen && inputValue.length >= 3 && suggestions.length === 0 && !isLoading && (
-        <div className={cn(
-          "absolute z-50 w-full mt-1.5 bg-popover border border-border rounded-lg shadow-xl overflow-hidden p-4 text-center",
-          "animate-in fade-in-0 zoom-in-95 duration-150"
-        )}>
-          <MapPin className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
-          <p className="text-sm text-muted-foreground">No locations found</p>
         </div>
       )}
     </div>
