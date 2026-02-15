@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Calendar, Users, Building, ArrowRight, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
+import NearbyPlayers from "@/components/home/NearbyPlayers";
 import heroImage from "@/assets/hero-sports-premium.jpg";
 import venueFootball from "@/assets/venue-football.jpg";
 import venueTennis from "@/assets/venue-tennis.jpg";
@@ -184,13 +185,14 @@ const HomePage = () => {
           })}
           </div>
 
-          <div className="text-center">
+          <div className="flex flex-col items-center gap-6">
             <Link to="/venues">
               <Button size="lg" className="h-14 px-10 text-base rounded-xl">
                 Start exploring venues
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
+            <NearbyPlayers />
           </div>
         </div>
       </section>
