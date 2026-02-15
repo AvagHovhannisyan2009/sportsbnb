@@ -84,9 +84,7 @@ export function OwnerLayout({ children, title, subtitle }: OwnerLayoutProps) {
           {/* Logo & Close */}
           <div className="flex h-16 items-center justify-between px-4 border-b border-border">
             <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <span className="text-sm font-bold text-primary-foreground">S</span>
-              </div>
+              <img src="/favicon.png" alt="Sportsbnb" className="h-8 w-8 rounded-lg" />
               <span className="font-semibold text-foreground">Sportsbnb</span>
             </Link>
             <Button

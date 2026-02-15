@@ -19,22 +19,11 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
     >
       {/* Logo mark */}
       <div className="flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-9 h-9 text-primary-foreground"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-            <path d="M2 12h20" />
-          </svg>
-        </div>
+        <img 
+          src="/favicon.png" 
+          alt="Sportsbnb" 
+          className="w-16 h-16 rounded-2xl shadow-lg"
+        />
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Sportsbnb
         </h1>
