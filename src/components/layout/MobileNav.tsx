@@ -15,15 +15,15 @@ const MobileNav = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="grid grid-cols-5 h-16">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 safe-area-bottom">
+      <div className="grid grid-cols-5 h-14">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               to={item.href}
-              className={`flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors ${
                 isActive(item.href)
                   ? "text-primary"
                   : "text-muted-foreground"

@@ -87,12 +87,12 @@ const HeroSearch = () => {
   const formatPrice = (price: number) => `${price.toLocaleString()} AMD/hr`;
 
   return (
-    <div className="space-y-4">
-      <div className="bg-background/95 backdrop-blur-md rounded-2xl shadow-2xl p-2 md:p-3 border border-border/50">
-        <div className="flex flex-col md:flex-row gap-2 md:gap-0">
+    <div className="space-y-3 md:space-y-4">
+      <div className="bg-background/95 backdrop-blur-md rounded-xl md:rounded-2xl shadow-2xl p-1.5 md:p-3 border border-border/50">
+        <div className="flex flex-col md:flex-row gap-1 md:gap-0">
           {/* Location */}
-          <div className="flex-1 flex items-center gap-3 px-4 py-3 md:border-r border-border/50">
-            <MapPin className="h-5 w-5 text-muted-foreground shrink-0" />
+          <div className="flex-1 flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 md:border-r border-border/50">
+            <MapPin className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground shrink-0" />
             <div className="flex-1">
               <label className="text-xs font-medium text-muted-foreground block mb-0.5">
                 Location
@@ -108,8 +108,8 @@ const HeroSearch = () => {
           </div>
 
           {/* Sport */}
-          <div className="flex-1 flex items-center gap-3 px-4 py-3 md:border-r border-border/50">
-            <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+          <div className="flex-1 flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 md:border-r border-border/50">
+            <Search className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground shrink-0" />
             <div className="flex-1">
               <label className="text-xs font-medium text-muted-foreground block mb-0.5">
                 Sport
@@ -131,8 +131,8 @@ const HeroSearch = () => {
           </div>
 
           {/* When */}
-          <div className="flex-1 flex items-center gap-3 px-4 py-3 md:border-r border-border/50">
-            <Calendar className="h-5 w-5 text-muted-foreground shrink-0" />
+          <div className="flex-1 flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 md:border-r border-border/50">
+            <Calendar className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground shrink-0" />
             <div className="flex-1">
               <label className="text-xs font-medium text-muted-foreground block mb-0.5">
                 When
@@ -152,25 +152,26 @@ const HeroSearch = () => {
             </div>
           </div>
 
-          {/* Buttons */}
+      {/* Buttons */}
           <div className="flex gap-2 px-2 py-2">
             <Button 
               onClick={handleNearMe}
               variant="outline"
-              size="lg"
+              size="default"
               disabled={isLocating}
-              className="h-12 px-4 rounded-xl"
+              className="h-10 md:h-12 px-3 md:px-4 rounded-xl text-sm"
             >
-              <Navigation className={`h-5 w-5 mr-2 ${isLocating ? 'animate-pulse' : ''}`} />
-              {isLocating ? "Locating..." : "Near me"}
+              <Navigation className={`h-4 w-4 md:h-5 md:w-5 mr-1.5 md:mr-2 ${isLocating ? 'animate-pulse' : ''}`} />
+              <span className="hidden sm:inline">{isLocating ? "Locating..." : "Near me"}</span>
+              <span className="sm:hidden">{isLocating ? "..." : "Near"}</span>
             </Button>
             <Button 
               onClick={handleSearch}
-              size="lg"
+              size="default"
               disabled={searchState === "loading"}
-              className="w-full md:w-auto h-12 px-8 rounded-xl"
+              className="flex-1 md:flex-none h-10 md:h-12 px-6 md:px-8 rounded-xl text-sm md:text-base"
             >
-              <Search className="h-5 w-5 mr-2" />
+              <Search className="h-4 w-4 md:h-5 md:w-5 mr-1.5 md:mr-2" />
               Search
             </Button>
           </div>
