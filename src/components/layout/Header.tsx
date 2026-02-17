@@ -47,15 +47,15 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2">
+      <div className="container flex h-14 md:h-16 items-center justify-between">
+        <div className="flex items-center gap-4 md:gap-8">
+          <Link to="/" className="flex items-center gap-1.5 md:gap-2">
             <img 
               src="/favicon.png" 
               alt="Sportsbnb" 
-              className="h-10 w-10 rounded-lg"
+              className="h-8 w-8 md:h-10 md:w-10 rounded-lg"
             />
-            <span className="text-xl font-semibold text-foreground">Sportsbnb</span>
+            <span className="text-lg md:text-xl font-semibold text-foreground">Sportsbnb</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
