@@ -188,9 +188,14 @@ const PlayerOnboarding = () => {
       await refreshProfile();
       toast.success("Profile completed!");
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Onboarding error:", error);
-      toast.error("Failed to save profile. Please try again.");
+      if (error?.code === '23505' || error?.message?.includes('profiles_username_unique_idx')) {
+        toast.error("That username is already taken. Please choose a different one.");
+        setCurrentStep(1); // Go back to step 1 where username is entered
+      } else {
+        toast.error("Failed to save profile. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
