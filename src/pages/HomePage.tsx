@@ -4,6 +4,7 @@ import { Search, Calendar, Users, Building, ArrowRight, CheckCircle, Shield, Sta
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import heroImage from "@/assets/hero-sports-premium.jpg";
 import venueFootball from "@/assets/venue-football.jpg";
 import venueTennis from "@/assets/venue-tennis.jpg";
@@ -125,6 +126,31 @@ const HomePage = () => {
             <div className="w-1 h-2 bg-white/60 rounded-full animate-bounce" />
           </div>
         </div>
+      </section>
+
+      {/* Container Scroll Animation */}
+      <section className="bg-background overflow-hidden">
+        <ContainerScroll
+          titleComponent={
+            <>
+              <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-2 md:mb-3">
+                Experience Sportsbnb
+              </p>
+              <h2 className="text-2xl md:text-4xl lg:text-[6rem] font-bold text-foreground leading-none tracking-tight">
+                Your next game
+                <br />
+                <span className="text-primary">starts here</span>
+              </h2>
+            </>
+          }
+        >
+          <img
+            src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1400&q=80"
+            alt="Sports venue aerial view"
+            className="mx-auto rounded-2xl object-cover h-full w-full object-top"
+            draggable={false}
+          />
+        </ContainerScroll>
       </section>
 
       {/* Featured Categories */}
