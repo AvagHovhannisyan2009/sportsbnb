@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Search, Calendar, Users, Building, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe } from "lucide-react";
+import { ArrowRight, Search, Calendar, Users, Building, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe, MapPin, Trophy, Bell, Clock, BarChart3, Image, Gamepad2, MessageCircle, CreditCard, Repeat, Layers, Bot, Wifi, Map, UserPlus, Award } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
@@ -381,6 +381,75 @@ const HomePage = () => {
                       <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" strokeWidth={1.5} />
                     </div>
                     <span className="text-secondary-foreground font-medium text-sm md:text-base">{benefit.text}</span>
+                  </div>
+                );
+              })}
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Platform Features ── */}
+      <section className="py-20 md:py-40 bg-background">
+        <div className="container">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={staggerContainer}
+          >
+            <motion.div variants={fadeUp} transition={sectionTransition} className="text-center mb-12 md:mb-20">
+              <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3 md:mb-4">
+                Everything You Need
+              </p>
+              <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-foreground tracking-tighter mb-4 md:mb-6">
+                25+ powerful features.
+                <br />
+                <span className="text-primary">One platform.</span>
+              </h2>
+              <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                From AI-powered matchmaking to real-time analytics — everything built to make sports effortless.
+              </p>
+            </motion.div>
+
+            <motion.div variants={fadeUp} transition={sectionTransition} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 max-w-6xl mx-auto">
+              {[
+                { icon: Search, label: "Smart Search" },
+                { icon: Calendar, label: "Instant Booking" },
+                { icon: MapPin, label: "Interactive Map" },
+                { icon: Bot, label: "AI Matchmaking" },
+                { icon: Trophy, label: "Leaderboards" },
+                { icon: Award, label: "Achievements & XP" },
+                { icon: Bell, label: "Smart Notifications" },
+                { icon: Clock, label: "Waitlist & Auto-Fill" },
+                { icon: Star, label: "Review Prompts" },
+                { icon: BarChart3, label: "Owner Analytics" },
+                { icon: Image, label: "Venue Galleries" },
+                { icon: Layers, label: "Multi-Court Booking" },
+                { icon: Gamepad2, label: "Open Games" },
+                { icon: Users, label: "Team Management" },
+                { icon: MessageCircle, label: "In-App Chat" },
+                { icon: CreditCard, label: "Secure Payments" },
+                { icon: Repeat, label: "Recurring Bookings" },
+                { icon: UserPlus, label: "Referral Program" },
+                { icon: Shield, label: "Verified Venues" },
+                { icon: Wifi, label: "Real-Time Updates" },
+                { icon: Map, label: "Geolocation" },
+                { icon: Globe, label: "Multi-Currency" },
+                { icon: Sparkles, label: "AI Recommendations" },
+                { icon: Building, label: "Owner Dashboard" },
+                { icon: Zap, label: "Embed Widgets" },
+              ].map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.label}
+                    className="group flex flex-col items-center gap-3 rounded-2xl border border-border/40 bg-muted/20 p-4 md:p-6 text-center hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                  >
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <Icon className="h-5 w-5 md:h-6 md:w-6" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-xs md:text-sm font-medium text-foreground">{feature.label}</span>
                   </div>
                 );
               })}
