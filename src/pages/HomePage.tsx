@@ -170,7 +170,13 @@ const HomePage = () => {
       {/* Featured Categories */}
       <section className="py-12 md:py-28 bg-background">
         <div className="container">
-          <div className="text-center mb-8 md:mb-14">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-center mb-8 md:mb-14"
+          >
             <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-2 md:mb-3">
               Popular Categories
             </p>
@@ -180,16 +186,26 @@ const HomePage = () => {
             <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
               From football fields to swimming pools, find the perfect place for your next game.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-            {featuredVenues.map(venue => <Link key={venue.name} to="/venues" className="group relative aspect-[4/5] rounded-xl md:rounded-2xl overflow-hidden">
-                <img src={venue.image} alt={venue.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-5">
-                  <h3 className="font-semibold text-white text-base md:text-xl">{venue.name}</h3>
-                </div>
-              </Link>)}
+            {featuredVenues.map((venue, index) => (
+              <motion.div
+                key={venue.name}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.1 }}
+              >
+                <Link to="/venues" className="group relative aspect-[4/5] rounded-xl md:rounded-2xl overflow-hidden block">
+                  <img src={venue.image} alt={venue.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3 md:p-5">
+                    <h3 className="font-semibold text-white text-base md:text-xl">{venue.name}</h3>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -197,7 +213,13 @@ const HomePage = () => {
       {/* How It Works - Players */}
       <section className="py-12 md:py-28 bg-muted/30">
         <div className="container">
-          <div className="text-center mb-8 md:mb-14">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-center mb-8 md:mb-14"
+          >
             <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-2 md:mb-3">
               For Players
             </p>
@@ -207,12 +229,19 @@ const HomePage = () => {
             <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
               No more phone calls, spreadsheets, or endless group chats. Just find, book, and play.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6 md:gap-12 mb-8 md:mb-12">
             {howItWorks.map((step, index) => {
             const Icon = step.icon;
-            return <div key={step.title} className="text-center">
+            return <motion.div
+                key={step.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.15 }}
+                className="text-center"
+              >
                   <div className="relative inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary/10 text-primary mb-4 md:mb-6">
                     <Icon className="h-8 w-8 md:h-10 md:w-10" />
                     <div className="absolute -top-2 -right-2 w-6 h-6 md:w-7 md:h-7 rounded-full bg-primary text-primary-foreground text-xs md:text-sm font-bold flex items-center justify-center">
@@ -221,11 +250,17 @@ const HomePage = () => {
                   </div>
                   <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2 md:mb-3">{step.title}</h3>
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{step.description}</p>
-                </div>;
+              </motion.div>;
           })}
           </div>
 
-          <div className="flex flex-col items-center gap-4 md:gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: 0.3 }}
+            className="flex flex-col items-center gap-4 md:gap-6"
+          >
             <Link to="/venues">
               <Button size="lg" className="h-12 md:h-14 px-8 md:px-10 text-base rounded-xl">
                 Start exploring venues
@@ -233,7 +268,7 @@ const HomePage = () => {
               </Button>
             </Link>
             <NearbyPlayers />
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -241,7 +276,12 @@ const HomePage = () => {
       <section className="py-12 md:py-28 bg-background">
         <div className="container">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-20 items-center">
-            <div>
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+            >
               <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-2 md:mb-3">
                 For Venue Owners
               </p>
@@ -256,9 +296,16 @@ const HomePage = () => {
               </p>
 
               <div className="space-y-4 md:space-y-6 mb-6 md:mb-10">
-                {forOwners.map(item => {
+                {forOwners.map((item, index) => {
                 const Icon = item.icon;
-                return <div key={item.title} className="flex gap-4 md:gap-5">
+                return <motion.div
+                    key={item.title}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.1 }}
+                    className="flex gap-4 md:gap-5"
+                  >
                       <div className="shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <Icon className="h-6 w-6 md:h-7 md:w-7" />
                       </div>
@@ -266,7 +313,7 @@ const HomePage = () => {
                         <h3 className="font-semibold text-foreground text-base md:text-lg mb-1">{item.title}</h3>
                         <p className="text-sm md:text-base text-muted-foreground">{item.description}</p>
                       </div>
-                    </div>;
+                  </motion.div>;
               })}
               </div>
 
@@ -276,13 +323,19 @@ const HomePage = () => {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-            </div>
+            </motion.div>
 
-            <div className="relative hidden lg:block">
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1], delay: 0.2 }}
+              className="relative hidden lg:block"
+            >
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
                 <img src={venueBasketball} alt="Sports venue" className="w-full h-full object-cover" />
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -290,7 +343,13 @@ const HomePage = () => {
       {/* Benefits */}
       <section className="py-12 md:py-28 bg-secondary">
         <div className="container">
-          <div className="text-center mb-8 md:mb-14">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-center mb-8 md:mb-14"
+          >
             <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-2 md:mb-3">
               Why Sportsbnb
             </p>
@@ -300,17 +359,24 @@ const HomePage = () => {
             <p className="text-base md:text-lg text-secondary-foreground/70 max-w-2xl mx-auto">
               Every feature designed to make booking and playing sports as simple as possible.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-            {benefits.map(benefit => {
+            {benefits.map((benefit, index) => {
             const Icon = benefit.icon;
-            return <div key={benefit.text} className="flex items-center gap-3 md:gap-4 bg-secondary-foreground/5 hover:bg-secondary-foreground/10 transition-colors rounded-xl md:rounded-2xl p-4 md:p-6">
+            return <motion.div
+                key={benefit.text}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.08 }}
+                className="flex items-center gap-3 md:gap-4 bg-secondary-foreground/5 hover:bg-secondary-foreground/10 transition-colors rounded-xl md:rounded-2xl p-4 md:p-6"
+              >
                   <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
                     <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                   </div>
                   <span className="text-secondary-foreground font-medium text-base md:text-lg">{benefit.text}</span>
-                </div>;
+              </motion.div>;
           })}
           </div>
         </div>
@@ -320,8 +386,13 @@ const HomePage = () => {
       <section className="py-12 md:py-28 bg-background">
         <div className="container">
           <div className="grid md:grid-cols-2 gap-4 md:gap-12">
-            {/* Mission */}
-            <div className="bg-muted/30 rounded-2xl md:rounded-3xl p-6 md:p-10">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+              className="bg-muted/30 rounded-2xl md:rounded-3xl p-6 md:p-10"
+            >
               <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 md:mb-6">
                 <Target className="h-6 w-6 md:h-7 md:w-7" />
               </div>
@@ -334,10 +405,15 @@ const HomePage = () => {
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                 Sportsbnb's mission is to make participation in sport simple and accessible by organizing games, venues, and people into one clear digital space. We aim to remove the friction that prevents active people from playing regularly and help communities stay connected through sport.
               </p>
-            </div>
+            </motion.div>
 
-            {/* Vision */}
-            <div className="bg-muted/30 rounded-2xl md:rounded-3xl p-6 md:p-10">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1], delay: 0.15 }}
+              className="bg-muted/30 rounded-2xl md:rounded-3xl p-6 md:p-10"
+            >
               <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 md:mb-6">
                 <Eye className="h-6 w-6 md:h-7 md:w-7" />
               </div>
@@ -350,7 +426,7 @@ const HomePage = () => {
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                 Sportsbnb's vision is to become the everyday infrastructure for grassroots sport, where people no longer rely on chaotic chats or fragmented platforms, but instead use one trusted place to discover games, connect with others, and stay active in their daily lives.
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -358,7 +434,13 @@ const HomePage = () => {
       {/* Our Values */}
       <section className="py-12 md:py-28 bg-muted/30">
         <div className="container">
-          <div className="text-center mb-8 md:mb-14">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-center mb-8 md:mb-14"
+          >
             <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-2 md:mb-3">
               What We Stand For
             </p>
@@ -368,48 +450,33 @@ const HomePage = () => {
             <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
               The principles that guide everything we build.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-            <div className="bg-background rounded-xl md:rounded-2xl p-4 md:p-8 text-center border border-border/50">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-3 md:mb-5">
-                <Globe className="h-6 w-6 md:h-8 md:w-8" />
-              </div>
-              <h3 className="text-base md:text-xl font-semibold text-foreground mb-2 md:mb-3">Accessibility</h3>
-              <p className="text-xs md:text-base text-muted-foreground leading-relaxed">
-                Sport should be for everyone. We break down barriers.
-              </p>
-            </div>
-
-            <div className="bg-background rounded-xl md:rounded-2xl p-4 md:p-8 text-center border border-border/50">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-3 md:mb-5">
-                <Heart className="h-6 w-6 md:h-8 md:w-8" />
-              </div>
-              <h3 className="text-base md:text-xl font-semibold text-foreground mb-2 md:mb-3">Community</h3>
-              <p className="text-xs md:text-base text-muted-foreground leading-relaxed">
-                Sport brings people together and builds lasting connections.
-              </p>
-            </div>
-
-            <div className="bg-background rounded-xl md:rounded-2xl p-4 md:p-8 text-center border border-border/50">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-3 md:mb-5">
-                <Sparkles className="h-6 w-6 md:h-8 md:w-8" />
-              </div>
-              <h3 className="text-base md:text-xl font-semibold text-foreground mb-2 md:mb-3">Simplicity</h3>
-              <p className="text-xs md:text-base text-muted-foreground leading-relaxed">
-                Book a game in seconds, not hours. We remove friction.
-              </p>
-            </div>
-
-            <div className="bg-background rounded-xl md:rounded-2xl p-4 md:p-8 text-center border border-border/50">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-3 md:mb-5">
-                <Shield className="h-6 w-6 md:h-8 md:w-8" />
-              </div>
-              <h3 className="text-base md:text-xl font-semibold text-foreground mb-2 md:mb-3">Trust</h3>
-              <p className="text-xs md:text-base text-muted-foreground leading-relaxed">
-                Verified venues, secure payments, transparent policies.
-              </p>
-            </div>
+            {[
+              { icon: Globe, title: "Accessibility", desc: "Sport should be for everyone. We break down barriers." },
+              { icon: Heart, title: "Community", desc: "Sport brings people together and builds lasting connections." },
+              { icon: Sparkles, title: "Simplicity", desc: "Book a game in seconds, not hours. We remove friction." },
+              { icon: Shield, title: "Trust", desc: "Verified venues, secure payments, transparent policies." },
+            ].map((value, index) => {
+              const Icon = value.icon;
+              return (
+                <motion.div
+                  key={value.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.1 }}
+                  className="bg-background rounded-xl md:rounded-2xl p-4 md:p-8 text-center border border-border/50"
+                >
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-3 md:mb-5">
+                    <Icon className="h-6 w-6 md:h-8 md:w-8" />
+                  </div>
+                  <h3 className="text-base md:text-xl font-semibold text-foreground mb-2 md:mb-3">{value.title}</h3>
+                  <p className="text-xs md:text-base text-muted-foreground leading-relaxed">{value.desc}</p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -417,7 +484,13 @@ const HomePage = () => {
       {/* Team / Founders */}
       <section className="py-12 md:py-28 bg-background">
         <div className="container">
-          <div className="text-center mb-8 md:mb-14">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-center mb-8 md:mb-14"
+          >
             <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-2 md:mb-3">
               Meet The Team
             </p>
@@ -427,44 +500,30 @@ const HomePage = () => {
             <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
               Three ambitious students from Shirakatsy Lyceum on a mission to make sports accessible to everyone.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-3 md:grid-cols-3 gap-4 md:gap-8 max-w-4xl mx-auto">
-            {/* Avag */}
-            <div className="text-center">
-              <div className="relative mb-3 md:mb-6 mx-auto w-20 h-20 md:w-40 md:h-40">
-                <img src={founderAvag} alt="Avag Hovhannisyan" className="w-full h-full object-cover rounded-full border-2 md:border-4 border-primary/20" />
-              </div>
-              <h3 className="text-sm md:text-xl font-semibold text-foreground mb-0.5 md:mb-1">Avag H.</h3>
-              <p className="text-primary font-medium text-xs md:text-base mb-1 md:mb-3">Founder</p>
-              <p className="text-muted-foreground text-xs md:text-sm leading-relaxed hidden md:block">
-                Passionate about technology and sports, driving the vision to connect players with venues seamlessly.
-              </p>
-            </div>
-
-            {/* Gor */}
-            <div className="text-center">
-              <div className="relative mb-3 md:mb-6 mx-auto w-20 h-20 md:w-40 md:h-40">
-                <img src={founderGor} alt="Gor Meliksetyan" className="w-full h-full object-cover rounded-full border-2 md:border-4 border-primary/20" />
-              </div>
-              <h3 className="text-sm md:text-xl font-semibold text-foreground mb-0.5 md:mb-1">Gor M.</h3>
-              <p className="text-primary font-medium text-xs md:text-base mb-1 md:mb-3">Co-Founder</p>
-              <p className="text-muted-foreground text-xs md:text-sm leading-relaxed hidden md:block">
-                Dedicated to building products that solve real problems and create lasting impact in communities.
-              </p>
-            </div>
-
-            {/* Irina */}
-            <div className="text-center">
-              <div className="relative mb-3 md:mb-6 mx-auto w-20 h-20 md:w-40 md:h-40">
-                <img src={founderIrina} alt="Irina Grigoryan" className="w-full h-full object-cover rounded-full border-2 md:border-4 border-primary/20" />
-              </div>
-              <h3 className="text-sm md:text-xl font-semibold text-foreground mb-0.5 md:mb-1">Irina G.</h3>
-              <p className="text-primary font-medium text-xs md:text-base mb-1 md:mb-3">Co-Founder</p>
-              <p className="text-muted-foreground text-xs md:text-sm leading-relaxed hidden md:block">
-                Focused on user experience and community building, ensuring Sportsbnb serves everyone's needs.
-              </p>
-            </div>
+            {[
+              { img: founderAvag, alt: "Avag Hovhannisyan", name: "Avag H.", role: "Founder", bio: "Passionate about technology and sports, driving the vision to connect players with venues seamlessly." },
+              { img: founderGor, alt: "Gor Meliksetyan", name: "Gor M.", role: "Co-Founder", bio: "Dedicated to building products that solve real problems and create lasting impact in communities." },
+              { img: founderIrina, alt: "Irina Grigoryan", name: "Irina G.", role: "Co-Founder", bio: "Focused on user experience and community building, ensuring Sportsbnb serves everyone's needs." },
+            ].map((founder, index) => (
+              <motion.div
+                key={founder.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.15 }}
+                className="text-center"
+              >
+                <div className="relative mb-3 md:mb-6 mx-auto w-20 h-20 md:w-40 md:h-40">
+                  <img src={founder.img} alt={founder.alt} className="w-full h-full object-cover rounded-full border-2 md:border-4 border-primary/20" />
+                </div>
+                <h3 className="text-sm md:text-xl font-semibold text-foreground mb-0.5 md:mb-1">{founder.name}</h3>
+                <p className="text-primary font-medium text-xs md:text-base mb-1 md:mb-3">{founder.role}</p>
+                <p className="text-muted-foreground text-xs md:text-sm leading-relaxed hidden md:block">{founder.bio}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -472,7 +531,13 @@ const HomePage = () => {
       {/* CTA */}
       <section className="py-12 md:py-28 bg-background">
         <div className="container">
-          <div className="max-w-3xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            className="max-w-3xl mx-auto text-center"
+          >
             <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 md:mb-6 tracking-tight">
               Ready to find your game?
             </h2>
@@ -498,7 +563,7 @@ const HomePage = () => {
                 </Button>
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
     </div>;
