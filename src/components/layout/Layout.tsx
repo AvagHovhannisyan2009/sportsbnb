@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import MobileNav from "./MobileNav";
+import { AIChatbot } from "@/components/chat/AIChatbot";
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,6 +19,7 @@ const Layout = ({ children, showFooter = true, showMobileNav = true }: LayoutPro
       </main>
       {showFooter && <Footer />}
       {showMobileNav && <MobileNav />}
+      <AIChatbot />
     </div>
   );
 };
