@@ -171,8 +171,9 @@ const HomePage = () => {
               <img
                 src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1600&q=85"
                 alt="Sports venue aerial"
-                className="w-full aspect-[16/9] object-cover"
-                draggable={false}
+                 className="w-full aspect-[16/9] object-cover"
+                 loading="lazy"
+                 draggable={false}
               />
             </div>
             <div className="absolute -inset-8 -z-10 bg-primary/5 rounded-[3rem] blur-3xl" />
@@ -203,6 +204,7 @@ const HomePage = () => {
                     src={venue.image}
                     alt={venue.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
@@ -317,7 +319,7 @@ const HomePage = () => {
               className="relative hidden lg:block"
             >
               <div className="aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl">
-                <img src={venueBasketball} alt="Sports venue" className="w-full h-full object-cover" />
+                <img src={venueBasketball} alt="Sports venue" className="w-full h-full object-cover" loading="lazy" />
               </div>
               <div className="absolute -inset-6 -z-10 bg-primary/5 rounded-[3rem] blur-3xl" />
             </motion.div>
@@ -450,6 +452,7 @@ const HomePage = () => {
                     src={founder.img}
                     alt={founder.alt}
                     className="w-full h-full object-cover rounded-full border-2 md:border-4 border-primary/15"
+                    loading="lazy"
                   />
                 </div>
                 <h3 className="text-sm md:text-xl font-semibold text-foreground mb-0.5 md:mb-1 tracking-tight">{founder.name}</h3>
