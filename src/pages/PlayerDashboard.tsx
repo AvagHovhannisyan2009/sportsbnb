@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Layout from "@/components/layout/Layout";
+import AIRecommendations from "@/components/venue/AIRecommendations";
 import { useAuth } from "@/hooks/useAuth";
 import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
@@ -474,6 +475,13 @@ const PlayerDashboard = () => {
               </div>
             </TabsContent>
           </Tabs>
+
+          {/* AI Recommendations */}
+          {activeTab === "upcoming" && (
+            <div className="mt-8">
+              <AIRecommendations />
+            </div>
+          )}
 
           {/* Recommended Venues - only show in upcoming tab */}
           {activeTab === "upcoming" && (
