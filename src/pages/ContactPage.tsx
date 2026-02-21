@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SEOHead from "@/components/seo/SEOHead";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,11 @@ const ContactPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Contact Us"
+        description="Get in touch with the Sportsbnb team. We're here to help with venue bookings, listings, or any questions about our platform."
+        canonical="/contact"
+      />
       <div className="bg-background">
         <div className="container py-16 md:py-24">
           <div className="max-w-3xl mx-auto text-center mb-12">

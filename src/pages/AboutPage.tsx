@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import SEOHead from "@/components/seo/SEOHead";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Target, Users, Globe, ArrowRight } from "lucide-react";
@@ -24,6 +25,11 @@ const AboutPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="About Sportsbnb"
+        description="Learn about Sportsbnb's mission to make sports accessible to everyone. We're building the easiest way to find, book, and play at sports venues near you."
+        canonical="/about"
+      />
       <div className="bg-background">
         {/* Hero */}
         <section className="py-16 md:py-24">

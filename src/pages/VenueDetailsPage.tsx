@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
+import SEOHead, { createLocalBusinessJsonLd, createBreadcrumbJsonLd } from "@/components/seo/SEOHead";
 import { useState } from "react";
 import { MapPin, Star, Clock, Users, Wifi, Car, Droplets, CheckCircle, ArrowLeft, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -129,6 +130,31 @@ const VenueDetailsPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title={`${venue.name} — Book ${venue.sports.join(", ")} in ${venue.city}`}
+        description={venue.description || `Book ${venue.sports.join(", ")} at ${venue.name}, ${venue.city}. Check real-time availability, read reviews, and reserve your court instantly on Sportsbnb.`}
+        canonical={`/venue/${id}`}
+        jsonLd={[
+          createLocalBusinessJsonLd({
+            name: venue.name,
+            address: venue.address,
+            city: venue.city,
+            description: venue.description,
+            rating: venue.rating,
+            reviewCount: venue.review_count,
+            pricePerHour: venue.price_per_hour,
+            sports: venue.sports,
+            image: venue.image_url,
+            latitude: venue.latitude,
+            longitude: venue.longitude,
+          }),
+          createBreadcrumbJsonLd([
+            { name: "Home", url: "/" },
+            { name: "Venues", url: "/venues" },
+            { name: venue.name, url: `/venue/${id}` },
+          ]),
+        ]}
+      />
       <div className="bg-background min-h-screen">
         {/* Back Navigation */}
         <div className="container py-4">

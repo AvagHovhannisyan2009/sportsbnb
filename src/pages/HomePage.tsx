@@ -4,6 +4,7 @@ import { ArrowRight, Search, Calendar, Users, Building, CheckCircle, Shield, Sta
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
+import SEOHead, { createWebsiteJsonLd } from "@/components/seo/SEOHead";
 import { motion } from "framer-motion";
 import heroImage from "@/assets/hero-sports-premium.jpg";
 import venueFootball from "@/assets/venue-football.jpg";
@@ -63,6 +64,10 @@ const HomePage = () => {
 
   return (
     <div className="flex flex-col">
+      <SEOHead
+        canonical="/"
+        jsonLd={createWebsiteJsonLd()}
+      />
 
       {/* ── Hero ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">

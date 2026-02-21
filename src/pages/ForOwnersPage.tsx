@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import SEOHead from "@/components/seo/SEOHead";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -138,6 +139,11 @@ const ForOwnersPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="List Your Sports Venue — Grow Revenue"
+        description="List your sports facility on Sportsbnb. Reach thousands of active players, automate bookings, and increase revenue by up to 40%. Free to get started."
+        canonical="/for-owners"
+      />
       {/* ── Hero ── */}
       <section className="relative min-h-[85vh] md:min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">

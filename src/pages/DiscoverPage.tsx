@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import SEOHead, { createBreadcrumbJsonLd } from "@/components/seo/SEOHead";
 import { useSearchParams } from "react-router-dom";
 import { Search, Filter, MapPin, X, Loader2, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -206,6 +207,15 @@ const DiscoverPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Browse Sports Venues Near You"
+        description="Discover and book basketball courts, football fields, tennis courts, swimming pools and more. Filter by sport, location, and price. Real-time availability."
+        canonical="/venues"
+        jsonLd={createBreadcrumbJsonLd([
+          { name: "Home", url: "/" },
+          { name: "Venues", url: "/venues" },
+        ])}
+      />
       <div className="bg-background min-h-screen">
         {/* Search Header */}
         <div className="bg-card border-b border-border sticky top-16 z-40">
