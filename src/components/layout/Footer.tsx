@@ -5,7 +5,7 @@ const Footer = () => {
     product: [
       { href: "/discover", label: "Discover Venues" },
       { href: "/games", label: "Find Games" },
-      { href: "/list-venue", label: "List Your Venue" },
+      { href: "/for-owners", label: "For Venue Owners" },
     ],
     company: [
       { href: "/about", label: "About" },

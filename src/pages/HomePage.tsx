@@ -294,12 +294,19 @@ const HomePage = () => {
                 })}
               </div>
 
-              <Link to="/list-venue">
-                <Button size="lg" variant="secondary" className="h-14 px-10 text-base rounded-full">
-                  List your venue
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link to="/list-venue">
+                  <Button size="lg" variant="secondary" className="h-14 px-10 text-base rounded-full">
+                    List your venue
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link to="/for-owners">
+                  <Button size="lg" variant="outline" className="h-14 px-10 text-base rounded-full">
+                    Learn more
+                  </Button>
+                </Link>
+              </div>
             </motion.div>
 
             <motion.div
