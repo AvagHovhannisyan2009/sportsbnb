@@ -69,6 +69,9 @@ const HomePage = () => {
         canonical="/"
         jsonLd={createWebsiteJsonLd()}
       />
+      <Helmet>
+        <link rel="preload" as="image" href={heroImage} />
+      </Helmet>
 
       {/* ── Hero ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
