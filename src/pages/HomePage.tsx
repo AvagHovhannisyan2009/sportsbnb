@@ -68,8 +68,6 @@ const HomePage = () => {
         canonical="/"
         jsonLd={createWebsiteJsonLd()}
       />
-      {/* Preload hero image for LCP discoverability */}
-      <link rel="preload" as="image" href={heroImage} />
 
       {/* ── Hero ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
