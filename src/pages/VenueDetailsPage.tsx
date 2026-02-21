@@ -12,6 +12,8 @@ import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
 import WeatherWidget from "@/components/venue/WeatherWidget";
 import { VenueChatButton } from "@/components/venue/VenueChatButton";
+import VenueGallery from "@/components/venue/VenueGallery";
+import { useVenueImages } from "@/hooks/useVenueImages";
 import { useAuth } from "@/hooks/useAuth";
 import { useVenueById, getVenueImage } from "@/hooks/useVenues";
 import { useVenueReviews, useUserReviewForVenue, useDeleteReview } from "@/hooks/useReviews";
@@ -28,6 +30,7 @@ const VenueDetailsPage = () => {
   
   const { data: venue, isLoading: venueLoading } = useVenueById(id);
   const { data: reviews = [], isLoading: reviewsLoading } = useVenueReviews(id);
+  const { data: venueImages = [] } = useVenueImages(id);
   const { data: userReview } = useUserReviewForVenue(id, user?.id);
   const { data: venueHours = [] } = useVenueHours(id);
   const { data: blockedDates = [] } = useBlockedDates(id);
@@ -140,26 +143,11 @@ const VenueDetailsPage = () => {
 
         {/* Image Gallery */}
         <div className="container pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="aspect-[4/3] rounded-xl overflow-hidden">
-              <img
-                src={venueImage}
-                alt={venue.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="hidden md:grid grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden bg-muted">
-                  <img
-                    src={venueImage}
-                    alt={`${venue.name} view ${i}`}
-                    className="w-full h-full object-cover opacity-80"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          <VenueGallery
+            images={venueImages}
+            venueName={venue.name}
+            mainImage={venueImage}
+          />
         </div>
 
         <div className="container pb-16">
