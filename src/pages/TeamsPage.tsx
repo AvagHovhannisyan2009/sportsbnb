@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SEOHead from "@/components/seo/SEOHead";
 import { Link } from "react-router-dom";
 import { Plus, Search, Users, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,11 @@ const TeamsPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Sports Teams — Create & Join Teams"
+        description="Create and join sports teams on Sportsbnb. Organize regular games, manage team members, and book venues together."
+        canonical="/teams"
+      />
       <div className="bg-background min-h-screen">
         <div className="container py-8">
           {/* Header */}

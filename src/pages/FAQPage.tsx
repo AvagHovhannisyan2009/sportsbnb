@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import SEOHead, { createFAQJsonLd } from "@/components/seo/SEOHead";
 import {
   Accordion,
   AccordionContent,
@@ -86,6 +87,14 @@ const FAQPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="FAQ — Frequently Asked Questions"
+        description="Find answers to common questions about booking sports venues, managing teams, payments, and using Sportsbnb."
+        canonical="/faq"
+        jsonLd={createFAQJsonLd(
+          faqs.flatMap(cat => cat.questions.map(q => ({ question: q.q, answer: q.a })))
+        )}
+      />
       <div className="bg-background">
         <div className="container py-16 md:py-24">
           <div className="max-w-3xl mx-auto">

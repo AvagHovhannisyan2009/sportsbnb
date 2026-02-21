@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import SEOHead from "@/components/seo/SEOHead";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Filter, X, Plus, Loader2, Calendar, MapPin, Users, Clock, LayoutGrid, Map, Navigation, MapPinOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -174,6 +175,11 @@ const GamesPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Find Pickup Games & Open Matches"
+        description="Join pickup basketball, football, tennis, and other sports games near you. Create your own game and find players to fill your team."
+        canonical="/games"
+      />
       <div className="bg-background min-h-screen">
         {/* Search Header */}
         <div className="bg-card border-b border-border sticky top-16 z-40">
