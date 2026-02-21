@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Search, Calendar, Users, Building, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe, MapPin, Trophy, Bell, Clock, BarChart3, Image, Gamepad2, MessageCircle, CreditCard, Repeat, Layers, Bot, Wifi, Map, UserPlus, Award } from "lucide-react";
+import { ArrowRight, Search, Calendar, Users, Building, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe, MapPin, Trophy, Bell, Clock, BarChart3, Image, Gamepad2, MessageCircle, CreditCard, Repeat, Layers, Bot, Wifi, Map, UserPlus, Award, TrendingUp, Split, Flame, CloudSun, GitCompare, UserCircle, BrainCircuit, Swords, Activity, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
@@ -400,7 +400,7 @@ const HomePage = () => {
           >
             <motion.div variants={fadeUp} transition={sectionTransition} className="text-center mb-10 md:mb-16">
               <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-foreground tracking-tighter">
-                25+ features.{" "}
+                35+ features.{" "}
                 <span className="text-primary">Zero friction.</span>
               </h2>
             </motion.div>
@@ -417,6 +417,9 @@ const HomePage = () => {
                 { icon: Bell, label: "Notifications" },
                 { icon: Clock, label: "Waitlist" },
                 { icon: Star, label: "Reviews" },
+                { icon: TrendingUp, label: "Dynamic Pricing" },
+                { icon: BrainCircuit, label: "Smart Scheduling" },
+                { icon: CloudSun, label: "Weather" },
               ].map((f) => {
                 const Icon = f.icon;
                 return (
@@ -439,6 +442,10 @@ const HomePage = () => {
                 { icon: MessageCircle, label: "Chat" },
                 { icon: CreditCard, label: "Payments" },
                 { icon: Repeat, label: "Recurring" },
+                { icon: Split, label: "Split Payments" },
+                { icon: Flame, label: "Streaks" },
+                { icon: GitCompare, label: "Venue Compare" },
+                { icon: UserCircle, label: "Player Profiles" },
               ].map((f) => {
                 const Icon = f.icon;
                 return (
@@ -461,6 +468,9 @@ const HomePage = () => {
                 { icon: Sparkles, label: "AI Recommendations" },
                 { icon: Building, label: "Owner Dashboard" },
                 { icon: Zap, label: "Embeddable Widgets" },
+                { icon: Swords, label: "Challenges" },
+                { icon: Activity, label: "Live Occupancy" },
+                { icon: Lock, label: "Two-Factor Auth" },
               ].map((f) => {
                 const Icon = f.icon;
                 return (
