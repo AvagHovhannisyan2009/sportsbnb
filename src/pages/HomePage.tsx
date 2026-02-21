@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Search, Calendar, Users, Building, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe, MapPin, Trophy, Bell, Clock, BarChart3, Image, Gamepad2, MessageCircle, CreditCard, Repeat, Layers, Bot, Wifi, Map, UserPlus, Award, TrendingUp, Split, Flame, CloudSun, GitCompare, UserCircle, BrainCircuit, Swords, Activity, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
