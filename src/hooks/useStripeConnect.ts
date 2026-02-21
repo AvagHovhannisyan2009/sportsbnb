@@ -41,7 +41,9 @@ export const useStripeConnect = () => {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-connect-account');
+      const { data, error } = await supabase.functions.invoke('create-connect-account', {
+        body: { country: 'AM' },
+      });
       
       if (error) throw error;
       

@@ -51,15 +51,18 @@ serve(async (req) => {
     if (profileError) throw new Error(`Profile error: ${profileError.message}`);
     logStep("Profile fetched", { hasStripeAccount: !!profile.stripe_account_id });
 
+    const { country } = await req.json().catch(() => ({}));
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     let stripeAccountId = profile.stripe_account_id;
 
     // Create Stripe Connect Express account if not exists
     if (!stripeAccountId) {
-      logStep("Creating new Stripe Connect account");
+      const accountCountry = country || 'AM';
+      logStep("Creating new Stripe Connect account", { country: accountCountry });
       const account = await stripe.accounts.create({
         type: 'express',
-        country: 'US',
+        country: accountCountry,
         email: user.email,
         capabilities: {
           card_payments: { requested: true },
