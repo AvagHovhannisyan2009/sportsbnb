@@ -38,3 +38,36 @@ verify_jwt = false
 
 [functions.ai-game-matchmaking]
 verify_jwt = false
+
+[functions.create-booking-checkout]
+verify_jwt = false
+
+[functions.verify-booking-payment]
+verify_jwt = false
+
+[functions.create-game-payment]
+verify_jwt = false
+
+[functions.verify-game-payment]
+verify_jwt = false
+
+[functions.refund-booking]
+verify_jwt = false
+
+[functions.create-connect-account]
+verify_jwt = false
+
+[functions.check-connect-status]
+verify_jwt = false
+
+[functions.create-billing-portal]
+verify_jwt = false
+
+[functions.get-billing-info]
+verify_jwt = false
+
+[functions.send-booking-confirmation]
+verify_jwt = false
+
+[functions.send-contact-email]
+verify_jwt = false
