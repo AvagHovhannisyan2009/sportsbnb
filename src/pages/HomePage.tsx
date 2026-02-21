@@ -188,6 +188,9 @@ const HomePage = () => {
                   alt="Sports venue aerial"
                   className="w-full aspect-[16/9] object-cover"
                   loading="lazy"
+                  decoding="async"
+                  width={1600}
+                  height={900}
                   draggable={false}
                 />
               </div>
@@ -226,6 +229,9 @@ const HomePage = () => {
                     alt={venue.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"
+                    decoding="async"
+                    width={516}
+                    height={688}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
