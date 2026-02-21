@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Search, Calendar, Users, Building, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe, MapPin, Trophy, Bell, Clock, BarChart3, Image, Gamepad2, MessageCircle, CreditCard, Repeat, Layers, Bot, Wifi, Map, UserPlus, Award, TrendingUp, Split, Flame, CloudSun, GitCompare, UserCircle, BrainCircuit, Swords, Activity, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,6 +69,9 @@ const HomePage = () => {
         canonical="/"
         jsonLd={createWebsiteJsonLd()}
       />
+      <Helmet>
+        <link rel="preload" as="image" href={heroImage} />
+      </Helmet>
 
       {/* ── Hero ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -78,6 +82,9 @@ const HomePage = () => {
             className="w-full h-full object-cover scale-105"
             loading="eager"
             fetchPriority="high"
+            width={1920}
+            height={1080}
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
         </div>
@@ -185,6 +192,9 @@ const HomePage = () => {
                   alt="Sports venue aerial"
                   className="w-full aspect-[16/9] object-cover"
                   loading="lazy"
+                  decoding="async"
+                  width={1600}
+                  height={900}
                   draggable={false}
                 />
               </div>
@@ -223,6 +233,9 @@ const HomePage = () => {
                     alt={venue.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"
+                    decoding="async"
+                    width={516}
+                    height={688}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
