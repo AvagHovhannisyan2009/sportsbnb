@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+          xp_reward: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          icon?: string
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value?: number
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       blocked_dates: {
         Row: {
           blocked_date: string
@@ -81,10 +117,53 @@ export type Database = {
           },
         ]
       }
+      booking_waitlist: {
+        Row: {
+          booking_date: string
+          booking_time: string
+          created_at: string
+          duration_hours: number
+          expires_at: string | null
+          id: string
+          notified_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          booking_date: string
+          booking_time: string
+          created_at?: string
+          duration_hours?: number
+          expires_at?: string | null
+          id?: string
+          notified_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          booking_date?: string
+          booking_time?: string
+          created_at?: string
+          duration_hours?: number
+          expires_at?: string | null
+          id?: string
+          notified_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_date: string
           booking_time: string
+          court_id: string | null
           created_at: string
           created_by_owner_id: string | null
           customer_email: string | null
@@ -107,6 +186,7 @@ export type Database = {
         Insert: {
           booking_date: string
           booking_time: string
+          court_id?: string | null
           created_at?: string
           created_by_owner_id?: string | null
           customer_email?: string | null
@@ -129,6 +209,7 @@ export type Database = {
         Update: {
           booking_date?: string
           booking_time?: string
+          court_id?: string | null
           created_at?: string
           created_by_owner_id?: string | null
           customer_email?: string | null
@@ -149,6 +230,13 @@ export type Database = {
           venue_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "venue_courts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_recurring_booking_id_fkey"
             columns: ["recurring_booking_id"]
@@ -559,6 +647,7 @@ export type Database = {
           full_name: string | null
           gender: string | null
           id: string
+          level: number
           notification_preferences: Json | null
           onboarding_completed: boolean
           phone: string | null
@@ -575,6 +664,7 @@ export type Database = {
           venue_address: string | null
           venue_description: string | null
           venue_name: string | null
+          xp: number
         }
         Insert: {
           avatar_url?: string | null
@@ -586,6 +676,7 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id?: string
+          level?: number
           notification_preferences?: Json | null
           onboarding_completed?: boolean
           phone?: string | null
@@ -602,6 +693,7 @@ export type Database = {
           venue_address?: string | null
           venue_description?: string | null
           venue_name?: string | null
+          xp?: number
         }
         Update: {
           avatar_url?: string | null
@@ -613,6 +705,7 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id?: string
+          level?: number
           notification_preferences?: Json | null
           onboarding_completed?: boolean
           phone?: string | null
@@ -629,6 +722,7 @@ export type Database = {
           venue_address?: string | null
           venue_description?: string | null
           venue_name?: string | null
+          xp?: number
         }
         Relationships: []
       }
@@ -747,6 +841,47 @@ export type Database = {
           referrer_id?: string
         }
         Relationships: []
+      }
+      review_prompts: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          prompt_after: string
+          status: string
+          updated_at: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          prompt_after: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          prompt_after?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_prompts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -911,6 +1046,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -934,6 +1098,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      venue_courts: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          price_per_hour: number | null
+          sport: string | null
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          price_per_hour?: number | null
+          sport?: string | null
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          price_per_hour?: number | null
+          sport?: string | null
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_courts_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       venue_equipment: {
         Row: {
@@ -1010,6 +1215,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "venue_hours_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venue_images: {
+        Row: {
+          caption: string | null
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string
+          venue_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url: string
+          venue_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_images_venue_id_fkey"
             columns: ["venue_id"]
             isOneToOne: false
             referencedRelation: "venues"

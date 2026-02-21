@@ -68,6 +68,8 @@ const OwnerSettingsPage = lazy(() => import("./pages/owner/OwnerSettingsPage"));
 const OwnerWidgetPage = lazy(() => import("./pages/owner/OwnerWidgetPage"));
 const CalendarCallbackPage = lazy(() => import("./pages/owner/CalendarCallbackPage"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
+const VenueMapPage = lazy(() => import("./pages/VenueMapPage"));
+const OwnerAnalyticsPage = lazy(() => import("./pages/owner/OwnerAnalyticsPage"));
 
 const queryClient = new QueryClient();
 
@@ -97,6 +99,7 @@ const App = () => {
                     <Route path="/" element={<Layout showMobileNav={false}><HomePage /></Layout>} />
                     {/* Venues - renamed from Discover */}
                     <Route path="/venues" element={<DiscoverPage />} />
+                    <Route path="/venues/map" element={<VenueMapPage />} />
                     <Route path="/discover" element={<Navigate to="/venues" replace />} />
                     {/* Games */}
                     <Route path="/games" element={<GamesPage />} />
@@ -128,6 +131,7 @@ const App = () => {
                     <Route path="/owner/policies" element={<ProtectedRoute><OwnerPoliciesPage /></ProtectedRoute>} />
                     <Route path="/owner/settings" element={<ProtectedRoute><OwnerSettingsPage /></ProtectedRoute>} />
                     <Route path="/owner/widget" element={<ProtectedRoute><OwnerWidgetPage /></ProtectedRoute>} />
+                    <Route path="/owner/analytics" element={<ProtectedRoute><OwnerAnalyticsPage /></ProtectedRoute>} />
                     
                     {/* Embed booking widget (public) */}
                     <Route path="/embed/booking/:venueId" element={<EmbedBookingPage />} />

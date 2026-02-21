@@ -20,6 +20,10 @@ import Layout from "@/components/layout/Layout";
 import AIRecommendations from "@/components/venue/AIRecommendations";
 import PlayerStatsCard from "@/components/player/PlayerStatsCard";
 import ReferralCard from "@/components/referral/ReferralCard";
+import AchievementsSection from "@/components/achievements/AchievementsSection";
+import GameMatchmakingCard from "@/components/games/GameMatchmakingCard";
+import ReviewPromptModal from "@/components/reviews/ReviewPromptModal";
+import { useCheckAndAwardAchievements } from "@/hooks/useAchievements";
 import { useAuth } from "@/hooks/useAuth";
 import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
@@ -160,6 +164,7 @@ const PlayerDashboard = () => {
 
   return (
     <Layout>
+      <ReviewPromptModal />
       <div className="bg-background min-h-screen">
         <div className="container py-8">
           {/* Header */}
@@ -378,10 +383,14 @@ const PlayerDashboard = () => {
                 </div>
               </div>
 
-              {/* Stats & Referral Row */}
+              {/* Stats, Referral, Matchmaking & Achievements */}
               <div className="grid md:grid-cols-2 gap-6 mt-8">
                 <PlayerStatsCard />
                 <ReferralCard />
+              </div>
+              <div className="grid md:grid-cols-2 gap-6 mt-6">
+                <GameMatchmakingCard />
+                <AchievementsSection />
               </div>
             </TabsContent>
 
