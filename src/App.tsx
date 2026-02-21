@@ -67,6 +67,7 @@ const OwnerPoliciesPage = lazy(() => import("./pages/owner/OwnerPoliciesPage"));
 const OwnerSettingsPage = lazy(() => import("./pages/owner/OwnerSettingsPage"));
 const OwnerWidgetPage = lazy(() => import("./pages/owner/OwnerWidgetPage"));
 const CalendarCallbackPage = lazy(() => import("./pages/owner/CalendarCallbackPage"));
+const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
 
 const queryClient = new QueryClient();
 
@@ -163,6 +164,7 @@ const App = () => {
                     <Route path="/cookies" element={<CookiePolicyPage />} />
                     {/* Profile & Billing */}
                     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                    <Route path="/subscription" element={<SubscriptionPage />} />
                     <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
                     {/* Admin */}
                     <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

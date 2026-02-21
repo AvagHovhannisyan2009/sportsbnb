@@ -25,6 +25,7 @@ import Layout from "@/components/layout/Layout";
 import { useVenues, getVenueImage } from "@/hooks/useVenues";
 import { useAuth } from "@/hooks/useAuth";
 import { SmartSearch } from "@/components/search/SmartSearch";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 // Calculate distance between two coordinates using Haversine formula
@@ -52,7 +53,24 @@ const DiscoverPage = () => {
   const [isLocating, setIsLocating] = useState(false);
   const [searchLocation, setSearchLocation] = useState<{lat: number, lng: number, address: string} | null>(null);
 
+  const [promotedVenueIds, setPromotedVenueIds] = useState<Set<string>>(new Set());
+
   const { data: venues = [], isLoading } = useVenues();
+
+  // Fetch promoted venues
+  useEffect(() => {
+    const fetchPromoted = async () => {
+      const { data } = await supabase
+        .from("venue_promotions")
+        .select("venue_id")
+        .eq("is_active", true)
+        .gte("ends_at", new Date().toISOString());
+      if (data) {
+        setPromotedVenueIds(new Set(data.map(p => p.venue_id)));
+      }
+    };
+    fetchPromoted();
+  }, []);
 
   // Get unique cities from venues
   const cities = useMemo(() => {
@@ -156,10 +174,17 @@ const DiscoverPage = () => {
         if (b.distance === null) return -1;
         return a.distance - b.distance;
       });
+    } else {
+      // Sort promoted venues first when not sorting by distance
+      result.sort((a, b) => {
+        const aPromoted = promotedVenueIds.has(a.id) ? 1 : 0;
+        const bPromoted = promotedVenueIds.has(b.id) ? 1 : 0;
+        return bPromoted - aPromoted;
+      });
     }
 
     return result;
-  }, [venues, searchQuery, selectedSport, priceRange, selectedCity, userLocation, searchLocation]);
+  }, [venues, searchQuery, selectedSport, priceRange, selectedCity, userLocation, searchLocation, promotedVenueIds]);
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -394,6 +419,7 @@ const DiscoverPage = () => {
                   reviewCount={venue.review_count}
                   available={venue.is_active}
                   distance={venue.distance}
+                  isPromoted={promotedVenueIds.has(venue.id)}
                 />
               ))}
             </div>

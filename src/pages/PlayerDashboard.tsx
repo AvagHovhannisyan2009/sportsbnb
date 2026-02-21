@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import Layout from "@/components/layout/Layout";
 import AIRecommendations from "@/components/venue/AIRecommendations";
+import PlayerStatsCard from "@/components/player/PlayerStatsCard";
+import ReferralCard from "@/components/referral/ReferralCard";
 import { useAuth } from "@/hooks/useAuth";
 import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
@@ -374,6 +376,12 @@ const PlayerDashboard = () => {
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Stats & Referral Row */}
+              <div className="grid md:grid-cols-2 gap-6 mt-8">
+                <PlayerStatsCard />
+                <ReferralCard />
               </div>
             </TabsContent>
 

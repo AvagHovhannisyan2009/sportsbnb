@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Star, Clock } from "lucide-react";
+import { MapPin, Star, Clock, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 
@@ -14,6 +14,7 @@ interface VenueCardProps {
   reviewCount: number;
   available: boolean;
   distance?: number | null;
+  isPromoted?: boolean;
 }
 
 const VenueCard = ({
@@ -27,16 +28,23 @@ const VenueCard = ({
   reviewCount,
   available,
   distance,
+  isPromoted,
 }: VenueCardProps) => {
   return (
     <Link to={`/venue/${id}`} className="group block">
-      <div className="bg-card rounded-xl overflow-hidden border border-border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div className={`bg-card rounded-xl overflow-hidden border hover:shadow-lg transition-all duration-300 hover:-translate-y-1 ${isPromoted ? "border-primary/40 ring-1 ring-primary/20" : "border-border"}`}>
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
             src={image}
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
+          {isPromoted && (
+            <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground gap-1">
+              <Sparkles className="h-3 w-3" />
+              Featured
+            </Badge>
+          )}
           {available ? (
             <Badge className="absolute top-3 right-3 bg-primary/90 text-primary-foreground">
               <Clock className="h-3 w-3 mr-1" />
