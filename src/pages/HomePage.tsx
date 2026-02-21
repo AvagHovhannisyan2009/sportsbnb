@@ -4,7 +4,7 @@ import { Search, Calendar, Users, Building, ArrowRight, CheckCircle, Shield, Sta
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
-import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import { motion } from "framer-motion";
 import heroImage from "@/assets/hero-sports-premium.jpg";
 import venueFootball from "@/assets/venue-football.jpg";
 import venueTennis from "@/assets/venue-tennis.jpg";
@@ -128,29 +128,43 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Container Scroll Animation */}
-      <section className="bg-background overflow-hidden">
-        <ContainerScroll
-          titleComponent={
-            <>
-              <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-2 md:mb-3">
-                Experience Sportsbnb
-              </p>
-              <h2 className="text-2xl md:text-4xl lg:text-[6rem] font-bold text-foreground leading-none tracking-tight">
-                Your next game
-                <br />
-                <span className="text-primary">starts here</span>
-              </h2>
-            </>
-          }
-        >
-          <img
-            src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1400&q=80"
-            alt="Sports venue aerial view"
-            className="mx-auto rounded-2xl object-cover h-full w-full object-top"
-            draggable={false}
-          />
-        </ContainerScroll>
+      {/* Showcase Section */}
+      <section className="py-16 md:py-32 bg-background overflow-hidden">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-center mb-10 md:mb-16"
+          >
+            <p className="text-sm font-semibold text-primary tracking-wide uppercase mb-2 md:mb-3">
+              Experience Sportsbnb
+            </p>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
+              Your next game
+              <span className="text-primary"> starts here</span>
+            </h2>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 60, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1], delay: 0.15 }}
+            className="relative max-w-5xl mx-auto"
+          >
+            <div className="rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-border/30">
+              <img
+                src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1400&q=80"
+                alt="Sports venue aerial view"
+                className="w-full aspect-[16/9] object-cover object-top"
+                draggable={false}
+              />
+            </div>
+            <div className="absolute -inset-4 -z-10 bg-primary/5 rounded-[2rem] blur-3xl" />
+          </motion.div>
+        </div>
       </section>
 
       {/* Featured Categories */}
