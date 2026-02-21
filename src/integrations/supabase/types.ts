@@ -94,6 +94,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_intent_id: string | null
+          recurring_booking_id: string | null
           source: string
           status: string
           team_id: string | null
@@ -115,6 +116,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_intent_id?: string | null
+          recurring_booking_id?: string | null
           source?: string
           status?: string
           team_id?: string | null
@@ -136,6 +138,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_intent_id?: string | null
+          recurring_booking_id?: string | null
           source?: string
           status?: string
           team_id?: string | null
@@ -146,6 +149,13 @@ export type Database = {
           venue_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_recurring_booking_id_fkey"
+            columns: ["recurring_booking_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_team_id_fkey"
             columns: ["team_id"]
@@ -621,6 +631,71 @@ export type Database = {
           venue_name?: string | null
         }
         Relationships: []
+      }
+      recurring_bookings: {
+        Row: {
+          booking_time: string
+          created_at: string
+          day_of_week: number
+          duration_hours: number
+          end_date: string | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          recurrence_type: string
+          start_date: string
+          team_id: string | null
+          total_price: number
+          updated_at: string
+          user_id: string
+          venue_id: string
+          venue_name: string
+        }
+        Insert: {
+          booking_time: string
+          created_at?: string
+          day_of_week: number
+          duration_hours?: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          recurrence_type?: string
+          start_date: string
+          team_id?: string | null
+          total_price: number
+          updated_at?: string
+          user_id: string
+          venue_id: string
+          venue_name: string
+        }
+        Update: {
+          booking_time?: string
+          created_at?: string
+          day_of_week?: number
+          duration_hours?: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          recurrence_type?: string
+          start_date?: string
+          team_id?: string | null
+          total_price?: number
+          updated_at?: string
+          user_id?: string
+          venue_id?: string
+          venue_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_bookings_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {

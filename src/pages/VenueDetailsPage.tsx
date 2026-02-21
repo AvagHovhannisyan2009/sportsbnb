@@ -7,8 +7,10 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/layout/Layout";
 import BookingDialog from "@/components/booking/BookingDialog";
+import RecurringBookingDialog from "@/components/booking/RecurringBookingDialog";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
+import WeatherWidget from "@/components/venue/WeatherWidget";
 import { VenueChatButton } from "@/components/venue/VenueChatButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useVenueById, getVenueImage } from "@/hooks/useVenues";
@@ -415,6 +417,14 @@ const VenueDetailsPage = () => {
                   Free cancellation up to 24 hours before
                 </p>
 
+                {/* Recurring Booking */}
+                <div className="mt-3 flex justify-center">
+                  <RecurringBookingDialog
+                    venue={{ id: venue.id, name: venue.name, price: venue.price_per_hour }}
+                    selectedTime={selectedTime || undefined}
+                  />
+                </div>
+
                 {/* Message Owner Button */}
                 <div className="mt-4 pt-4 border-t">
                   <VenueChatButton
@@ -440,6 +450,15 @@ const VenueDetailsPage = () => {
                   />
                 )}
               </div>
+
+              {/* Weather Widget */}
+              {venue.latitude && venue.longitude && (
+                <WeatherWidget
+                  latitude={venue.latitude}
+                  longitude={venue.longitude}
+                  isIndoor={venue.is_indoor ?? false}
+                />
+              )}
             </div>
           </div>
         </div>

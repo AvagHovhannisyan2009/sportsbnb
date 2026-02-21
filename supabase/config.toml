@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.generate-ai-image]
 verify_jwt = false
+
+[functions.get-weather]
+verify_jwt = false
+
+[functions.ai-venue-recommendations]
+verify_jwt = false
