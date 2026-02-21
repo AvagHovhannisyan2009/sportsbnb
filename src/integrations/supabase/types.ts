@@ -697,6 +697,57 @@ export type Database = {
           },
         ]
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+          uses_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+          uses_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          uses_count?: number
+        }
+        Relationships: []
+      }
+      referral_credits: {
+        Row: {
+          created_at: string
+          credit_amount: number
+          id: string
+          is_used: boolean
+          referee_id: string
+          referrer_id: string
+        }
+        Insert: {
+          created_at?: string
+          credit_amount?: number
+          id?: string
+          is_used?: boolean
+          referee_id: string
+          referrer_id: string
+        }
+        Update: {
+          created_at?: string
+          credit_amount?: number
+          id?: string
+          is_used?: boolean
+          referee_id?: string
+          referrer_id?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           booking_id: string | null
@@ -1037,6 +1088,53 @@ export type Database = {
           },
         ]
       }
+      venue_promotions: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          is_active: boolean
+          owner_id: string
+          plan: string
+          starts_at: string
+          stripe_subscription_id: string | null
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          is_active?: boolean
+          owner_id: string
+          plan?: string
+          starts_at?: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          is_active?: boolean
+          owner_id?: string
+          plan?: string
+          starts_at?: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_promotions_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venues: {
         Row: {
           address: string | null
@@ -1165,6 +1263,7 @@ export type Database = {
       get_or_create_chat_room:
         | { Args: { p_reference_id: string; p_type: string }; Returns: string }
         | { Args: { p_reference_id: string; p_type: string }; Returns: string }
+      get_player_stats: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
