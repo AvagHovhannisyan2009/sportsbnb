@@ -62,6 +62,7 @@ import OwnerWidgetPage from "./pages/owner/OwnerWidgetPage";
 import CalendarCallbackPage from "./pages/owner/CalendarCallbackPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import EmbedBookingPage from "./pages/EmbedBookingPage";
+import ForOwnersPage from "./pages/ForOwnersPage";
 
 const queryClient = new QueryClient();
 
@@ -141,6 +142,7 @@ const App = () => {
                   {/* Settings - redirect to profile */}
                   <Route path="/settings" element={<Navigate to="/profile" replace />} />
                   {/* Info Pages */}
+                  <Route path="/for-owners" element={<ForOwnersPage />} />
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/faq" element={<FAQPage />} />
