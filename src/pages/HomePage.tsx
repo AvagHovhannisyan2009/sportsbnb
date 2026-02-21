@@ -78,6 +78,9 @@ const HomePage = () => {
             className="w-full h-full object-cover scale-105"
             loading="eager"
             fetchPriority="high"
+            width={1920}
+            height={1080}
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
         </div>
