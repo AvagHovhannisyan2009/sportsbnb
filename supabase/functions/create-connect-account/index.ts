@@ -60,19 +60,29 @@ serve(async (req) => {
     if (!stripeAccountId) {
       const accountCountry = country || 'AM';
       logStep("Creating new Stripe Connect account", { country: accountCountry });
-      const account = await stripe.accounts.create({
+      // Countries that don't support card_payments (like Armenia)
+      const crossBorderCountries = ['AM'];
+      const isCrossBorder = crossBorderCountries.includes(accountCountry);
+
+      const accountParams: any = {
         type: 'express',
         country: accountCountry,
         email: user.email,
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
+        capabilities: isCrossBorder
+          ? { transfers: { requested: true } }
+          : { card_payments: { requested: true }, transfers: { requested: true } },
         business_type: 'individual',
         business_profile: {
           name: profile.business_name || undefined,
         },
-      });
+      };
+
+      // Cross-border countries need recipient service agreement
+      if (isCrossBorder) {
+        accountParams.tos_acceptance = { service_agreement: 'recipient' };
+      }
+
+      const account = await stripe.accounts.create(accountParams);
 
       stripeAccountId = account.id;
       logStep("Stripe account created", { accountId: stripeAccountId });
