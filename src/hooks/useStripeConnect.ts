@@ -33,7 +33,7 @@ export const useStripeConnect = () => {
     }
   }, [user]);
 
-  const startOnboarding = async () => {
+  const startOnboarding = async (country: string = 'AM') => {
     if (!user) {
       toast.error('Please log in to continue');
       return;
@@ -42,7 +42,7 @@ export const useStripeConnect = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-connect-account', {
-        body: { country: 'AM' },
+        body: { country },
       });
       
       if (error) throw error;
