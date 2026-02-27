@@ -605,7 +605,7 @@ const HomePage = () => {
       </section>
 
       {/* ── Founders ── */}
-      <section className="py-20 md:py-36 bg-background">
+      <section className="py-20 md:py-36 bg-background overflow-hidden">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -617,32 +617,31 @@ const HomePage = () => {
               <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3 md:mb-4">
                 Meet The Team
               </p>
-              <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-foreground tracking-tighter mb-4 md:mb-6">
-                The Founders
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tighter mb-4 md:mb-6">
+                Built by people who<br className="hidden md:block" /> love the game.
               </h2>
-              <p className="text-base md:text-xl text-muted-foreground max-w-lg mx-auto">
-                Three ambitious students on a mission to make sports accessible to everyone.
-              </p>
             </motion.div>
 
-            <motion.div variants={fadeUp} transition={sectionTransition} className="grid grid-cols-3 gap-4 md:gap-10 max-w-4xl mx-auto">
+            <motion.div variants={fadeUp} transition={sectionTransition} className="grid md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
               {[
-                { img: founderAvag, alt: "Avag Hovhannisyan", name: "Avag H.", role: "Founder", bio: "Driving the vision to connect players with venues seamlessly." },
-                { img: founderGor, alt: "Gor Meliksetyan", name: "Gor M.", role: "Co-Founder", bio: "Building products that solve real problems in communities." },
-                { img: founderIrina, alt: "Irina Grigoryan", name: "Irina G.", role: "Co-Founder", bio: "Focused on user experience and community building." },
+                { img: founderAvag, alt: "Avag Hovhannisyan", name: "Avag Hovhannisyan", role: "Founder & CEO", bio: "Driving the vision to connect players with venues seamlessly. Passionate about making sport accessible." },
+                { img: founderGor, alt: "Gor Meliksetyan", name: "Gor Meliksetyan", role: "Co-Founder & CTO", bio: "Building the technology that powers thousands of bookings. Turns complex problems into simple experiences." },
+                { img: founderIrina, alt: "Irina Grigoryan", name: "Irina Grigoryan", role: "Co-Founder & CPO", bio: "Shaping the product and community experience. Every feature starts with the player in mind." },
               ].map((founder) => (
-                <div key={founder.name} className="text-center">
-                  <div className="relative mb-4 md:mb-8 mx-auto w-24 h-24 md:w-44 md:h-44">
+                <div key={founder.name} className="bg-card border border-border/40 rounded-2xl md:rounded-3xl p-6 md:p-8 group hover:border-primary/30 transition-colors">
+                  <div className="flex items-center gap-4 mb-5">
                     <img
                       src={founder.img}
                       alt={founder.alt}
-                      className="w-full h-full object-cover rounded-full border-2 md:border-4 border-primary/15"
+                      className="w-14 h-14 md:w-16 md:h-16 object-cover rounded-full border-2 border-primary/15"
                       loading="lazy"
                     />
+                    <div>
+                      <h3 className="text-sm md:text-base font-semibold text-foreground tracking-tight">{founder.name}</h3>
+                      <p className="text-primary font-medium text-xs md:text-sm">{founder.role}</p>
+                    </div>
                   </div>
-                  <h3 className="text-sm md:text-xl font-semibold text-foreground mb-0.5 md:mb-1 tracking-tight">{founder.name}</h3>
-                  <p className="text-primary font-medium text-xs md:text-base mb-1 md:mb-3">{founder.role}</p>
-                  <p className="text-muted-foreground text-xs md:text-sm leading-relaxed hidden md:block">{founder.bio}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{founder.bio}</p>
                 </div>
               ))}
             </motion.div>
@@ -651,44 +650,55 @@ const HomePage = () => {
       </section>
 
       {/* ── Final CTA ── */}
-      <section className="py-24 md:py-48 bg-secondary">
-        <div className="container">
+      <section className="relative py-24 md:py-40 overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src={heroImage}
+            alt="Sports complex"
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/65 to-black/80" />
+        </div>
+        <div className="container relative z-10">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            transition={{ ...sectionTransition, duration: 0.7 }}
+            variants={staggerContainer}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-secondary-foreground tracking-tighter mb-5 md:mb-8">
-              Ready to find<br />your next game?
-            </h2>
-            <p className="text-base md:text-xl text-secondary-foreground/60 mb-8 md:mb-12 max-w-md mx-auto">
-              Join 40,000+ players already using Sportsbnb.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-20 md:mb-0">
+            <motion.p variants={fadeUp} transition={sectionTransition} className="text-sm font-semibold text-primary tracking-widest uppercase mb-4">
+              Get Started Today
+            </motion.p>
+            <motion.h2 variants={fadeUp} transition={sectionTransition} className="text-3xl md:text-5xl lg:text-7xl font-bold text-primary-foreground tracking-tighter mb-5 md:mb-8">
+              Your next game<br />is one click away.
+            </motion.h2>
+            <motion.p variants={fadeUp} transition={sectionTransition} className="text-base md:text-xl text-primary-foreground/60 mb-8 md:mb-12 max-w-md mx-auto">
+              Join 40,000+ players and 500+ venues already on Sportsbnb. Free to start, no credit card required.
+            </motion.p>
+            <motion.div variants={fadeUp} transition={sectionTransition} className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-20 md:mb-0">
               {!isLoading && !user ? (
                 <Link to="/signup">
-                  <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold gap-2">
-                    Get started free
+                  <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold gap-2 shadow-2xl">
+                    Create free account
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
               ) : (
                 <Link to="/dashboard">
-                  <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold gap-2">
+                  <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold gap-2 shadow-2xl">
                     Go to Dashboard
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
               )}
               <Link to="/venues">
-                <Button variant="outline" size="xl" className="w-full sm:w-auto rounded-full border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10">
+                <Button variant="ghost" size="xl" className="w-full sm:w-auto rounded-full border border-primary-foreground/20 text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10">
                   Explore venues
                 </Button>
               </Link>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
