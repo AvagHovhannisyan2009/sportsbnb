@@ -1,13 +1,19 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Search, Calendar, Users, Building, CheckCircle, Shield, Star, Zap, Target, Eye, Heart, Sparkles, Globe, MapPin, Trophy, Bell, Clock, BarChart3, Image, Gamepad2, MessageCircle, CreditCard, Repeat, Layers, Bot, Wifi, Map, UserPlus, Award, TrendingUp, Split, Flame, CloudSun, GitCompare, UserCircle, BrainCircuit, Swords, Activity, Lock } from "lucide-react";
+import {
+  ArrowRight, Search, Calendar, Users, Building, CheckCircle, Shield, Star,
+  Zap, Target, Eye, Heart, Sparkles, Globe, MapPin, Trophy, Bell, Clock,
+  BarChart3, Image, Gamepad2, MessageCircle, CreditCard, Repeat, Layers,
+  Bot, Wifi, Map, UserPlus, Award, TrendingUp, Split, Flame, CloudSun,
+  GitCompare, UserCircle, BrainCircuit, Swords, Activity, Lock, Play,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
 import SEOHead, { createWebsiteJsonLd } from "@/components/seo/SEOHead";
 import { motion } from "framer-motion";
-import heroImage from "@/assets/hero-sports-premium.jpg";
+import heroImage from "@/assets/hero-landing.jpg";
 import venueFootball from "@/assets/venue-football.jpg";
 import venueTennis from "@/assets/venue-tennis.jpg";
 import venueBasketball from "@/assets/venue-basketball.jpg";
@@ -16,13 +22,11 @@ import founderAvag from "@/assets/founder-avag.jpg";
 import founderGor from "@/assets/founder-gor.jpg";
 import founderIrina from "@/assets/founder-irina.jpg";
 
-// Single reusable fade-up variant — one observer per section
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
   visible: { opacity: 1, y: 0 },
 };
 
-// Container that staggers its children via CSS-like variants
 const staggerContainer = {
   hidden: {},
   visible: {
@@ -35,32 +39,72 @@ const sectionTransition = { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const }
 const HomePage = () => {
   const { user, isLoading } = useAuth();
 
+  const stats = [
+    { value: "500+", label: "Venues Listed" },
+    { value: "15K+", label: "Games Played" },
+    { value: "40K+", label: "Active Players" },
+    { value: "4.8★", label: "Average Rating" },
+  ];
+
   const howItWorks = [
-    { icon: Search, title: "Find Your Venue", description: "Browse verified facilities with real-time availability." },
-    { icon: Calendar, title: "Book Instantly", description: "Reserve your slot in seconds with secure payment." },
-    { icon: Users, title: "Play Together", description: "Join open games or invite friends effortlessly." },
+    { icon: Search, title: "Find Your Venue", description: "Browse verified facilities with real-time availability and transparent pricing.", step: "01" },
+    { icon: Calendar, title: "Book Instantly", description: "Reserve your slot in seconds with secure payment — no phone calls needed.", step: "02" },
+    { icon: Users, title: "Play Together", description: "Join open games, create teams, and grow your sports network effortlessly.", step: "03" },
   ];
 
   const forOwners = [
-    { icon: Building, title: "List Your Venue", description: "Reach thousands of active players searching for facilities." },
-    { icon: Calendar, title: "Manage Bookings", description: "One dashboard for schedule, pricing, and reservations." },
-    { icon: CheckCircle, title: "Grow Revenue", description: "Fill empty time slots. Venues see 40% more bookings on average." },
+    { icon: Building, title: "List Your Venue", description: "Reach thousands of active players searching for facilities in your area." },
+    { icon: BarChart3, title: "Smart Dashboard", description: "One place for schedule, pricing, analytics, and customer management." },
+    { icon: TrendingUp, title: "Grow Revenue", description: "Fill empty time slots automatically. Venues see 40% more bookings on average." },
   ];
 
   const benefits = [
-    { icon: Zap, text: "Instant confirmation" },
-    { icon: Shield, text: "Secure payments" },
-    { icon: Star, text: "Verified venues" },
-    { icon: Users, text: "Find teammates" },
-    { icon: Calendar, text: "Real-time availability" },
-    { icon: CheckCircle, text: "24/7 support" },
+    { icon: Zap, title: "Instant Confirmation", desc: "Book and get confirmed in under 10 seconds." },
+    { icon: Shield, title: "Secure Payments", desc: "PCI-compliant processing with refund protection." },
+    { icon: Star, title: "Verified Venues", desc: "Every facility reviewed and quality-checked." },
+    { icon: Users, title: "Find Teammates", desc: "AI-powered matchmaking for your skill level." },
+    { icon: Calendar, title: "Real-Time Availability", desc: "See open slots updated live, never double-booked." },
+    { icon: Bot, title: "AI Recommendations", desc: "Smart suggestions based on your sport and location." },
   ];
 
   const featuredVenues = [
-    { name: "Football", image: venueFootball },
-    { name: "Tennis", image: venueTennis },
-    { name: "Basketball", image: venueBasketball },
-    { name: "Swimming", image: venueSwimming },
+    { name: "Football", image: venueFootball, count: "120+ venues" },
+    { name: "Tennis", image: venueTennis, count: "85+ venues" },
+    { name: "Basketball", image: venueBasketball, count: "95+ venues" },
+    { name: "Swimming", image: venueSwimming, count: "60+ venues" },
+  ];
+
+  const testimonials = [
+    { name: "Arman K.", role: "Football Player", text: "Found my regular team through Sportsbnb. We play every Tuesday now — booking takes 30 seconds.", rating: 5 },
+    { name: "Lusine M.", role: "Venue Owner", text: "Our bookings increased by 45% in the first month. The dashboard is incredibly easy to use.", rating: 5 },
+    { name: "Davit S.", role: "Basketball Player", text: "Best sports platform I've used. The AI matchmaking found me players at my exact skill level.", rating: 5 },
+  ];
+
+  const featureRows = [
+    [
+      { icon: Search, label: "Smart Search" }, { icon: Calendar, label: "Instant Booking" },
+      { icon: MapPin, label: "Interactive Map" }, { icon: Bot, label: "AI Matchmaking" },
+      { icon: Trophy, label: "Leaderboards" }, { icon: Award, label: "XP & Achievements" },
+      { icon: Bell, label: "Notifications" }, { icon: Clock, label: "Waitlist" },
+      { icon: Star, label: "Reviews" }, { icon: TrendingUp, label: "Dynamic Pricing" },
+      { icon: BrainCircuit, label: "Smart Scheduling" }, { icon: CloudSun, label: "Weather" },
+    ],
+    [
+      { icon: BarChart3, label: "Analytics" }, { icon: Image, label: "Photo Gallery" },
+      { icon: Layers, label: "Multi-Court" }, { icon: Gamepad2, label: "Open Games" },
+      { icon: Users, label: "Teams" }, { icon: MessageCircle, label: "Chat" },
+      { icon: CreditCard, label: "Payments" }, { icon: Repeat, label: "Recurring" },
+      { icon: Split, label: "Split Payments" }, { icon: Flame, label: "Streaks" },
+      { icon: GitCompare, label: "Venue Compare" }, { icon: UserCircle, label: "Player Profiles" },
+    ],
+    [
+      { icon: UserPlus, label: "Referrals" }, { icon: Shield, label: "Verified Venues" },
+      { icon: Wifi, label: "Real-Time" }, { icon: Map, label: "Geolocation" },
+      { icon: Globe, label: "Multi-Currency" }, { icon: Sparkles, label: "AI Recommendations" },
+      { icon: Building, label: "Owner Dashboard" }, { icon: Zap, label: "Embeddable Widgets" },
+      { icon: Swords, label: "Challenges" }, { icon: Activity, label: "Live Occupancy" },
+      { icon: Lock, label: "Two-Factor Auth" },
+    ],
   ];
 
   return (
@@ -74,72 +118,85 @@ const HomePage = () => {
       </Helmet>
 
       {/* ── Hero ── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <img
             src={heroImage}
-            alt="People playing sports"
-            className="w-full h-full object-cover scale-105"
+            alt="Modern sports complex at golden hour with athletes playing football, tennis, and basketball"
+            className="w-full h-full object-cover"
             loading="eager"
             fetchPriority="high"
             width={1920}
             height={1080}
             decoding="async"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
         </div>
 
-        <div className="container relative z-10 py-20 md:py-0">
+        <div className="container relative z-10 py-16 md:py-0">
           <motion.div
-            className="max-w-4xl mx-auto text-center"
+            className="max-w-5xl mx-auto text-center"
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
             transition={{ staggerChildren: 0.15, delayChildren: 0.2 }}
           >
-            <motion.p
+            {/* Trust badge */}
+            <motion.div
               variants={fadeUp}
               transition={sectionTransition}
-              className="text-sm md:text-base font-medium tracking-widest uppercase text-white/60 mb-4 md:mb-6"
+              className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-sm px-4 py-2 mb-6 md:mb-8"
             >
-              The future of grassroots sport
-            </motion.p>
+              <div className="flex -space-x-2">
+                {[founderAvag, founderGor, founderIrina].map((img, i) => (
+                  <img key={i} src={img} alt="" className="w-6 h-6 rounded-full border-2 border-black/50 object-cover" />
+                ))}
+              </div>
+              <span className="text-xs md:text-sm font-medium text-primary-foreground/90">
+                Trusted by 40,000+ players
+              </span>
+            </motion.div>
 
             <motion.h1
               variants={fadeUp}
               transition={sectionTransition}
-              className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-[0.95] tracking-tighter mb-6 md:mb-8"
+              className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-primary-foreground leading-[0.92] tracking-tighter mb-5 md:mb-8"
             >
-              Organizing sports{" "}
-              <span className="text-primary">shouldn't be this hard.</span>
+              Book courts.
+              <br />
+              <span className="text-primary">Find games.</span>
+              <br />
+              Play more.
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
               transition={sectionTransition}
-              className="text-base md:text-xl lg:text-2xl text-white/70 leading-relaxed max-w-2xl mx-auto mb-8 md:mb-12 px-2"
+              className="text-base md:text-xl lg:text-2xl text-primary-foreground/60 leading-relaxed max-w-2xl mx-auto mb-8 md:mb-12 px-4"
             >
-              Find venues, book courts, and join games — all in one place.
+              The all-in-one platform for grassroots sports — venue booking, team management, 
+              and game matchmaking in a single app.
             </motion.p>
 
             <motion.div
               variants={fadeUp}
               transition={sectionTransition}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 md:mb-20 px-2"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 md:mb-12 px-4"
             >
               <Link to="/venues">
-                <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold shadow-2xl hover:shadow-primary/25">
-                  Find a place to play
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold shadow-2xl hover:shadow-primary/25 gap-2">
+                  Start playing today
+                  <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/games">
+              <Link to="/for-owners">
                 <Button
                   variant="ghost"
                   size="xl"
-                  className="w-full sm:w-auto rounded-full font-semibold text-white/90 hover:text-white hover:bg-white/10 border border-white/20"
+                  className="w-full sm:w-auto rounded-full font-semibold text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10 border border-primary-foreground/20"
                 >
-                  Browse open games
+                  <Building className="h-5 w-5 mr-2" />
+                  I'm a venue owner
                 </Button>
               </Link>
             </motion.div>
@@ -155,57 +212,43 @@ const HomePage = () => {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 hidden md:block">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 hidden md:block">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.5, duration: 0.8 }}
-            className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-2"
+            className="w-6 h-10 rounded-full border-2 border-primary-foreground/20 flex items-start justify-center p-2"
           >
-            <div className="w-1 h-2 bg-white/40 rounded-full animate-bounce" />
+            <div className="w-1 h-2 bg-primary-foreground/40 rounded-full animate-bounce" />
           </motion.div>
         </div>
       </section>
 
-      {/* ── Showcase ── */}
-      <section className="py-24 md:py-40 bg-background overflow-hidden">
+      {/* ── Social Proof Stats ── */}
+      <section className="relative z-10 -mt-12 md:-mt-16 pb-8 md:pb-0">
         <div className="container">
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={staggerContainer}
-            className="space-y-12 md:space-y-20"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            transition={sectionTransition}
+            className="bg-card border border-border/50 rounded-2xl md:rounded-3xl shadow-xl p-6 md:p-10 max-w-4xl mx-auto"
           >
-            <motion.div variants={fadeUp} transition={sectionTransition} className="text-center">
-              <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-foreground tracking-tighter leading-[1.05]">
-                Your next game
-                <br />
-                <span className="text-primary">starts here.</span>
-              </h2>
-            </motion.div>
-
-            <motion.div variants={fadeUp} transition={sectionTransition} className="relative max-w-6xl mx-auto">
-              <div className="rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1600&q=85"
-                  alt="Sports venue aerial"
-                  className="w-full aspect-[16/9] object-cover"
-                  loading="lazy"
-                  decoding="async"
-                  width={1600}
-                  height={900}
-                  draggable={false}
-                />
-              </div>
-              <div className="absolute -inset-8 -z-10 bg-primary/5 rounded-[3rem] blur-3xl" />
-            </motion.div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-2xl md:text-4xl font-bold text-primary tracking-tight">{stat.value}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-1">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </motion.div>
         </div>
       </section>
 
       {/* ── Categories ── */}
-      <section className="py-20 md:py-40 bg-background">
+      <section className="py-20 md:py-36 bg-background">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -221,7 +264,7 @@ const HomePage = () => {
                 Every sport. Every venue.
               </h2>
               <p className="text-base md:text-xl text-muted-foreground max-w-xl mx-auto">
-                From football fields to swimming pools.
+                From football fields to swimming pools — find the perfect spot to play.
               </p>
             </motion.div>
 
@@ -230,16 +273,17 @@ const HomePage = () => {
                 <Link key={venue.name} to="/venues" className="group relative aspect-[3/4] rounded-2xl md:rounded-3xl overflow-hidden block">
                   <img
                     src={venue.image}
-                    alt={venue.name}
+                    alt={`${venue.name} venues on Sportsbnb`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"
                     decoding="async"
                     width={516}
                     height={688}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-                    <h3 className="font-semibold text-white text-lg md:text-2xl tracking-tight">{venue.name}</h3>
+                    <h3 className="font-semibold text-primary-foreground text-lg md:text-2xl tracking-tight">{venue.name}</h3>
+                    <p className="text-primary-foreground/60 text-xs md:text-sm mt-1">{venue.count}</p>
                   </div>
                 </Link>
               ))}
@@ -248,8 +292,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ── How It Works — Players ── */}
-      <section className="py-20 md:py-40 bg-muted/20">
+      {/* ── How It Works ── */}
+      <section className="py-20 md:py-36 bg-muted/20">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -259,7 +303,7 @@ const HomePage = () => {
           >
             <motion.div variants={fadeUp} transition={sectionTransition} className="text-center mb-12 md:mb-20">
               <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3 md:mb-4">
-                For Players
+                How It Works
               </p>
               <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-foreground tracking-tighter mb-4 md:mb-6">
                 Book in minutes,<br className="hidden md:block" /> not hours.
@@ -269,19 +313,19 @@ const HomePage = () => {
               </p>
             </motion.div>
 
-            <motion.div variants={fadeUp} transition={sectionTransition} className="grid md:grid-cols-3 gap-8 md:gap-16 mb-12 md:mb-16 max-w-5xl mx-auto">
-              {howItWorks.map((step, index) => {
+            <motion.div variants={fadeUp} transition={sectionTransition} className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto mb-12 md:mb-16">
+              {howItWorks.map((step) => {
                 const Icon = step.icon;
                 return (
-                  <div key={step.title} className="text-center">
-                    <div className="relative inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-primary/10 text-primary mb-5 md:mb-8">
-                      <Icon className="h-7 w-7 md:h-9 md:w-9" strokeWidth={1.5} />
-                      <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
-                        {index + 1}
-                      </div>
+                  <div key={step.title} className="relative bg-card border border-border/50 rounded-2xl md:rounded-3xl p-6 md:p-10 text-center group hover:border-primary/30 transition-colors">
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
+                      {step.step}
                     </div>
-                    <h3 className="text-lg md:text-2xl font-semibold text-foreground mb-2 md:mb-3 tracking-tight">{step.title}</h3>
-                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xs mx-auto">{step.description}</p>
+                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-primary/10 text-primary mx-auto mb-5 md:mb-6 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <Icon className="h-7 w-7 md:h-8 md:w-8" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2 md:mb-3 tracking-tight">{step.title}</h3>
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{step.description}</p>
                   </div>
                 );
               })}
@@ -289,9 +333,9 @@ const HomePage = () => {
 
             <motion.div variants={fadeUp} transition={sectionTransition} className="flex flex-col items-center gap-6">
               <Link to="/venues">
-                <Button size="lg" className="h-14 px-10 text-base rounded-full">
+                <Button size="lg" className="h-14 px-10 text-base rounded-full gap-2">
                   Start exploring venues
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
               <NearbyPlayers />
@@ -300,8 +344,47 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* ── Why Sportsbnb ── */}
+      <section className="py-20 md:py-36 bg-background">
+        <div className="container">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={staggerContainer}
+          >
+            <motion.div variants={fadeUp} transition={sectionTransition} className="text-center mb-12 md:mb-20">
+              <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3 md:mb-4">
+                Why Sportsbnb
+              </p>
+              <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-foreground tracking-tighter mb-4 md:mb-6">
+                Built for players,<br className="hidden md:block" /> by players.
+              </h2>
+              <p className="text-base md:text-xl text-muted-foreground max-w-xl mx-auto">
+                Every feature designed to eliminate friction from sport.
+              </p>
+            </motion.div>
+
+            <motion.div variants={fadeUp} transition={sectionTransition} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
+              {benefits.map((benefit) => {
+                const Icon = benefit.icon;
+                return (
+                  <div key={benefit.title} className="bg-card border border-border/40 rounded-2xl p-6 md:p-8 group hover:border-primary/30 hover:shadow-lg transition-all">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:bg-primary/20 transition-colors">
+                      <Icon className="h-6 w-6" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-base md:text-lg font-semibold text-foreground mb-2">{benefit.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{benefit.desc}</p>
+                  </div>
+                );
+              })}
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ── For Venue Owners ── */}
-      <section className="py-20 md:py-40 bg-background">
+      <section className="py-20 md:py-36 bg-secondary">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -314,26 +397,26 @@ const HomePage = () => {
               <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3 md:mb-4">
                 For Venue Owners
               </p>
-              <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tighter leading-[1.05] mb-5 md:mb-8">
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-secondary-foreground tracking-tighter leading-[1.05] mb-5 md:mb-8">
                 Fill your courts.
                 <br />
                 Grow your business.
               </h2>
-              <p className="text-base md:text-xl text-muted-foreground mb-8 md:mb-12 leading-relaxed max-w-lg">
-                Join hundreds of facility owners who manage bookings, reach new customers, and maximize revenue — all in one place.
+              <p className="text-base md:text-lg text-secondary-foreground/60 mb-8 md:mb-12 leading-relaxed max-w-lg">
+                Join hundreds of facility owners who manage bookings, reach new customers, and maximize revenue — all from a single dashboard.
               </p>
 
-              <div className="space-y-5 md:space-y-8 mb-8 md:mb-12">
+              <div className="space-y-5 md:space-y-6 mb-8 md:mb-12">
                 {forOwners.map((item) => {
                   const Icon = item.icon;
                   return (
                     <div key={item.title} className="flex gap-5">
-                      <div className="shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                      <div className="shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-primary/15 flex items-center justify-center text-primary">
                         <Icon className="h-6 w-6 md:h-7 md:w-7" strokeWidth={1.5} />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground text-base md:text-lg mb-1">{item.title}</h3>
-                        <p className="text-sm md:text-base text-muted-foreground">{item.description}</p>
+                        <h3 className="font-semibold text-secondary-foreground text-base md:text-lg mb-1">{item.title}</h3>
+                        <p className="text-sm md:text-base text-secondary-foreground/60">{item.description}</p>
                       </div>
                     </div>
                   );
@@ -342,13 +425,13 @@ const HomePage = () => {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link to="/list-venue">
-                  <Button size="lg" variant="secondary" className="h-14 px-10 text-base rounded-full">
-                    List your venue
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                  <Button size="lg" className="h-14 px-10 text-base rounded-full gap-2">
+                    List your venue free
+                    <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
                 <Link to="/for-owners">
-                  <Button size="lg" variant="outline" className="h-14 px-10 text-base rounded-full">
+                  <Button size="lg" variant="outline" className="h-14 px-10 text-base rounded-full border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10">
                     Learn more
                   </Button>
                 </Link>
@@ -361,16 +444,16 @@ const HomePage = () => {
               className="relative hidden lg:block"
             >
               <div className="aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl">
-                <img src={venueBasketball} alt="Sports venue" className="w-full h-full object-cover" loading="lazy" />
+                <img src={venueBasketball} alt="Basketball venue interior" className="w-full h-full object-cover" loading="lazy" />
               </div>
-              <div className="absolute -inset-6 -z-10 bg-primary/5 rounded-[3rem] blur-3xl" />
+              <div className="absolute -inset-6 -z-10 bg-primary/10 rounded-[3rem] blur-3xl" />
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* ── Benefits ── */}
-      <section className="py-20 md:py-40 bg-secondary">
+      {/* ── Testimonials ── */}
+      <section className="py-20 md:py-36 bg-background">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -380,35 +463,35 @@ const HomePage = () => {
           >
             <motion.div variants={fadeUp} transition={sectionTransition} className="text-center mb-12 md:mb-20">
               <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3 md:mb-4">
-                Why Sportsbnb
+                What Players Say
               </p>
-              <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-secondary-foreground tracking-tighter mb-4 md:mb-6">
-                Built for players,<br className="hidden md:block" /> by players.
+              <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-foreground tracking-tighter">
+                Loved by the community.
               </h2>
-              <p className="text-base md:text-xl text-secondary-foreground/60 max-w-xl mx-auto">
-                Every feature designed to make sports simple.
-              </p>
             </motion.div>
 
-            <motion.div variants={fadeUp} transition={sectionTransition} className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 max-w-4xl mx-auto">
-              {benefits.map((benefit) => {
-                const Icon = benefit.icon;
-                return (
-                  <div key={benefit.text} className="flex items-center gap-3 md:gap-4 bg-secondary-foreground/5 hover:bg-secondary-foreground/10 transition-colors rounded-2xl p-4 md:p-6">
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-                      <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" strokeWidth={1.5} />
-                    </div>
-                    <span className="text-secondary-foreground font-medium text-sm md:text-base">{benefit.text}</span>
+            <motion.div variants={fadeUp} transition={sectionTransition} className="grid md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
+              {testimonials.map((t) => (
+                <div key={t.name} className="bg-card border border-border/40 rounded-2xl md:rounded-3xl p-6 md:p-8">
+                  <div className="flex gap-1 mb-4">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 text-primary fill-primary" />
+                    ))}
                   </div>
-                );
-              })}
+                  <p className="text-sm md:text-base text-foreground leading-relaxed mb-6">"{t.text}"</p>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+              ))}
             </motion.div>
           </motion.div>
         </div>
       </section>
 
       {/* ── Platform Features ── */}
-      <section className="py-20 md:py-32 bg-background overflow-hidden">
+      <section className="py-20 md:py-32 bg-muted/20 overflow-hidden">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -423,88 +506,25 @@ const HomePage = () => {
               </h2>
             </motion.div>
 
-            {/* Row 1 */}
-            <motion.div variants={fadeUp} transition={sectionTransition} className="flex flex-wrap justify-center gap-2 md:gap-3 mb-2 md:mb-3">
-              {[
-                { icon: Search, label: "Smart Search" },
-                { icon: Calendar, label: "Instant Booking" },
-                { icon: MapPin, label: "Interactive Map" },
-                { icon: Bot, label: "AI Matchmaking" },
-                { icon: Trophy, label: "Leaderboards" },
-                { icon: Award, label: "XP & Achievements" },
-                { icon: Bell, label: "Notifications" },
-                { icon: Clock, label: "Waitlist" },
-                { icon: Star, label: "Reviews" },
-                { icon: TrendingUp, label: "Dynamic Pricing" },
-                { icon: BrainCircuit, label: "Smart Scheduling" },
-                { icon: CloudSun, label: "Weather" },
-              ].map((f) => {
-                const Icon = f.icon;
-                return (
-                  <div key={f.label} className="group flex items-center gap-2 rounded-full border border-border/40 bg-muted/20 px-4 py-2.5 md:px-5 md:py-3 hover:bg-primary/10 hover:border-primary/30 transition-colors">
-                    <Icon className="h-4 w-4 text-primary shrink-0" strokeWidth={2} />
-                    <span className="text-xs md:text-sm font-medium text-foreground whitespace-nowrap">{f.label}</span>
-                  </div>
-                );
-              })}
-            </motion.div>
-
-            {/* Row 2 */}
-            <motion.div variants={fadeUp} transition={sectionTransition} className="flex flex-wrap justify-center gap-2 md:gap-3 mb-2 md:mb-3">
-              {[
-                { icon: BarChart3, label: "Analytics" },
-                { icon: Image, label: "Photo Gallery" },
-                { icon: Layers, label: "Multi-Court" },
-                { icon: Gamepad2, label: "Open Games" },
-                { icon: Users, label: "Teams" },
-                { icon: MessageCircle, label: "Chat" },
-                { icon: CreditCard, label: "Payments" },
-                { icon: Repeat, label: "Recurring" },
-                { icon: Split, label: "Split Payments" },
-                { icon: Flame, label: "Streaks" },
-                { icon: GitCompare, label: "Venue Compare" },
-                { icon: UserCircle, label: "Player Profiles" },
-              ].map((f) => {
-                const Icon = f.icon;
-                return (
-                  <div key={f.label} className="group flex items-center gap-2 rounded-full border border-border/40 bg-muted/20 px-4 py-2.5 md:px-5 md:py-3 hover:bg-primary/10 hover:border-primary/30 transition-colors">
-                    <Icon className="h-4 w-4 text-primary shrink-0" strokeWidth={2} />
-                    <span className="text-xs md:text-sm font-medium text-foreground whitespace-nowrap">{f.label}</span>
-                  </div>
-                );
-              })}
-            </motion.div>
-
-            {/* Row 3 */}
-            <motion.div variants={fadeUp} transition={sectionTransition} className="flex flex-wrap justify-center gap-2 md:gap-3">
-              {[
-                { icon: UserPlus, label: "Referrals" },
-                { icon: Shield, label: "Verified Venues" },
-                { icon: Wifi, label: "Real-Time" },
-                { icon: Map, label: "Geolocation" },
-                { icon: Globe, label: "Multi-Currency" },
-                { icon: Sparkles, label: "AI Recommendations" },
-                { icon: Building, label: "Owner Dashboard" },
-                { icon: Zap, label: "Embeddable Widgets" },
-                { icon: Swords, label: "Challenges" },
-                { icon: Activity, label: "Live Occupancy" },
-                { icon: Lock, label: "Two-Factor Auth" },
-              ].map((f) => {
-                const Icon = f.icon;
-                return (
-                  <div key={f.label} className="group flex items-center gap-2 rounded-full border border-border/40 bg-muted/20 px-4 py-2.5 md:px-5 md:py-3 hover:bg-primary/10 hover:border-primary/30 transition-colors">
-                    <Icon className="h-4 w-4 text-primary shrink-0" strokeWidth={2} />
-                    <span className="text-xs md:text-sm font-medium text-foreground whitespace-nowrap">{f.label}</span>
-                  </div>
-                );
-              })}
-            </motion.div>
+            {featureRows.map((row, rowIdx) => (
+              <motion.div key={rowIdx} variants={fadeUp} transition={sectionTransition} className="flex flex-wrap justify-center gap-2 md:gap-3 mb-2 md:mb-3">
+                {row.map((f) => {
+                  const Icon = f.icon;
+                  return (
+                    <div key={f.label} className="group flex items-center gap-2 rounded-full border border-border/40 bg-background/60 px-4 py-2.5 md:px-5 md:py-3 hover:bg-primary/10 hover:border-primary/30 transition-colors">
+                      <Icon className="h-4 w-4 text-primary shrink-0" strokeWidth={2} />
+                      <span className="text-xs md:text-sm font-medium text-foreground whitespace-nowrap">{f.label}</span>
+                    </div>
+                  );
+                })}
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
 
       {/* ── Mission & Vision ── */}
-      <section className="py-20 md:py-40 bg-background">
+      <section className="py-20 md:py-36 bg-background">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -519,7 +539,7 @@ const HomePage = () => {
             </motion.div>
 
             <motion.div variants={fadeUp} transition={sectionTransition} className="grid md:grid-cols-2 gap-4 md:gap-8 max-w-5xl mx-auto">
-              <div className="bg-muted/20 rounded-3xl p-8 md:p-12">
+              <div className="bg-card border border-border/40 rounded-3xl p-8 md:p-12">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
                   <Target className="h-6 w-6" strokeWidth={1.5} />
                 </div>
@@ -529,7 +549,7 @@ const HomePage = () => {
                 </p>
               </div>
 
-              <div className="bg-muted/20 rounded-3xl p-8 md:p-12">
+              <div className="bg-card border border-border/40 rounded-3xl p-8 md:p-12">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
                   <Eye className="h-6 w-6" strokeWidth={1.5} />
                 </div>
@@ -544,7 +564,7 @@ const HomePage = () => {
       </section>
 
       {/* ── Values ── */}
-      <section className="py-20 md:py-40 bg-muted/20">
+      <section className="py-20 md:py-36 bg-muted/20">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -563,14 +583,14 @@ const HomePage = () => {
 
             <motion.div variants={fadeUp} transition={sectionTransition} className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 max-w-5xl mx-auto">
               {[
-                { icon: Globe, title: "Accessibility", desc: "Sport should be for everyone." },
+                { icon: Globe, title: "Accessibility", desc: "Sport should be for everyone, everywhere." },
                 { icon: Heart, title: "Community", desc: "Sport brings people together." },
                 { icon: Sparkles, title: "Simplicity", desc: "Book in seconds, not hours." },
                 { icon: Shield, title: "Trust", desc: "Verified venues, secure payments." },
               ].map((value) => {
                 const Icon = value.icon;
                 return (
-                  <div key={value.title} className="bg-background rounded-2xl md:rounded-3xl p-6 md:p-10 text-center border border-border/40">
+                  <div key={value.title} className="bg-card rounded-2xl md:rounded-3xl p-6 md:p-10 text-center border border-border/40">
                     <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4 md:mb-6">
                       <Icon className="h-7 w-7 md:h-8 md:w-8" strokeWidth={1.5} />
                     </div>
@@ -585,7 +605,7 @@ const HomePage = () => {
       </section>
 
       {/* ── Founders ── */}
-      <section className="py-20 md:py-40 bg-background">
+      <section className="py-20 md:py-36 bg-background">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -630,8 +650,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="py-24 md:py-48 bg-background">
+      {/* ── Final CTA ── */}
+      <section className="py-24 md:py-48 bg-secondary">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -641,30 +661,30 @@ const HomePage = () => {
             transition={{ ...sectionTransition, duration: 0.7 }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-foreground tracking-tighter mb-5 md:mb-8">
-              Ready to find<br />your game?
+            <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-secondary-foreground tracking-tighter mb-5 md:mb-8">
+              Ready to find<br />your next game?
             </h2>
-            <p className="text-base md:text-xl text-muted-foreground mb-8 md:mb-12 max-w-md mx-auto">
-              Your next game is just a few clicks away.
+            <p className="text-base md:text-xl text-secondary-foreground/60 mb-8 md:mb-12 max-w-md mx-auto">
+              Join 40,000+ players already using Sportsbnb.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-20 md:mb-0">
               {!isLoading && !user ? (
                 <Link to="/signup">
-                  <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold">
+                  <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold gap-2">
                     Get started free
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
               ) : (
                 <Link to="/dashboard">
-                  <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold">
+                  <Button size="xl" className="w-full sm:w-auto rounded-full font-semibold gap-2">
                     Go to Dashboard
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
               )}
               <Link to="/venues">
-                <Button variant="outline" size="xl" className="w-full sm:w-auto rounded-full">
+                <Button variant="outline" size="xl" className="w-full sm:w-auto rounded-full border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10">
                   Explore venues
                 </Button>
               </Link>
