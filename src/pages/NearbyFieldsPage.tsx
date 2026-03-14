@@ -12,6 +12,7 @@ import Layout from "@/components/layout/Layout";
 import SEOHead from "@/components/seo/SEOHead";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import FieldRatingDialog from "@/components/fields/FieldRatingDialog";
 
 const YANDEX_MAPS_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
 
