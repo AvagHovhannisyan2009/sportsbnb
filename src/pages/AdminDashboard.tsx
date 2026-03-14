@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -69,6 +69,8 @@ import {
   type AppRole,
 } from "@/hooks/useAdmin";
 import { format } from "date-fns";
+
+const FieldSubmissionsTab = lazy(() => import("@/components/admin/FieldSubmissionsTab"));
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -196,6 +198,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="venues">Venues</TabsTrigger>
               <TabsTrigger value="bookings">Bookings</TabsTrigger>
               <TabsTrigger value="games">Games</TabsTrigger>
+              <TabsTrigger value="fields">Fields</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -582,6 +585,13 @@ const AdminDashboard = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Fields Tab */}
+            <TabsContent value="fields">
+              <Suspense fallback={<div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+                <FieldSubmissionsTab />
+              </Suspense>
             </TabsContent>
           </Tabs>
         </div>

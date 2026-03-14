@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Map, Placemark, YMaps } from "@pbe/react-yandex-maps";
-import { MapPin, Users, Sun, Moon, Zap, Navigation, List, Map as MapIcon, Filter, ChevronRight, Plus, Check } from "lucide-react";
+import { MapPin, Users, Sun, Moon, Zap, Navigation, List, Map as MapIcon, Filter, ChevronRight, Plus, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import Layout from "@/components/layout/Layout";
 import SEOHead from "@/components/seo/SEOHead";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import FieldRatingDialog from "@/components/fields/FieldRatingDialog";
 
 const YANDEX_MAPS_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
 
@@ -40,12 +41,13 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
 
 const NearbyFieldsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { fields, isLoading, checkIn } = usePublicFields();
+  const { fields, isLoading, checkIn, fetchFields } = usePublicFields();
   const { data: venues } = useVenues();
   const [view, setView] = useState<"map" | "list">("map");
   const [sportFilter, setSportFilter] = useState<string>("all");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [ratingField, setRatingField] = useState<{ id: string; name: string } | null>(null);
 
   const handleLocate = () => {
     setIsLocating(true);
@@ -311,20 +313,38 @@ const NearbyFieldsPage: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="shrink-0"
-                        onClick={(e) => { e.stopPropagation(); checkIn(field.id); }}
-                      >
-                        <Check className="h-3.5 w-3.5 mr-1" /> I'm here
-                      </Button>
+                      <div className="flex flex-col gap-1.5 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); checkIn(field.id); }}
+                        >
+                          <Check className="h-3.5 w-3.5 mr-1" /> I'm here
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); setRatingField({ id: field.id, name: field.name }); }}
+                        >
+                          <Star className="h-3.5 w-3.5 mr-1" /> Rate
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 ))
               )}
             </div>
           </div>
+        )}
+
+        {ratingField && (
+          <FieldRatingDialog
+            open={!!ratingField}
+            onOpenChange={(open) => !open && setRatingField(null)}
+            fieldId={ratingField.id}
+            fieldName={ratingField.name}
+            onRated={() => fetchFields()}
+          />
         )}
       </div>
     </Layout>
