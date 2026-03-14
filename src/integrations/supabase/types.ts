@@ -409,6 +409,98 @@ export type Database = {
         }
         Relationships: []
       }
+      field_checkins: {
+        Row: {
+          checked_in_at: string
+          checked_out_at: string | null
+          field_id: string
+          id: string
+          player_count: number | null
+          user_id: string
+        }
+        Insert: {
+          checked_in_at?: string
+          checked_out_at?: string | null
+          field_id: string
+          id?: string
+          player_count?: number | null
+          user_id: string
+        }
+        Update: {
+          checked_in_at?: string
+          checked_out_at?: string | null
+          field_id?: string
+          id?: string
+          player_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "field_checkins_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "public_fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      field_submissions: {
+        Row: {
+          address: string | null
+          admin_notes: string | null
+          city: string
+          created_at: string
+          description: string | null
+          has_lighting: boolean | null
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          photo_url: string | null
+          sports: string[]
+          status: string
+          submitted_by: string
+          surface_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          admin_notes?: string | null
+          city?: string
+          created_at?: string
+          description?: string | null
+          has_lighting?: boolean | null
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          photo_url?: string | null
+          sports?: string[]
+          status?: string
+          submitted_by: string
+          surface_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          admin_notes?: string | null
+          city?: string
+          created_at?: string
+          description?: string | null
+          has_lighting?: boolean | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          photo_url?: string | null
+          sports?: string[]
+          status?: string
+          submitted_by?: string
+          surface_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       game_participants: {
         Row: {
           game_id: string
@@ -723,6 +815,78 @@ export type Database = {
           venue_description?: string | null
           venue_name?: string | null
           xp?: number
+        }
+        Relationships: []
+      }
+      public_fields: {
+        Row: {
+          active_checkins: number | null
+          address: string | null
+          city: string
+          condition_rating: number | null
+          created_at: string
+          description: string | null
+          has_goals: boolean | null
+          has_lighting: boolean | null
+          has_markings: boolean | null
+          has_nets: boolean | null
+          id: string
+          is_approved: boolean | null
+          last_checkin_at: string | null
+          latitude: number
+          longitude: number
+          name: string
+          photo_url: string | null
+          sports: string[]
+          submitted_by: string | null
+          surface_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          active_checkins?: number | null
+          address?: string | null
+          city?: string
+          condition_rating?: number | null
+          created_at?: string
+          description?: string | null
+          has_goals?: boolean | null
+          has_lighting?: boolean | null
+          has_markings?: boolean | null
+          has_nets?: boolean | null
+          id?: string
+          is_approved?: boolean | null
+          last_checkin_at?: string | null
+          latitude: number
+          longitude: number
+          name: string
+          photo_url?: string | null
+          sports?: string[]
+          submitted_by?: string | null
+          surface_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active_checkins?: number | null
+          address?: string | null
+          city?: string
+          condition_rating?: number | null
+          created_at?: string
+          description?: string | null
+          has_goals?: boolean | null
+          has_lighting?: boolean | null
+          has_markings?: boolean | null
+          has_nets?: boolean | null
+          id?: string
+          is_approved?: boolean | null
+          last_checkin_at?: string | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          photo_url?: string | null
+          sports?: string[]
+          submitted_by?: string | null
+          surface_type?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
