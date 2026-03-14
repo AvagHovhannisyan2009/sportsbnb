@@ -1,37 +1,29 @@
-import React, { useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import React, { useRef, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Users } from "lucide-react";
+import { Map, Placemark } from "@pbe/react-yandex-maps";
 import { format } from "date-fns";
-import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import type { Game } from "@/hooks/useGames";
-
-const mapContainerStyle = { height: "600px", width: "100%" };
 
 interface GamesMapViewProps {
   games: Game[];
 }
 
-const levelColors: Record<string, string> = {
-  beginner: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  intermediate: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  advanced: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  all: "bg-primary/10 text-primary",
-};
-
 const GamesMapView: React.FC<GamesMapViewProps> = ({ games }) => {
   const gamesWithCoords = games.filter(g => g.latitude && g.longitude);
-  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
-  const defaultCenter = { lat: 40.0691, lng: 45.0382 };
+  const mapRef = useRef<any>(null);
+  const defaultCenter: [number, number] = [40.0691, 45.0382];
 
-  const selectedGame = gamesWithCoords.find(g => g.id === selectedGameId);
-
-  const onLoad = useCallback((map: google.maps.Map) => {
-    if (gamesWithCoords.length === 0) return;
-    const bounds = new google.maps.LatLngBounds();
-    gamesWithCoords.forEach(g => bounds.extend({ lat: g.latitude!, lng: g.longitude! }));
-    map.fitBounds(bounds, 50);
+  const handleMapLoad = useCallback(() => {
+    if (gamesWithCoords.length > 0 && mapRef.current) {
+      const bounds = gamesWithCoords.reduce(
+        (acc, g) => [
+          [Math.min(acc[0][0], g.latitude!), Math.min(acc[0][1], g.longitude!)],
+          [Math.max(acc[1][0], g.latitude!), Math.max(acc[1][1], g.longitude!)],
+        ],
+        [[90, 180], [-90, -180]] as [[number, number], [number, number]]
+      );
+      mapRef.current.setBounds(bounds, { checkZoomRange: true, zoomMargin: 50 });
+    }
   }, [gamesWithCoords]);
 
   if (gamesWithCoords.length === 0) {
@@ -44,58 +36,46 @@ const GamesMapView: React.FC<GamesMapViewProps> = ({ games }) => {
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        center={defaultCenter}
-        zoom={7}
-        onLoad={onLoad}
-        options={{ streetViewControl: false, mapTypeControl: false }}
+      <Map
+        defaultState={{ center: defaultCenter, zoom: 7 }}
+        width="100%"
+        height="600px"
+        instanceRef={(ref) => { mapRef.current = ref; }}
+        onLoad={handleMapLoad}
       >
-        {gamesWithCoords.map((game) => (
-          <Marker
-            key={game.id}
-            position={{ lat: game.latitude!, lng: game.longitude! }}
-            onClick={() => setSelectedGameId(game.id)}
-          />
-        ))}
-        {selectedGame && (
-          <InfoWindow
-            position={{ lat: selectedGame.latitude!, lng: selectedGame.longitude! }}
-            onCloseClick={() => setSelectedGameId(null)}
-          >
-            <div className="p-1 max-w-[300px]">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="secondary" className="text-xs">{selectedGame.sport}</Badge>
-                <Badge className={`text-xs ${levelColors[selectedGame.skill_level] || levelColors.all}`}>
-                  {selectedGame.skill_level === "all" ? "All levels" : selectedGame.skill_level}
-                </Badge>
-              </div>
-              <h3 className="font-semibold text-base mb-2">{selectedGame.title}</h3>
-              <div className="space-y-1 mb-3 text-sm">
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span>{format(new Date(selectedGame.game_date), "MMM d, yyyy")}</span>
-                  <Clock className="h-3.5 w-3.5 ml-2" />
-                  <span>{selectedGame.game_time}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Users className="h-3.5 w-3.5" />
-                  {(() => {
-                    const spotsLeft = selectedGame.max_players - (selectedGame.participant_count || 0);
-                    const isFull = spotsLeft <= 0;
-                    return <span className={isFull ? "" : "text-blue-600 font-medium"}>{isFull ? "Full" : `${spotsLeft} spots left`}</span>;
-                  })()}
-                </div>
-              </div>
-              <Link to={`/game/${selectedGame.id}`}>
-                <Button size="sm" className="w-full">
-                  {selectedGame.max_players - (selectedGame.participant_count || 0) <= 0 ? "View Details" : "Join Game"}
-                </Button>
-              </Link>
-            </div>
-          </InfoWindow>
-        )}
-      </GoogleMap>
+        {gamesWithCoords.map((game) => {
+          const spotsLeft = game.max_players - (game.participant_count || 0);
+          const isFull = spotsLeft <= 0;
+
+          return (
+            <Placemark
+              key={game.id}
+              geometry={[game.latitude!, game.longitude!]}
+              options={{
+                preset: "islands#sportCircleIcon",
+                iconColor: isFull ? "#9ca3af" : "#3b82f6",
+              }}
+              properties={{
+                balloonContentHeader: game.title,
+                balloonContentBody: `
+                  <div style="min-width:250px">
+                    <div style="margin-bottom:8px">
+                      <span style="background:#e5e7eb;padding:2px 8px;border-radius:12px;font-size:12px;margin-right:4px">${game.sport}</span>
+                      <span style="background:#dbeafe;padding:2px 8px;border-radius:12px;font-size:12px">${game.skill_level === "all" ? "All levels" : game.skill_level}</span>
+                    </div>
+                    <p style="font-size:13px;color:#6b7280;margin:4px 0">📅 ${format(new Date(game.game_date), "MMM d, yyyy")} · 🕐 ${game.game_time}</p>
+                    <p style="font-size:13px;color:${isFull ? '#6b7280' : '#3b82f6'};font-weight:${isFull ? 'normal' : '600'};margin:4px 0">
+                      👥 ${isFull ? "Full" : `${spotsLeft} spots left`}
+                    </p>
+                  </div>
+                `,
+                balloonContentFooter: `<a href="/game/${game.id}" style="display:block;text-align:center;padding:8px;background:${isFull ? '#9ca3af' : '#3b82f6'};color:white;border-radius:6px;text-decoration:none;margin-top:8px;font-size:14px">${isFull ? "View Details" : "Join Game"}</a>`,
+              }}
+              modules={["geoObject.addon.balloon"]}
+            />
+          );
+        })}
+      </Map>
     </div>
   );
 };
