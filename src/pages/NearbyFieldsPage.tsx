@@ -336,6 +336,16 @@ const NearbyFieldsPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {ratingField && (
+          <FieldRatingDialog
+            open={!!ratingField}
+            onOpenChange={(open) => !open && setRatingField(null)}
+            fieldId={ratingField.id}
+            fieldName={ratingField.name}
+            onRated={() => fetchFields()}
+          />
+        )}
       </div>
     </Layout>
   );
