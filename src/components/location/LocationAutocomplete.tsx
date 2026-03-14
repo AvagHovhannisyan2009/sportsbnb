@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { MapPin, Loader2, X, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-
-const YANDEX_GEOCODER_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
 
 export interface LocationPlace {
   name: string;
@@ -16,11 +13,13 @@ export interface LocationPlace {
   type?: string;
 }
 
-interface GeosuggestResult {
-  title: { text: string };
-  subtitle?: { text: string };
-  tags?: string[];
-  uri?: string;
+interface Prediction {
+  description: string;
+  place_id: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text?: string;
+  };
 }
 
 interface LocationAutocompleteProps {
@@ -47,13 +46,15 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   defaultLongitude,
 }) => {
   const [inputValue, setInputValue] = useState(value);
-  const [suggestions, setSuggestions] = useState<GeosuggestResult[]>([]);
+  const [suggestions, setSuggestions] = useState<Prediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
+  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
   useEffect(() => {
     setInputValue(value);
@@ -69,6 +70,20 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const getAutocompleteService = () => {
+    if (!autocompleteServiceRef.current && google?.maps?.places) {
+      autocompleteServiceRef.current = new google.maps.places.AutocompleteService();
+    }
+    return autocompleteServiceRef.current;
+  };
+
+  const getGeocoder = () => {
+    if (!geocoderRef.current && google?.maps) {
+      geocoderRef.current = new google.maps.Geocoder();
+    }
+    return geocoderRef.current;
+  };
+
   const searchLocations = useCallback(async (query: string) => {
     if (query.length < 2) {
       setSuggestions([]);
@@ -76,85 +91,64 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     }
 
     setIsLoading(true);
-
     try {
-      const centerLng = defaultLongitude ?? 44.5152;
-      const centerLat = defaultLatitude ?? 40.1872;
-
-      const { data: fnData, error: fnError } = await supabase.functions.invoke("geosuggest", {
-        body: {
-          text: query,
-          lang: "en",
-          results: 7,
-          ll: `${centerLng},${centerLat}`,
-          spn: "2,2",
-          ull: `${centerLng},${centerLat}`,
-        },
-      });
-
-      let items: GeosuggestResult[] = fnError ? [] : (fnData?.results || []);
-
-      // Fallback to Geocoder when Geosuggest returns no results
-      if (items.length === 0) {
-        const geocodeUrl = `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_GEOCODER_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=7&lang=en_US&ll=${centerLng},${centerLat}&spn=2,2&rspn=1`;
-        const geocodeResponse = await fetch(geocodeUrl);
-        const geocodeData = await geocodeResponse.json();
-        const geoObjects = geocodeData?.response?.GeoObjectCollection?.featureMember || [];
-
-        items = geoObjects.map((member: any) => {
-          const geoObject = member.GeoObject;
-          const titleText = geoObject.name || geoObject.metaDataProperty?.GeocoderMetaData?.text || "Location";
-          const subtitleText = geoObject.metaDataProperty?.GeocoderMetaData?.text || "";
-          return {
-            title: { text: titleText },
-            subtitle: subtitleText ? { text: subtitleText } : undefined,
-          } as GeosuggestResult;
-        });
+      const service = getAutocompleteService();
+      if (!service) {
+        setIsLoading(false);
+        return;
       }
 
-      setSuggestions(items);
-      setIsOpen(items.length > 0);
-      setSelectedIndex(-1);
+      const centerLat = defaultLatitude ?? 40.1872;
+      const centerLng = defaultLongitude ?? 44.5152;
+
+      service.getPlacePredictions(
+        {
+          input: query,
+          locationBias: new google.maps.Circle({
+            center: { lat: centerLat, lng: centerLng },
+            radius: 50000,
+          }),
+        },
+        (predictions, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+            setSuggestions(predictions as unknown as Prediction[]);
+            setIsOpen(predictions.length > 0);
+            setSelectedIndex(-1);
+          } else {
+            setSuggestions([]);
+          }
+          setIsLoading(false);
+        }
+      );
     } catch (err) {
-      console.error("Geosuggest error:", err);
+      console.error("Autocomplete error:", err);
       setSuggestions([]);
-    } finally {
       setIsLoading(false);
     }
   }, [defaultLatitude, defaultLongitude]);
 
-  const resolveCoordinates = async (item: GeosuggestResult): Promise<LocationPlace | null> => {
+  const resolvePlace = async (prediction: Prediction): Promise<LocationPlace | null> => {
     try {
-      // Use the full text as geocode query for best results
-      const fullQuery = item.subtitle?.text
-        ? `${item.title.text}, ${item.subtitle.text}`
-        : item.title.text;
+      const geocoder = getGeocoder();
+      if (!geocoder) return null;
 
-      // If URI is available, use it for precise geocoding
-      const geocodeParam = item.uri
-        ? `uri=${encodeURIComponent(item.uri)}`
-        : `geocode=${encodeURIComponent(fullQuery)}`;
+      const result = await geocoder.geocode({ placeId: prediction.place_id });
+      if (!result.results.length) return null;
 
-      const url = `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_GEOCODER_API_KEY}&${geocodeParam}&format=json&results=1&lang=en_US`;
-      const response = await fetch(url);
-      const data = await response.json();
+      const geoResult = result.results[0];
+      const loc = geoResult.geometry.location;
 
-      const geoObject = data?.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
-      if (!geoObject?.Point?.pos) return null;
-
-      const [lng, lat] = geoObject.Point.pos.split(" ").map(Number);
-      const components = geoObject.metaDataProperty?.GeocoderMetaData?.Address?.Components || [];
-      const city = components.find((c: any) => c.kind === "locality")?.name;
-      const country = components.find((c: any) => c.kind === "country")?.name;
+      const getComponent = (type: string) =>
+        geoResult.address_components?.find(c => c.types.includes(type))?.long_name;
 
       return {
-        name: item.title.text,
-        city,
-        country,
-        formattedAddress: geoObject.metaDataProperty?.GeocoderMetaData?.text || fullQuery,
-        latitude: lat,
-        longitude: lng,
-        type: geoObject.metaDataProperty?.GeocoderMetaData?.kind,
+        name: prediction.structured_formatting.main_text,
+        city: getComponent("locality") || getComponent("administrative_area_level_1"),
+        country: getComponent("country"),
+        formattedAddress: geoResult.formatted_address,
+        latitude: loc.lat(),
+        longitude: loc.lng(),
+        type: geoResult.types?.[0],
       };
     } catch (err) {
       console.error("Geocoder resolve error:", err);
@@ -170,16 +164,13 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     debounceRef.current = setTimeout(() => searchLocations(newValue), 250);
   };
 
-  const handleSelect = async (item: GeosuggestResult) => {
-    const displayText = item.subtitle?.text
-      ? `${item.title.text}, ${item.subtitle.text}`
-      : item.title.text;
-    setInputValue(displayText);
+  const handleSelect = async (item: Prediction) => {
+    setInputValue(item.description);
     setSuggestions([]);
     setIsOpen(false);
     setIsLoading(true);
 
-    const place = await resolveCoordinates(item);
+    const place = await resolvePlace(item);
     setIsLoading(false);
 
     if (place) {
@@ -254,7 +245,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           <ul className="max-h-60 overflow-auto py-1">
             {suggestions.map((item, index) => (
               <li
-                key={`${item.title.text}-${index}`}
+                key={item.place_id}
                 className={cn(
                   "px-3 py-2 cursor-pointer flex items-start gap-3 transition-colors",
                   index === selectedIndex
@@ -266,10 +257,10 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
               >
                 <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{item.title.text}</div>
-                  {item.subtitle?.text && (
+                  <div className="font-medium text-sm truncate">{item.structured_formatting.main_text}</div>
+                  {item.structured_formatting.secondary_text && (
                     <div className="text-xs text-muted-foreground truncate">
-                      {item.subtitle.text}
+                      {item.structured_formatting.secondary_text}
                     </div>
                   )}
                 </div>
