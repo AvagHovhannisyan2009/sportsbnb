@@ -92,9 +92,26 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         },
       });
 
-      const data = fnError ? { results: [] } : fnData;
+      let items: GeosuggestResult[] = fnError ? [] : (fnData?.results || []);
 
-      const items: GeosuggestResult[] = data?.results || [];
+      // Fallback to Geocoder when Geosuggest returns no results
+      if (items.length === 0) {
+        const geocodeUrl = `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_GEOCODER_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=7&lang=en_US&ll=${centerLng},${centerLat}&spn=2,2&rspn=1`;
+        const geocodeResponse = await fetch(geocodeUrl);
+        const geocodeData = await geocodeResponse.json();
+        const geoObjects = geocodeData?.response?.GeoObjectCollection?.featureMember || [];
+
+        items = geoObjects.map((member: any) => {
+          const geoObject = member.GeoObject;
+          const titleText = geoObject.name || geoObject.metaDataProperty?.GeocoderMetaData?.text || "Location";
+          const subtitleText = geoObject.metaDataProperty?.GeocoderMetaData?.text || "";
+          return {
+            title: { text: titleText },
+            subtitle: subtitleText ? { text: subtitleText } : undefined,
+          } as GeosuggestResult;
+        });
+      }
+
       setSuggestions(items);
       setIsOpen(items.length > 0);
       setSelectedIndex(-1);

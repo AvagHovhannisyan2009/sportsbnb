@@ -118,15 +118,37 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
         });
       });
 
-      (geosuggestRes?.results || []).forEach((item: any, index: number) => {
-        allSuggestions.push({
-          id: `location-${index}`,
-          type: "location",
-          title: item.title?.text || "Location",
-          subtitle: item.subtitle?.text,
-          data: { uri: item.uri, fullText: item.subtitle?.text ? `${item.title.text}, ${item.subtitle.text}` : item.title.text },
+      const geosuggestItems = geosuggestRes?.results || [];
+
+      if (geosuggestItems.length > 0) {
+        geosuggestItems.forEach((item: any, index: number) => {
+          allSuggestions.push({
+            id: `location-${index}`,
+            type: "location",
+            title: item.title?.text || "Location",
+            subtitle: item.subtitle?.text,
+            data: { uri: item.uri, fullText: item.subtitle?.text ? `${item.title.text}, ${item.subtitle.text}` : item.title.text },
+          });
         });
-      });
+      } else {
+        const geocodeResponse = await fetch(
+          `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_GEOCODER_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=4&lang=en_US&ll=44.5152,40.1872&spn=2,2&rspn=1`
+        );
+        const geocodeData = await geocodeResponse.json();
+        const geoObjects = geocodeData?.response?.GeoObjectCollection?.featureMember || [];
+
+        geoObjects.forEach((member: any, index: number) => {
+          const geoObject = member.GeoObject;
+          const fullText = geoObject.metaDataProperty?.GeocoderMetaData?.text || geoObject.name || "Location";
+          allSuggestions.push({
+            id: `location-fallback-${index}`,
+            type: "location",
+            title: geoObject.name || "Location",
+            subtitle: fullText,
+            data: { fullText },
+          });
+        });
+      }
 
       setSuggestions(allSuggestions);
       setIsOpen(allSuggestions.length > 0);
