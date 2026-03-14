@@ -595,6 +595,13 @@ const AdminDashboard = () => {
                 <FieldSubmissionsTab />
               </Suspense>
             </TabsContent>
+
+            {/* AI Discovery Tab */}
+            <TabsContent value="discovery">
+              <Suspense fallback={<div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+                <CandidateFieldsTab />
+              </Suspense>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
