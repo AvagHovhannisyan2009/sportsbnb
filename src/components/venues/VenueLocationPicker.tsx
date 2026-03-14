@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Check, X } from "lucide-react";
-import { LocationAutocomplete, PhotonPlace } from "@/components/location/LocationAutocomplete";
+import { LocationAutocomplete, LocationPlace } from "@/components/location/LocationAutocomplete";
 
 interface VenueLocationPickerProps {
   address: string;
@@ -65,7 +65,7 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
     onLocationConfirm(coords[0], coords[1], false);
   }, [onLocationConfirm]);
 
-  const handlePlaceSelect = (place: PhotonPlace) => {
+  const handlePlaceSelect = (place: LocationPlace) => {
     onAddressChange(place.formattedAddress);
     if (place.city) onCityChange(place.city);
     const pos: [number, number] = [place.latitude, place.longitude];

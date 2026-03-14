@@ -5,18 +5,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-interface PhotonResult {
-  properties: {
-    name?: string;
-    street?: string;
-    housenumber?: string;
-    city?: string;
-    country?: string;
-  };
-  geometry: {
-    coordinates: [number, number];
-  };
-}
+const YANDEX_MAPS_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
 
 interface SearchSuggestion {
   id: string;
@@ -125,16 +114,22 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
         });
       }
 
-      // Search locations via Photon API
-      const photonResponse = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=3`
+      // Search locations via Yandex Geocoder API
+      const geocodeResponse = await fetch(
+        `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_MAPS_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=3&lang=en_US`
       );
-      const photonData = await photonResponse.json();
+      const geocodeData = await geocodeResponse.json();
 
-      (photonData.features || []).forEach((feature: PhotonResult, index: number) => {
-        const props = feature.properties;
-        const name = props.name || props.street || "Location";
-        const subtitle = [props.city, props.country].filter(Boolean).join(", ");
+      const geoObjects = geocodeData?.response?.GeoObjectCollection?.featureMember || [];
+      geoObjects.forEach((item: any, index: number) => {
+        const geoObject = item.GeoObject;
+        const name = geoObject.name || "Location";
+        const fullAddress = geoObject.metaDataProperty?.GeocoderMetaData?.text || name;
+        const components = geoObject.metaDataProperty?.GeocoderMetaData?.Address?.Components || [];
+        const city = components.find((c: any) => c.kind === "locality")?.name;
+        const country = components.find((c: any) => c.kind === "country")?.name;
+        const subtitle = [city, country].filter(Boolean).join(", ");
+        const [lng, lat] = (geoObject.Point?.pos || "0 0").split(" ").map(Number);
         
         allSuggestions.push({
           id: `location-${index}`,
@@ -142,9 +137,9 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
           title: name,
           subtitle,
           data: {
-            latitude: feature.geometry.coordinates[1],
-            longitude: feature.geometry.coordinates[0],
-            address: [name, props.city, props.country].filter(Boolean).join(", "),
+            latitude: lat,
+            longitude: lng,
+            address: fullAddress,
           },
         });
       });
