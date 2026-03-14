@@ -75,10 +75,10 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     setIsLoading(true);
 
     try {
-      // Use Yandex Geocoder API for suggestions
+      // Use Yandex Geocoder API for suggestions — biased toward Armenia
       const bbox = defaultLatitude && defaultLongitude
-        ? `&bbox=${defaultLongitude - 1},${defaultLatitude - 1}~${defaultLongitude + 1},${defaultLatitude + 1}&rspn=1`
-        : "";
+        ? `&bbox=${defaultLongitude - 2},${defaultLatitude - 2}~${defaultLongitude + 2},${defaultLatitude + 2}&rspn=1`
+        : `&ll=44.5152,40.1872&spn=4,4&rspn=1`;
       
       const url = `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_MAPS_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=5&lang=en_US${bbox}`;
       

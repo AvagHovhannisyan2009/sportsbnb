@@ -114,9 +114,9 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
         });
       }
 
-      // Search locations via Yandex Geocoder API
+      // Search locations via Yandex Geocoder API — biased toward Armenia
       const geocodeResponse = await fetch(
-        `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_MAPS_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=3&lang=en_US`
+        `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_MAPS_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=3&lang=en_US&ll=44.5152,40.1872&spn=4,4&rspn=1`
       );
       const geocodeData = await geocodeResponse.json();
 
