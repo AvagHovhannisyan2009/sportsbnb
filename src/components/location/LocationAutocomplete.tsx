@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { MapPin, Loader2, X, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
-const YANDEX_GEOSUGGEST_API_KEY = "d2ab23f0-55b3-4d22-b0c3-29c88fd7ce70";
 const YANDEX_GEOCODER_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
 
 export interface LocationPlace {
@@ -81,20 +81,18 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       const centerLng = defaultLongitude ?? 44.5152;
       const centerLat = defaultLatitude ?? 40.1872;
 
-      const params = new URLSearchParams({
-        apikey: YANDEX_GEOSUGGEST_API_KEY,
-        text: query,
-        lang: "en",
-        results: "7",
-        ll: `${centerLng},${centerLat}`,
-        spn: "2,2",
-        print_address: "1",
-        attrs: "uri",
-        ull: `${centerLng},${centerLat}`,
+      const { data: fnData, error: fnError } = await supabase.functions.invoke("geosuggest", {
+        body: {
+          text: query,
+          lang: "en",
+          results: 7,
+          ll: `${centerLng},${centerLat}`,
+          spn: "2,2",
+          ull: `${centerLng},${centerLat}`,
+        },
       });
 
-      const response = await fetch(`https://suggest-maps.yandex.ru/v1/suggest?${params}`);
-      const data = await response.json();
+      const data = fnError ? { results: [] } : fnData;
 
       const items: GeosuggestResult[] = data?.results || [];
       setSuggestions(items);

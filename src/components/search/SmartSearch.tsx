@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-const YANDEX_GEOSUGGEST_API_KEY = "d2ab23f0-55b3-4d22-b0c3-29c88fd7ce70";
 const YANDEX_GEOCODER_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
 
 interface SearchSuggestion {
@@ -87,19 +86,16 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
           .gte("game_date", new Date().toISOString().split("T")[0])
           .or(`title.ilike.%${query}%,sport.ilike.%${query}%,location.ilike.%${query}%`)
           .limit(3),
-        fetch(
-          `https://suggest-maps.yandex.ru/v1/suggest?${new URLSearchParams({
-            apikey: YANDEX_GEOSUGGEST_API_KEY,
+        supabase.functions.invoke("geosuggest", {
+          body: {
             text: query,
             lang: "en",
-            results: "4",
+            results: 4,
             ll: "44.5152,40.1872",
             spn: "2,2",
             ull: "44.5152,40.1872",
-            print_address: "1",
-            attrs: "uri",
-          })}`
-        ).then(r => r.json()).catch(() => ({ results: [] })),
+          },
+        }).then(({ data, error }) => error ? { results: [] } : data).catch(() => ({ results: [] })),
       ]);
 
       venuesRes.data?.forEach(venue => {
