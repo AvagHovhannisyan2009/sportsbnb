@@ -345,8 +345,9 @@ serve(async (req) => {
     const tileKey = body.tile_key || null;
     const region = body.region || null;
     const force = body.force === true;
-    const scanMode = body.scan_mode || "fast"; // "fast" (12 queries) or "full" (40 queries)
-    const maxTiles = body.max_tiles || 10; // Limit tiles per invocation to avoid timeout
+    const scanMode = body.scan_mode || "fast";
+    const maxTiles = body.max_tiles || 15;
+    const tileOffset = body.tile_offset || 0; // Support offset for auto-continue
     // Custom area scan
     const customLat = body.custom_lat || null;
     const customLng = body.custom_lng || null;
