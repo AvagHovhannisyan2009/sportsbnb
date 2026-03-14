@@ -7,19 +7,74 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Geographic tiles across Armenia - major cities and areas
+// Geographic tiles across Armenia
 const ARMENIA_TILES = [
-  { key: "yerevan-center", lat: 40.1872, lng: 44.5152, radius: 3 },
-  { key: "yerevan-north", lat: 40.2100, lng: 44.5200, radius: 2 },
-  { key: "yerevan-south", lat: 40.1600, lng: 44.5000, radius: 2 },
-  { key: "yerevan-east", lat: 40.1900, lng: 44.5500, radius: 2 },
-  { key: "yerevan-west", lat: 40.1800, lng: 44.4800, radius: 2 },
-  { key: "gyumri", lat: 40.7929, lng: 43.8465, radius: 3 },
-  { key: "vanadzor", lat: 40.8128, lng: 44.4883, radius: 2 },
-  { key: "abovyan", lat: 40.2747, lng: 44.6267, radius: 2 },
-  { key: "etchmiadzin", lat: 40.1728, lng: 44.2925, radius: 2 },
-  { key: "hrazdan", lat: 40.5028, lng: 44.7656, radius: 2 },
+  { key: "yerevan-center", lat: 40.1872, lng: 44.5152, radius: 3000 },
+  { key: "yerevan-north", lat: 40.2100, lng: 44.5200, radius: 2000 },
+  { key: "yerevan-south", lat: 40.1600, lng: 44.5000, radius: 2000 },
+  { key: "yerevan-east", lat: 40.1900, lng: 44.5500, radius: 2000 },
+  { key: "yerevan-west", lat: 40.1800, lng: 44.4800, radius: 2000 },
+  { key: "gyumri", lat: 40.7929, lng: 43.8465, radius: 3000 },
+  { key: "vanadzor", lat: 40.8128, lng: 44.4883, radius: 2000 },
+  { key: "abovyan", lat: 40.2747, lng: 44.6267, radius: 2000 },
+  { key: "etchmiadzin", lat: 40.1728, lng: 44.2925, radius: 2000 },
+  { key: "hrazdan", lat: 40.5028, lng: 44.7656, radius: 2000 },
 ];
+
+// Google Places types that map to sports facilities
+const SPORTS_PLACE_TYPES = [
+  "stadium",
+  "sports_complex",
+  "sports_club",
+  "athletic_field",
+  "fitness_center",
+  "gym",
+  "swimming_pool",
+];
+
+// Text search queries to find sports-specific facilities
+const SEARCH_QUERIES = [
+  "football field",
+  "basketball court",
+  "tennis court",
+  "swimming pool",
+  "sports complex",
+  "stadium",
+  "soccer field",
+  "volleyball court",
+];
+
+function detectSportType(place: any): string {
+  const name = (place.displayName?.text || "").toLowerCase();
+  const types = (place.types || []).join(" ").toLowerCase();
+  const combined = `${name} ${types}`;
+
+  if (combined.includes("football") || combined.includes("soccer") || combined.includes("ֆուdelays")) return "football";
+  if (combined.includes("basketball")) return "basketball";
+  if (combined.includes("tennis")) return "tennis";
+  if (combined.includes("volleyball")) return "volleyball";
+  if (combined.includes("swimming") || combined.includes("pool") || combined.includes("aqua")) return "swimming";
+  if (combined.includes("running") || combined.includes("track") || combined.includes("athletics")) return "running";
+  if (combined.includes("stadium")) return "football";
+  return "multi-sport";
+}
+
+function calculateConfidence(place: any): number {
+  let score = 0.6; // base
+
+  // Has user ratings → more likely real
+  if (place.rating && place.rating > 0) score += 0.1;
+  if (place.userRatingCount && place.userRatingCount > 5) score += 0.1;
+  if (place.userRatingCount && place.userRatingCount > 20) score += 0.05;
+
+  // Has address → more verified
+  if (place.formattedAddress) score += 0.05;
+
+  // Currently open info available
+  if (place.currentOpeningHours || place.regularOpeningHours) score += 0.05;
+
+  return Math.min(score, 1.0);
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,11 +82,11 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GOOGLE_MAPS_API_KEY = Deno.env.get("GOOGLE_MAPS_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    if (!GOOGLE_MAPS_API_KEY) throw new Error("GOOGLE_MAPS_API_KEY not configured");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -64,128 +119,103 @@ serve(async (req) => {
         continue;
       }
 
-      const prompt = `You are a sports facility detection system for Armenia. Analyze the geographic area around coordinates (${tile.lat}, ${tile.lng}) with a ${tile.radius}km radius (tile: ${tile.key}).
+      // Use Google Places API (New) - Nearby Search
+      const placesUrl = "https://places.googleapis.com/v1/places:searchNearby";
 
-Based on your knowledge of this area, identify real sports facilities that exist there. Only include facilities you have high confidence actually exist. Types to detect: football fields/cages, basketball courts, tennis courts, volleyball courts, swimming pools, running tracks, multi-sport complexes.
-
-For each facility, provide:
-- latitude (precise to 4 decimal places)
-- longitude (precise to 4 decimal places)
-- sport_type (football, basketball, tennis, volleyball, swimming, running, multi-sport)
-- confidence (0.0-1.0, only include if >= 0.6)
-- reasoning (brief explanation of why you believe this exists)
-
-CRITICAL RULES:
-- Only report facilities you are confident exist based on real-world knowledge
-- Do NOT invent or guess locations
-- Prefer fewer accurate results over many uncertain ones
-- Include well-known stadiums, public courts, school facilities, and sports complexes`;
-
-      const response = await fetch(
-        "https://ai.gateway.lovable.dev/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [
-              { role: "system", content: "You detect real sports facilities from geographic knowledge. Return ONLY the tool call, no other text." },
-              { role: "user", content: prompt },
-            ],
-            tools: [
-              {
-                type: "function",
-                function: {
-                  name: "report_detected_fields",
-                  description: "Report detected sports fields/facilities in a geographic area",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      fields: {
-                        type: "array",
-                        items: {
-                          type: "object",
-                          properties: {
-                            latitude: { type: "number" },
-                            longitude: { type: "number" },
-                            sport_type: { type: "string", enum: ["football", "basketball", "tennis", "volleyball", "swimming", "running", "multi-sport"] },
-                            confidence: { type: "number", minimum: 0, maximum: 1 },
-                            reasoning: { type: "string" },
-                          },
-                          required: ["latitude", "longitude", "sport_type", "confidence", "reasoning"],
-                          additionalProperties: false,
-                        },
-                      },
-                    },
-                    required: ["fields"],
-                    additionalProperties: false,
-                  },
+      for (const query of SEARCH_QUERIES) {
+        try {
+          // Use Text Search for more specific results
+          const textSearchUrl = "https://places.googleapis.com/v1/places:searchText";
+          const searchResponse = await fetch(textSearchUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+              "X-Goog-FieldMask": "places.displayName,places.location,places.types,places.formattedAddress,places.rating,places.userRatingCount,places.currentOpeningHours,places.regularOpeningHours",
+            },
+            body: JSON.stringify({
+              textQuery: `${query} in Armenia`,
+              locationBias: {
+                circle: {
+                  center: { latitude: tile.lat, longitude: tile.lng },
+                  radius: tile.radius,
                 },
               },
-            ],
-            tool_choice: { type: "function", function: { name: "report_detected_fields" } },
-          }),
-        }
-      );
+              maxResultCount: 10,
+              languageCode: "en",
+            }),
+          });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error(`AI error for tile ${tile.key}:`, response.status, errText);
-        continue;
-      }
+          if (!searchResponse.ok) {
+            const errText = await searchResponse.text();
+            console.error(`Places API error for "${query}" in ${tile.key}:`, searchResponse.status, errText);
+            continue;
+          }
 
-      const aiResult = await response.json();
-      const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
-      if (!toolCall) {
-        console.log(`No tool call for tile ${tile.key}`);
-        continue;
-      }
+          const searchResult = await searchResponse.json();
+          const places = searchResult.places || [];
 
-      let fields: any[];
-      try {
-        fields = JSON.parse(toolCall.function.arguments).fields || [];
-      } catch {
-        console.error(`Failed to parse AI response for tile ${tile.key}`);
-        continue;
-      }
+          for (const place of places) {
+            if (!place.location?.latitude || !place.location?.longitude) continue;
 
-      // Filter to high-confidence only (>= 0.6)
-      const highConfidence = fields.filter((f: any) => f.confidence >= 0.6);
+            const lat = place.location.latitude;
+            const lng = place.location.longitude;
+            const sportType = detectSportType(place);
+            const confidence = calculateConfidence(place);
 
-      // Deduplicate against existing candidates (within ~100m)
-      for (const field of highConfidence) {
-        const { data: nearby } = await supabase
-          .from("candidate_fields")
-          .select("id")
-          .gte("latitude", field.latitude - 0.001)
-          .lte("latitude", field.latitude + 0.001)
-          .gte("longitude", field.longitude - 0.001)
-          .lte("longitude", field.longitude + 0.001)
-          .limit(1);
+            // Skip low confidence
+            if (confidence < 0.6) continue;
 
-        if (nearby && nearby.length > 0) {
-          console.log(`Duplicate candidate near ${field.latitude},${field.longitude}, skipping`);
-          continue;
-        }
+            // Deduplicate against existing candidates (within ~100m)
+            const { data: nearby } = await supabase
+              .from("candidate_fields")
+              .select("id")
+              .gte("latitude", lat - 0.001)
+              .lte("latitude", lat + 0.001)
+              .gte("longitude", lng - 0.001)
+              .lte("longitude", lng + 0.001)
+              .limit(1);
 
-        const { error } = await supabase.from("candidate_fields").insert({
-          latitude: field.latitude,
-          longitude: field.longitude,
-          detected_sport_type: field.sport_type,
-          confidence_score: field.confidence,
-          detection_source: "ai_discovery",
-          tile_key: tile.key,
-          status: "pending",
-          raw_metadata: { reasoning: field.reasoning },
-        });
+            if (nearby && nearby.length > 0) continue;
 
-        if (error) {
-          console.error("Insert error:", error);
-        } else {
-          totalCandidates++;
+            // Also check verified_fields to avoid duplicating already-verified places
+            const { data: verifiedNearby } = await supabase
+              .from("verified_fields")
+              .select("id")
+              .gte("latitude", lat - 0.001)
+              .lte("latitude", lat + 0.001)
+              .gte("longitude", lng - 0.001)
+              .lte("longitude", lng + 0.001)
+              .limit(1);
+
+            if (verifiedNearby && verifiedNearby.length > 0) continue;
+
+            const { error } = await supabase.from("candidate_fields").insert({
+              latitude: lat,
+              longitude: lng,
+              detected_sport_type: sportType,
+              confidence_score: confidence,
+              detection_source: "google_places",
+              tile_key: tile.key,
+              status: "pending",
+              raw_metadata: {
+                name: place.displayName?.text || null,
+                address: place.formattedAddress || null,
+                rating: place.rating || null,
+                user_rating_count: place.userRatingCount || null,
+                google_types: place.types || [],
+                search_query: query,
+              },
+            });
+
+            if (error) {
+              console.error("Insert error:", error);
+            } else {
+              totalCandidates++;
+            }
+          }
+        } catch (queryErr) {
+          console.error(`Query "${query}" failed for tile ${tile.key}:`, queryErr);
         }
       }
     }
