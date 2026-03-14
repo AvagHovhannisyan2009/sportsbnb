@@ -313,14 +313,22 @@ const NearbyFieldsPage: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="shrink-0"
-                        onClick={(e) => { e.stopPropagation(); checkIn(field.id); }}
-                      >
-                        <Check className="h-3.5 w-3.5 mr-1" /> I'm here
-                      </Button>
+                      <div className="flex flex-col gap-1.5 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); checkIn(field.id); }}
+                        >
+                          <Check className="h-3.5 w-3.5 mr-1" /> I'm here
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); setRatingField({ id: field.id, name: field.name }); }}
+                        >
+                          <Star className="h-3.5 w-3.5 mr-1" /> Rate
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 ))
