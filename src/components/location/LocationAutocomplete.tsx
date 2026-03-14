@@ -3,7 +3,8 @@ import { MapPin, Loader2, X, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const YANDEX_MAPS_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
+const YANDEX_GEOSUGGEST_API_KEY = "d2ab23f0-55b3-4d22-b0c3-29c88fd7ce70";
+const YANDEX_GEOCODER_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
 
 export interface LocationPlace {
   name: string;
@@ -15,9 +16,11 @@ export interface LocationPlace {
   type?: string;
 }
 
-interface YandexSuggestItem {
-  displayName: string;
-  value: string;
+interface GeosuggestResult {
+  title: { text: string };
+  subtitle?: { text: string };
+  tags?: string[];
+  uri?: string;
 }
 
 interface LocationAutocompleteProps {
@@ -44,7 +47,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   defaultLongitude,
 }) => {
   const [inputValue, setInputValue] = useState(value);
-  const [suggestions, setSuggestions] = useState<{ displayName: string; value: string }[]>([]);
+  const [suggestions, setSuggestions] = useState<GeosuggestResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -67,7 +70,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   }, []);
 
   const searchLocations = useCallback(async (query: string) => {
-    if (query.length < 3) {
+    if (query.length < 2) {
       setSuggestions([]);
       return;
     }
@@ -75,77 +78,96 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     setIsLoading(true);
 
     try {
-      // Use Yandex Geocoder API for suggestions — biased toward Armenia
-      const bbox = defaultLatitude && defaultLongitude
-        ? `&bbox=${defaultLongitude - 2},${defaultLatitude - 2}~${defaultLongitude + 2},${defaultLatitude + 2}&rspn=1`
-        : `&ll=44.5152,40.1872&spn=4,4&rspn=1`;
-      
-      const url = `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_MAPS_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=5&lang=en_US${bbox}`;
-      
-      const response = await fetch(url);
-      const data = await response.json();
+      const centerLng = defaultLongitude ?? 44.5152;
+      const centerLat = defaultLatitude ?? 40.1872;
 
-      const geoObjects = data?.response?.GeoObjectCollection?.featureMember || [];
-      
-      const items = geoObjects.map((item: any) => {
-        const geoObject = item.GeoObject;
-        return {
-          displayName: geoObject.name || geoObject.metaDataProperty?.GeocoderMetaData?.text || "Location",
-          value: geoObject.metaDataProperty?.GeocoderMetaData?.text || geoObject.name || "Location",
-          pos: geoObject.Point?.pos,
-          kind: geoObject.metaDataProperty?.GeocoderMetaData?.kind,
-          addressComponents: geoObject.metaDataProperty?.GeocoderMetaData?.Address?.Components || [],
-        };
+      const params = new URLSearchParams({
+        apikey: YANDEX_GEOSUGGEST_API_KEY,
+        text: query,
+        lang: "en",
+        results: "7",
+        ll: `${centerLng},${centerLat}`,
+        spn: "2,2",
+        print_address: "1",
+        attrs: "uri",
+        ull: `${centerLng},${centerLat}`,
       });
 
+      const response = await fetch(`https://suggest-maps.yandex.ru/v1/suggest?${params}`);
+      const data = await response.json();
+
+      const items: GeosuggestResult[] = data?.results || [];
       setSuggestions(items);
       setIsOpen(items.length > 0);
       setSelectedIndex(-1);
-    } catch (error) {
-      console.error("Yandex geocode error:", error);
+    } catch (err) {
+      console.error("Geosuggest error:", err);
       setSuggestions([]);
     } finally {
       setIsLoading(false);
     }
   }, [defaultLatitude, defaultLongitude]);
 
+  const resolveCoordinates = async (item: GeosuggestResult): Promise<LocationPlace | null> => {
+    try {
+      // Use the full text as geocode query for best results
+      const fullQuery = item.subtitle?.text
+        ? `${item.title.text}, ${item.subtitle.text}`
+        : item.title.text;
+
+      // If URI is available, use it for precise geocoding
+      const geocodeParam = item.uri
+        ? `uri=${encodeURIComponent(item.uri)}`
+        : `geocode=${encodeURIComponent(fullQuery)}`;
+
+      const url = `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_GEOCODER_API_KEY}&${geocodeParam}&format=json&results=1&lang=en_US`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      const geoObject = data?.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
+      if (!geoObject?.Point?.pos) return null;
+
+      const [lng, lat] = geoObject.Point.pos.split(" ").map(Number);
+      const components = geoObject.metaDataProperty?.GeocoderMetaData?.Address?.Components || [];
+      const city = components.find((c: any) => c.kind === "locality")?.name;
+      const country = components.find((c: any) => c.kind === "country")?.name;
+
+      return {
+        name: item.title.text,
+        city,
+        country,
+        formattedAddress: geoObject.metaDataProperty?.GeocoderMetaData?.text || fullQuery,
+        latitude: lat,
+        longitude: lng,
+        type: geoObject.metaDataProperty?.GeocoderMetaData?.kind,
+      };
+    } catch (err) {
+      console.error("Geocoder resolve error:", err);
+      return null;
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      searchLocations(newValue);
-    }, 300);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => searchLocations(newValue), 250);
   };
 
-  const handleSelect = async (item: any) => {
-    setInputValue(item.value);
+  const handleSelect = async (item: GeosuggestResult) => {
+    const displayText = item.subtitle?.text
+      ? `${item.title.text}, ${item.subtitle.text}`
+      : item.title.text;
+    setInputValue(displayText);
     setSuggestions([]);
     setIsOpen(false);
+    setIsLoading(true);
 
-    // Parse coordinates from pos (format: "lng lat")
-    if (item.pos) {
-      const [lng, lat] = item.pos.split(" ").map(Number);
-      
-      // Extract city and country from address components
-      const components = item.addressComponents || [];
-      const city = components.find((c: any) => c.kind === "locality")?.name;
-      const country = components.find((c: any) => c.kind === "country")?.name;
+    const place = await resolveCoordinates(item);
+    setIsLoading(false);
 
-      const place: LocationPlace = {
-        name: item.displayName,
-        city,
-        country,
-        formattedAddress: item.value,
-        latitude: lat,
-        longitude: lng,
-        type: item.kind,
-      };
-
+    if (place) {
       onSelect(place);
     }
   };
@@ -160,7 +182,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) return;
-
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -195,10 +216,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
-          className={cn(
-            "pl-10 pr-10",
-            error && "border-destructive",
-          )}
+          className={cn("pl-10 pr-10", error && "border-destructive")}
         />
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
@@ -214,17 +232,14 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         )}
       </div>
 
-      {error && (
-        <p className="text-sm text-destructive mt-1">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive mt-1">{error}</p>}
 
-      {/* Suggestions dropdown */}
       {isOpen && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
           <ul className="max-h-60 overflow-auto py-1">
-            {suggestions.map((item: any, index: number) => (
+            {suggestions.map((item, index) => (
               <li
-                key={`${item.value}-${index}`}
+                key={`${item.title.text}-${index}`}
                 className={cn(
                   "px-3 py-2 cursor-pointer flex items-start gap-3 transition-colors",
                   index === selectedIndex
@@ -236,17 +251,16 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
               >
                 <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{item.displayName}</div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {item.value}
-                  </div>
+                  <div className="font-medium text-sm truncate">{item.title.text}</div>
+                  {item.subtitle?.text && (
+                    <div className="text-xs text-muted-foreground truncate">
+                      {item.subtitle.text}
+                    </div>
+                  )}
                 </div>
               </li>
             ))}
           </ul>
-          <div className="px-3 py-1.5 text-xs text-muted-foreground border-t border-border bg-muted/30">
-            Powered by Yandex Maps
-          </div>
         </div>
       )}
     </div>
