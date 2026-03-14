@@ -1,33 +1,30 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
-import { MapPin, Users, Sun, Moon, Zap, Navigation, List, Map as MapIcon, Filter, ChevronRight, Plus, Check, Star, Clock, TrendingUp } from "lucide-react";
+import { MapPin, Users, Sun, Zap, List, Map as MapIcon, Filter, ChevronRight, Plus, Check, Star, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { usePublicFields } from "@/hooks/usePublicFields";
+import { useVerifiedFields, VerifiedField } from "@/hooks/useVerifiedFields";
 import { useVenues } from "@/hooks/useVenues";
 import Layout from "@/components/layout/Layout";
 import SEOHead from "@/components/seo/SEOHead";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import FieldRatingDialog from "@/components/fields/FieldRatingDialog";
 
 const SPORT_COLORS: Record<string, string> = {
-  Football: "#22c55e",
-  Basketball: "#f97316",
-  Tennis: "#eab308",
-  Volleyball: "#8b5cf6",
-  Running: "#3b82f6",
-  Cycling: "#06b6d4",
-  Swimming: "#0ea5e9",
+  football: "#22c55e",
+  basketball: "#f97316",
+  tennis: "#eab308",
+  volleyball: "#8b5cf6",
+  running: "#3b82f6",
+  cycling: "#06b6d4",
+  swimming: "#0ea5e9",
+  "multi-sport": "#ec4899",
 };
 
-const getSportColor = (sports: string[]) => {
-  if (!sports.length) return "#22c55e";
-  return SPORT_COLORS[sports[0]] || "#22c55e";
-};
+const getSportColor = (sport: string) => SPORT_COLORS[sport] || "#22c55e";
 
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const R = 6371;
@@ -39,47 +36,38 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
 
 const NearbyFieldsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { fields, isLoading, checkIn, fetchFields } = usePublicFields();
+  const { fields, isLoading, checkIn, fetchFields } = useVerifiedFields();
   const { data: venues } = useVenues();
   const [view, setView] = useState<"map" | "list">("map");
   const [sportFilter, setSportFilter] = useState<string>("all");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
-  const [ratingField, setRatingField] = useState<{ id: string; name: string } | null>(null);
   const [selectedMarker, setSelectedMarker] = useState<any>(null);
   const [selectedMarkerType, setSelectedMarkerType] = useState<"field" | "venue" | null>(null);
 
-  const handleLocate = () => {
-    setIsLocating(true);
+  useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setIsLocating(false);
         toast.success("Location found!");
       },
       () => {
         setUserLocation({ lat: 40.1872, lng: 44.5152 });
-        setIsLocating(false);
         toast.info("Using Yerevan center as default location");
       },
       { enableHighAccuracy: true, timeout: 5000 }
     );
-  };
-
-  useEffect(() => {
-    handleLocate();
   }, []);
 
   const allSports = useMemo(() => {
     const sports = new Set<string>();
-    fields.forEach(f => f.sports.forEach(s => sports.add(s)));
+    fields.forEach(f => sports.add(f.sport_type));
     return Array.from(sports).sort();
   }, [fields]);
 
   const filteredFields = useMemo(() => {
     let result = fields;
     if (sportFilter !== "all") {
-      result = result.filter(f => f.sports.includes(sportFilter));
+      result = result.filter(f => f.sport_type === sportFilter);
     }
     if (userLocation) {
       result = result
@@ -105,15 +93,13 @@ const NearbyFieldsPage: React.FC = () => {
     return result;
   }, [venues, sportFilter, userLocation]);
 
-  const mapCenter = userLocation
-    ? { lat: userLocation.lat, lng: userLocation.lng }
-    : { lat: 40.1872, lng: 44.5152 };
+  const mapCenter = userLocation || { lat: 40.1872, lng: 44.5152 };
 
   return (
     <Layout>
       <SEOHead
         title="Nearby Sports Fields | Sportsbnb"
-        description="Discover free public sports fields and courts near you in Yerevan. See real-time occupancy, check in, and find the best spots to play."
+        description="Discover verified public sports fields and courts near you. See real-time occupancy, check in, and find the best spots to play."
       />
 
       <div className="min-h-screen bg-background">
@@ -123,7 +109,9 @@ const NearbyFieldsPage: React.FC = () => {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h1 className="text-xl font-bold text-foreground">Nearby Fields</h1>
-                <p className="text-sm text-muted-foreground">{filteredFields.length} free fields found</p>
+                <p className="text-sm text-muted-foreground">
+                  {filteredFields.length} verified field{filteredFields.length !== 1 ? "s" : ""} found
+                </p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -179,7 +167,7 @@ const NearbyFieldsPage: React.FC = () => {
               {/* User location */}
               {userLocation && (
                 <Marker
-                  position={{ lat: userLocation.lat, lng: userLocation.lng }}
+                  position={userLocation}
                   icon={{
                     url: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="#4285F4" stroke="white" stroke-width="2"/></svg>')}`,
                     scaledSize: new google.maps.Size(20, 20),
@@ -187,20 +175,20 @@ const NearbyFieldsPage: React.FC = () => {
                 />
               )}
 
-              {/* Public fields - colored by sport */}
+              {/* Verified fields - colored by sport */}
               {filteredFields.map(field => (
                 <Marker
                   key={field.id}
                   position={{ lat: field.latitude, lng: field.longitude }}
                   onClick={() => { setSelectedMarker(field); setSelectedMarkerType("field"); }}
                   icon={{
-                    url: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="${getSportColor(field.sports)}" stroke="white" stroke-width="2"/><text x="14" y="18" text-anchor="middle" fill="white" font-size="14">⚽</text></svg>`)}`,
+                    url: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="${getSportColor(field.sport_type)}" stroke="white" stroke-width="2"/><text x="14" y="18" text-anchor="middle" fill="white" font-size="12">✓</text></svg>`)}`,
                     scaledSize: new google.maps.Size(28, 28),
                   }}
                 />
               ))}
 
-              {/* Promoted venues - blue */}
+              {/* Promoted venues */}
               {promotedVenues.map(venue => (
                 <Marker
                   key={`venue-${venue.id}`}
@@ -213,19 +201,29 @@ const NearbyFieldsPage: React.FC = () => {
                 />
               ))}
 
-              {/* Info windows */}
+              {/* Field info window */}
               {selectedMarker && selectedMarkerType === "field" && (
                 <InfoWindow
                   position={{ lat: selectedMarker.latitude, lng: selectedMarker.longitude }}
                   onCloseClick={() => setSelectedMarker(null)}
                 >
                   <div style={{ maxWidth: 250, padding: 4 }}>
-                    <h3 style={{ fontWeight: 600, marginBottom: 4 }}>🏟️ {selectedMarker.name} <span style={{ color: "green", fontSize: 12 }}>FREE</span></h3>
-                    <p style={{ fontSize: 12, margin: "2px 0" }}>{selectedMarker.sports.join(", ")} • {selectedMarker.surface_type || "N/A"}</p>
-                    <p style={{ fontSize: 12 }}>{selectedMarker.has_lighting ? "💡 Lit" : "🌙 No lights"} • ⭐ {selectedMarker.condition_rating}/5</p>
+                    <h3 style={{ fontWeight: 600, marginBottom: 4 }}>
+                      ✅ {selectedMarker.name}
+                      <span style={{ color: "green", fontSize: 12, marginLeft: 4 }}>
+                        {selectedMarker.is_public ? "FREE" : "PAID"}
+                      </span>
+                    </h3>
+                    <p style={{ fontSize: 12, margin: "2px 0" }}>
+                      {selectedMarker.sport_type} • {selectedMarker.surface_type || "N/A"}
+                    </p>
+                    <p style={{ fontSize: 12 }}>
+                      {selectedMarker.has_lighting ? "💡 Lit" : "🌙 No lights"} • ⭐ {selectedMarker.condition_rating}/5
+                    </p>
                     {selectedMarker.busyness_score && selectedMarker.busyness_score !== "unknown" && (
                       <p style={{ fontWeight: 600, fontSize: 12 }}>
-                        {selectedMarker.busyness_score === "likely_free" ? "🟢 Likely Free" : selectedMarker.busyness_score === "moderate" ? "🟡 Moderate" : "🔴 Busy"}
+                        {selectedMarker.busyness_score === "likely_free" ? "🟢 Likely Free" :
+                         selectedMarker.busyness_score === "moderate" ? "🟡 Moderate" : "🔴 Busy"}
                       </p>
                     )}
                     {selectedMarker.peak_hours && <p style={{ fontSize: 11 }}>📊 Peak: {selectedMarker.peak_hours}</p>}
@@ -237,17 +235,22 @@ const NearbyFieldsPage: React.FC = () => {
                 </InfoWindow>
               )}
 
+              {/* Venue info window */}
               {selectedMarker && selectedMarkerType === "venue" && (
                 <InfoWindow
                   position={{ lat: selectedMarker.latitude!, lng: selectedMarker.longitude! }}
                   onCloseClick={() => setSelectedMarker(null)}
                 >
                   <div style={{ maxWidth: 250, padding: 4 }}>
-                    <h3 style={{ fontWeight: 600, marginBottom: 4 }}>⭐ {selectedMarker.name} <span style={{ color: "#2563eb", fontSize: 12 }}>BOOKABLE</span></h3>
+                    <h3 style={{ fontWeight: 600, marginBottom: 4 }}>
+                      ⭐ {selectedMarker.name} <span style={{ color: "#2563eb", fontSize: 12 }}>BOOKABLE</span>
+                    </h3>
                     <p style={{ fontSize: 12 }}>{selectedMarker.sports?.join(", ")} • ֏{selectedMarker.price_per_hour}/hr</p>
                     <p style={{ fontSize: 12 }}>⭐ {selectedMarker.rating || 0} ({selectedMarker.review_count || 0} reviews)</p>
                     <p style={{ fontSize: 11, color: "gray" }}>{selectedMarker.address || selectedMarker.city}</p>
-                    <a href={`/venue/${selectedMarker.id}`} style={{ display: "block", textAlign: "center", padding: 6, background: "#2563eb", color: "white", borderRadius: 6, textDecoration: "none", marginTop: 6, fontSize: 13 }}>Book Now →</a>
+                    <a href={`/venue/${selectedMarker.id}`} style={{ display: "block", textAlign: "center", padding: 6, background: "#2563eb", color: "white", borderRadius: 6, textDecoration: "none", marginTop: 6, fontSize: 13 }}>
+                      Book Now →
+                    </a>
                   </div>
                 </InfoWindow>
               )}
@@ -287,29 +290,32 @@ const NearbyFieldsPage: React.FC = () => {
               </div>
             )}
 
-            {/* Free fields */}
+            {/* Verified fields */}
             <div className="space-y-3">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">🏟️ Free Public Fields</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">✅ Verified Public Fields</h2>
               {isLoading ? (
                 <div className="text-center py-12 text-muted-foreground">Loading fields...</div>
               ) : filteredFields.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">No fields found for this sport</div>
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground mb-2">No verified fields found yet</p>
+                  <p className="text-sm text-muted-foreground">Fields are added through our AI discovery pipeline and verified before appearing here.</p>
+                </div>
               ) : (
-                filteredFields.map((field: any) => (
+                filteredFields.map((field) => (
                   <Card key={field.id} className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3 flex-1">
                         <div
                           className="w-10 h-10 rounded-lg flex items-center justify-center"
-                          style={{ backgroundColor: `${getSportColor(field.sports)}20` }}
+                          style={{ backgroundColor: `${getSportColor(field.sport_type)}20` }}
                         >
-                          <MapPin className="h-5 w-5" style={{ color: getSportColor(field.sports) }} />
+                          <MapPin className="h-5 w-5" style={{ color: getSportColor(field.sport_type) }} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-foreground">{field.name}</div>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-sm text-muted-foreground">
-                              {field.sports.join(", ")} • {field.surface_type || "Unknown surface"}
+                              {field.sport_type} • {field.surface_type || "Unknown surface"}
                             </span>
                             {field.busyness_score && field.busyness_score !== "unknown" && (
                               <Badge
@@ -322,8 +328,7 @@ const NearbyFieldsPage: React.FC = () => {
                                 )}
                               >
                                 {field.busyness_score === "likely_free" ? "🟢 Likely Free" :
-                                 field.busyness_score === "moderate" ? "🟡 Moderate" :
-                                 "🔴 Busy"}
+                                 field.busyness_score === "moderate" ? "🟡 Moderate" : "🔴 Busy"}
                               </Badge>
                             )}
                           </div>
@@ -366,13 +371,6 @@ const NearbyFieldsPage: React.FC = () => {
                         >
                           <Check className="h-3.5 w-3.5 mr-1" /> I'm here
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => { e.stopPropagation(); setRatingField({ id: field.id, name: field.name }); }}
-                        >
-                          <Star className="h-3.5 w-3.5 mr-1" /> Rate
-                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -380,16 +378,6 @@ const NearbyFieldsPage: React.FC = () => {
               )}
             </div>
           </div>
-        )}
-
-        {ratingField && (
-          <FieldRatingDialog
-            open={!!ratingField}
-            onOpenChange={(open) => !open && setRatingField(null)}
-            fieldId={ratingField.id}
-            fieldName={ratingField.name}
-            onRated={() => fetchFields()}
-          />
         )}
       </div>
     </Layout>
