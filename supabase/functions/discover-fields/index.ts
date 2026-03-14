@@ -387,9 +387,9 @@ serve(async (req) => {
       });
     }
 
-    // Limit tiles to avoid timeout (edge functions have ~300s max)
-    const tilesToScan = tiles.slice(0, maxTiles);
-    const remainingTiles = tiles.length - tilesToScan.length;
+    // Apply offset and limit tiles to avoid timeout
+    const tilesToScan = tiles.slice(tileOffset, tileOffset + maxTiles);
+    const remainingTiles = Math.max(0, tiles.length - tileOffset - tilesToScan.length);
 
     const result = await scanTiles(tilesToScan, searchQueries, supabase, GOOGLE_MAPS_API_KEY, LOVABLE_API_KEY, force);
 
