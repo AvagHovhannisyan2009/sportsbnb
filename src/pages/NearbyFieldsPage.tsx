@@ -204,6 +204,8 @@ const NearbyFieldsPage: React.FC = () => {
                         <div style="max-width:250px">
                           <p>${field.sports.join(", ")} • ${field.surface_type || "N/A"}</p>
                           <p>${field.has_lighting ? "💡 Lit" : "🌙 No lights"} • ⭐ ${field.condition_rating}/5</p>
+                          ${field.busyness_score && field.busyness_score !== "unknown" ? `<p style="font-weight:bold">${field.busyness_score === "likely_free" ? "🟢 Likely Free" : field.busyness_score === "moderate" ? "🟡 Moderate" : "🔴 Busy"}</p>` : ""}
+                          ${field.peak_hours ? `<p style="font-size:12px">📊 Peak: ${field.peak_hours}</p>` : ""}
                           ${field.active_checkins > 0 ? `<p style="color:green">🟢 ${field.active_checkins} players here now</p>` : '<p style="color:gray">⚪ No one here right now</p>'}
                           ${field.address ? `<p style="font-size:12px;color:gray">${field.address}</p>` : ""}
                         </div>
