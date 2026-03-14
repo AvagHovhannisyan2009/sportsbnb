@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Map, Placemark } from "@pbe/react-yandex-maps";
+import { GoogleMap, Marker } from "@react-google-maps/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,38 +30,33 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   locationConfirmed = false,
   validationErrors = {},
 }) => {
-  const [selectedPosition, setSelectedPosition] = useState<[number, number] | null>(
-    latitude && longitude ? [latitude, longitude] : null
+  const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(
+    latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
-  const [mapCenter, setMapCenter] = useState<[number, number]>(
-    latitude && longitude ? [latitude, longitude] : [40.1872, 44.5152]
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(
+    latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 40.1872, lng: 44.5152 }
   );
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(locationConfirmed);
-  const mapRef = useRef<any>(null);
-  const ymapsRef = useRef<any>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
 
   useEffect(() => {
     if (latitude && longitude) {
-      const pos: [number, number] = [latitude, longitude];
+      const pos = { lat: latitude, lng: longitude };
       setSelectedPosition(pos);
       setMapCenter(pos);
     }
     setIsConfirmed(locationConfirmed);
   }, [latitude, longitude, locationConfirmed]);
 
-  useEffect(() => {
-    if (mapRef.current) {
-      mapRef.current.setCenter(mapCenter, mapRef.current.getZoom(), { duration: 300 });
+  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+      setSelectedPosition(pos);
+      setIsConfirmed(false);
+      onLocationConfirm(pos.lat, pos.lng, false);
     }
-  }, [mapCenter]);
-
-  const handleMapClick = useCallback((e: any) => {
-    const coords = e.get("coords") as [number, number];
-    setSelectedPosition(coords);
-    setIsConfirmed(false);
-    onLocationConfirm(coords[0], coords[1], false);
   }, [onLocationConfirm]);
 
   const searchAddress = async () => {
@@ -73,21 +68,20 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     setIsSearching(true);
     setSearchError(null);
     try {
-      if (ymapsRef.current) {
-        const result = await ymapsRef.current.geocode(fullAddress);
-        const firstGeoObject = result.geoObjects.get(0);
-        if (firstGeoObject) {
-          const coords = firstGeoObject.geometry.getCoordinates() as [number, number];
-          setSelectedPosition(coords);
-          setMapCenter(coords);
-          setIsConfirmed(false);
-          onLocationConfirm(coords[0], coords[1], false);
-        } else {
-          setSearchError("Address not found. Try clicking on the map.");
-        }
+      const geocoder = new google.maps.Geocoder();
+      const result = await geocoder.geocode({ address: fullAddress });
+      if (result.results.length > 0) {
+        const loc = result.results[0].geometry.location;
+        const pos = { lat: loc.lat(), lng: loc.lng() };
+        setSelectedPosition(pos);
+        setMapCenter(pos);
+        mapRef.current?.panTo(pos);
+        setIsConfirmed(false);
+        onLocationConfirm(pos.lat, pos.lng, false);
+      } else {
+        setSearchError("Address not found. Try clicking on the map.");
       }
-    } catch (error) {
-      console.error("Geocoding error:", error);
+    } catch {
       setSearchError("Failed to search address. Try clicking on the map.");
     } finally {
       setIsSearching(false);
@@ -97,7 +91,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   const handleConfirmLocation = () => {
     if (selectedPosition) {
       setIsConfirmed(true);
-      onLocationConfirm(selectedPosition[0], selectedPosition[1], true);
+      onLocationConfirm(selectedPosition.lat, selectedPosition.lng, true);
     }
   };
 
@@ -114,9 +108,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
           <MapPin className="h-5 w-5" />
           Location & Address *
         </CardTitle>
-        <CardDescription>
-          Enter your address and confirm the exact location on the map
-        </CardDescription>
+        <CardDescription>Enter your address and confirm the exact location on the map</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid md:grid-cols-2 gap-4">
@@ -164,17 +156,15 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         )}
 
         <div className="relative rounded-lg overflow-hidden border border-border">
-          <Map
-            defaultState={{ center: mapCenter, zoom: 13 }}
-            width="100%"
-            height="300px"
-            instanceRef={(ref) => { mapRef.current = ref; }}
-            onLoad={(ymaps) => { ymapsRef.current = ymaps; }}
+          <GoogleMap
+            mapContainerStyle={{ width: "100%", height: "300px" }}
+            center={mapCenter}
+            zoom={13}
             onClick={handleMapClick}
-            modules={["geocode"]}
+            onLoad={(map) => { mapRef.current = map; }}
           >
-            {selectedPosition && <Placemark geometry={selectedPosition} />}
-          </Map>
+            {selectedPosition && <Marker position={selectedPosition} />}
+          </GoogleMap>
           <div className="absolute bottom-2 left-2 bg-background/90 backdrop-blur-sm rounded px-2 py-1 text-xs text-muted-foreground">
             Click on map to select exact location
           </div>
@@ -186,7 +176,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="text-sm">
-                  Selected: {selectedPosition[0].toFixed(6)}, {selectedPosition[1].toFixed(6)}
+                  Selected: {selectedPosition.lat.toFixed(6)}, {selectedPosition.lng.toFixed(6)}
                 </span>
               </div>
               <Button type="button" variant="ghost" size="sm" onClick={handleClearLocation}>
