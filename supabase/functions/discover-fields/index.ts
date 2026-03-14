@@ -114,20 +114,8 @@ Rules:
 - suggested_name: Create a proper facility name even if the Google name is generic. Include the sport type and location/neighborhood if possible.
 - corrected_sport_type: The actual sport, correcting any misdetection`;
 
-    const response = await fetch("https://aeyqnrwmqmvsfendqypd.supabase.co/functions/v1/ai-chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${lovableApiKey}`,
-      },
-      body: JSON.stringify({
-        messages: [{ role: "user", content: prompt }],
-        model: "google/gemini-2.5-flash",
-      }),
-    });
-
-    // Fallback: call Gemini directly via Lovable AI proxy
-    const aiResponse = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    // Call Gemini via Lovable AI gateway for verification
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -204,6 +192,7 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const tileKey = body.tile_key || null;
+    const force = body.force === true;
     const tiles = tileKey
       ? ARMENIA_TILES.filter((t) => t.key === tileKey)
       : ARMENIA_TILES;
@@ -229,7 +218,7 @@ serve(async (req) => {
         .gte("detection_timestamp", new Date(Date.now() - 7 * 86400000).toISOString())
         .limit(1);
 
-      if (existing && existing.length > 0) {
+      if (!force && existing && existing.length > 0) {
         console.log(`Tile ${tile.key} already scanned recently, skipping`);
         continue;
       }
