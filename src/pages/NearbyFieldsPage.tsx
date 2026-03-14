@@ -41,7 +41,7 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
 const NearbyFieldsPage: React.FC = () => {
   const navigate = useNavigate();
   const { fields, isLoading, checkIn } = usePublicFields();
-  const { venues } = useVenues();
+  const { data: venues } = useVenues();
   const [view, setView] = useState<"map" | "list">("map");
   const [sportFilter, setSportFilter] = useState<string>("all");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
