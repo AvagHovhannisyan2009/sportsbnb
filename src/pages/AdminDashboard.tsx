@@ -71,6 +71,7 @@ import {
 import { format } from "date-fns";
 
 const FieldSubmissionsTab = lazy(() => import("@/components/admin/FieldSubmissionsTab"));
+const CandidateFieldsTab = lazy(() => import("@/components/admin/CandidateFieldsTab"));
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -199,6 +200,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="bookings">Bookings</TabsTrigger>
               <TabsTrigger value="games">Games</TabsTrigger>
               <TabsTrigger value="fields">Fields</TabsTrigger>
+              <TabsTrigger value="discovery">AI Discovery</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -591,6 +593,13 @@ const AdminDashboard = () => {
             <TabsContent value="fields">
               <Suspense fallback={<div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
                 <FieldSubmissionsTab />
+              </Suspense>
+            </TabsContent>
+
+            {/* AI Discovery Tab */}
+            <TabsContent value="discovery">
+              <Suspense fallback={<div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+                <CandidateFieldsTab />
               </Suspense>
             </TabsContent>
           </Tabs>

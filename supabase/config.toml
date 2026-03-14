@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.send-contact-email]
 verify_jwt = false
+
+[functions.discover-fields]
+verify_jwt = false
