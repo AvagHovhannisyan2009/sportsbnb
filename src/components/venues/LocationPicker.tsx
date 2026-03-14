@@ -1,21 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
+import { GoogleMap, Marker } from "@react-google-maps/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Search, Check, Loader2, X } from "lucide-react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
-// Fix for default marker icon
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
+const mapContainerStyle = { height: "300px", width: "100%" };
 
 interface LocationPickerProps {
   address: string;
@@ -29,31 +21,6 @@ interface LocationPickerProps {
   validationErrors?: { address?: string; city?: string; location?: string };
 }
 
-interface MapClickHandlerProps {
-  onLocationSelect: (lat: number, lng: number) => void;
-}
-
-const MapClickHandler: React.FC<MapClickHandlerProps> = ({ onLocationSelect }) => {
-  useMapEvents({
-    click: (e) => {
-      onLocationSelect(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-};
-
-interface MapCenterUpdaterProps {
-  center: [number, number];
-}
-
-const MapCenterUpdater: React.FC<MapCenterUpdaterProps> = ({ center }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, map.getZoom());
-  }, [center, map]);
-  return null;
-};
-
 export const LocationPicker: React.FC<LocationPickerProps> = ({
   address,
   city,
@@ -65,27 +32,36 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   locationConfirmed = false,
   validationErrors = {},
 }) => {
-  const [selectedPosition, setSelectedPosition] = useState<[number, number] | null>(
-    latitude && longitude ? [latitude, longitude] : null
+  const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(
+    latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
-  const [mapCenter, setMapCenter] = useState<[number, number]>([40.7128, -74.006]); // Default: NYC
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(
+    latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 40.7128, lng: -74.006 }
+  );
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(locationConfirmed);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  // Update internal state when props change
   useEffect(() => {
     if (latitude && longitude) {
-      setSelectedPosition([latitude, longitude]);
-      setMapCenter([latitude, longitude]);
+      const pos = { lat: latitude, lng: longitude };
+      setSelectedPosition(pos);
+      setMapCenter(pos);
     }
     setIsConfirmed(locationConfirmed);
   }, [latitude, longitude, locationConfirmed]);
 
-  const handleMapClick = useCallback((lat: number, lng: number) => {
-    setSelectedPosition([lat, lng]);
+  useEffect(() => {
+    if (map) map.panTo(mapCenter);
+  }, [mapCenter, map]);
+
+  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
+    if (!e.latLng) return;
+    const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+    setSelectedPosition(pos);
     setIsConfirmed(false);
-    onLocationConfirm(lat, lng, false);
+    onLocationConfirm(pos.lat, pos.lng, false);
   }, [onLocationConfirm]);
 
   const searchAddress = async () => {
@@ -94,29 +70,18 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
       setSearchError("Please enter an address and city first");
       return;
     }
-
     setIsSearching(true);
     setSearchError(null);
-
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`,
-        {
-          headers: {
-            "User-Agent": "SportsBnB Venue Listing",
-          },
-        }
-      );
-      const data = await response.json();
-
-      if (data && data.length > 0) {
-        const { lat, lon } = data[0];
-        const newLat = parseFloat(lat);
-        const newLng = parseFloat(lon);
-        setSelectedPosition([newLat, newLng]);
-        setMapCenter([newLat, newLng]);
+      const geocoder = new google.maps.Geocoder();
+      const result = await geocoder.geocode({ address: fullAddress });
+      if (result.results.length > 0) {
+        const loc = result.results[0].geometry.location;
+        const pos = { lat: loc.lat(), lng: loc.lng() };
+        setSelectedPosition(pos);
+        setMapCenter(pos);
         setIsConfirmed(false);
-        onLocationConfirm(newLat, newLng, false);
+        onLocationConfirm(pos.lat, pos.lng, false);
       } else {
         setSearchError("Address not found. Try clicking on the map to select the exact location.");
       }
@@ -131,7 +96,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   const handleConfirmLocation = () => {
     if (selectedPosition) {
       setIsConfirmed(true);
-      onLocationConfirm(selectedPosition[0], selectedPosition[1], true);
+      onLocationConfirm(selectedPosition.lat, selectedPosition.lng, true);
     }
   };
 
@@ -153,7 +118,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Address Inputs */}
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="city">City *</Label>
@@ -161,16 +125,11 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
               id="city"
               placeholder="e.g., New York"
               value={city}
-              onChange={(e) => {
-                onCityChange(e.target.value);
-                setIsConfirmed(false);
-              }}
+              onChange={(e) => { onCityChange(e.target.value); setIsConfirmed(false); }}
               maxLength={100}
               className={validationErrors.city ? "border-destructive" : ""}
             />
-            {validationErrors.city && (
-              <p className="text-sm text-destructive">{validationErrors.city}</p>
-            )}
+            {validationErrors.city && <p className="text-sm text-destructive">{validationErrors.city}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="address">Street Address *</Label>
@@ -178,20 +137,14 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
               id="address"
               placeholder="Full street address"
               value={address}
-              onChange={(e) => {
-                onAddressChange(e.target.value);
-                setIsConfirmed(false);
-              }}
+              onChange={(e) => { onAddressChange(e.target.value); setIsConfirmed(false); }}
               maxLength={200}
               className={validationErrors.address ? "border-destructive" : ""}
             />
-            {validationErrors.address && (
-              <p className="text-sm text-destructive">{validationErrors.address}</p>
-            )}
+            {validationErrors.address && <p className="text-sm text-destructive">{validationErrors.address}</p>}
           </div>
         </div>
 
-        {/* Search Button */}
         <Button
           type="button"
           variant="outline"
@@ -199,11 +152,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
           disabled={isSearching || (!address.trim() && !city.trim())}
           className="w-full"
         >
-          {isSearching ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4 mr-2" />
-          )}
+          {isSearching ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Search className="h-4 w-4 mr-2" />}
           Find on Map
         </Button>
 
@@ -213,53 +162,37 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
           </Alert>
         )}
 
-        {/* Map */}
         <div className="relative rounded-lg overflow-hidden border border-border">
-          <MapContainer
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
             center={mapCenter}
             zoom={13}
-            style={{ height: "300px", width: "100%" }}
-            scrollWheelZoom={true}
+            onClick={handleMapClick}
+            onLoad={setMap}
+            options={{ streetViewControl: false, mapTypeControl: false }}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <MapClickHandler onLocationSelect={handleMapClick} />
-            <MapCenterUpdater center={mapCenter} />
             {selectedPosition && <Marker position={selectedPosition} />}
-          </MapContainer>
+          </GoogleMap>
           <div className="absolute bottom-2 left-2 bg-background/90 backdrop-blur-sm rounded px-2 py-1 text-xs text-muted-foreground">
             Click on map to select exact location
           </div>
         </div>
 
-        {/* Selected Location Info */}
         {selectedPosition && (
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="text-sm">
-                  Selected: {selectedPosition[0].toFixed(6)}, {selectedPosition[1].toFixed(6)}
+                  Selected: {selectedPosition.lat.toFixed(6)}, {selectedPosition.lng.toFixed(6)}
                 </span>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleClearLocation}
-              >
+              <Button type="button" variant="ghost" size="sm" onClick={handleClearLocation}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
-
             {!isConfirmed ? (
-              <Button
-                type="button"
-                onClick={handleConfirmLocation}
-                className="w-full"
-              >
+              <Button type="button" onClick={handleConfirmLocation} className="w-full">
                 <Check className="h-4 w-4 mr-2" />
                 Confirm This Location
               </Button>
@@ -274,9 +207,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
           </div>
         )}
 
-        {validationErrors.location && (
-          <p className="text-sm text-destructive">{validationErrors.location}</p>
-        )}
+        {validationErrors.location && <p className="text-sm text-destructive">{validationErrors.location}</p>}
       </CardContent>
     </Card>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
+import { GoogleMap, Marker } from "@react-google-maps/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,16 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Check, X } from "lucide-react";
 import { LocationAutocomplete, PhotonPlace } from "@/components/location/LocationAutocomplete";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
-// Fix for default marker icon
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
+const mapContainerStyle = { height: "300px", width: "100%" };
 
 interface VenueLocationPickerProps {
   address: string;
@@ -32,31 +24,6 @@ interface VenueLocationPickerProps {
   validationErrors?: { address?: string; city?: string; zipCode?: string; location?: string };
 }
 
-interface MapClickHandlerProps {
-  onLocationSelect: (lat: number, lng: number) => void;
-}
-
-const MapClickHandler: React.FC<MapClickHandlerProps> = ({ onLocationSelect }) => {
-  useMapEvents({
-    click: (e) => {
-      onLocationSelect(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-};
-
-interface MapCenterUpdaterProps {
-  center: [number, number];
-}
-
-const MapCenterUpdater: React.FC<MapCenterUpdaterProps> = ({ center }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, map.getZoom());
-  }, [center, map]);
-  return null;
-};
-
 export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
   address,
   city,
@@ -70,37 +37,44 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
   locationConfirmed = false,
   validationErrors = {},
 }) => {
-  const [selectedPosition, setSelectedPosition] = useState<[number, number] | null>(
-    latitude && longitude ? [latitude, longitude] : null
+  const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(
+    latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
-  const [mapCenter, setMapCenter] = useState<[number, number]>([40.7128, -74.006]); // Default: NYC
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(
+    latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 40.7128, lng: -74.006 }
+  );
   const [isConfirmed, setIsConfirmed] = useState(locationConfirmed);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  // Update internal state when props change
   useEffect(() => {
     if (latitude && longitude) {
-      setSelectedPosition([latitude, longitude]);
-      setMapCenter([latitude, longitude]);
+      const pos = { lat: latitude, lng: longitude };
+      setSelectedPosition(pos);
+      setMapCenter(pos);
     }
     setIsConfirmed(locationConfirmed);
   }, [latitude, longitude, locationConfirmed]);
 
-  const handleMapClick = useCallback((lat: number, lng: number) => {
-    setSelectedPosition([lat, lng]);
+  useEffect(() => {
+    if (map) {
+      map.panTo(mapCenter);
+    }
+  }, [mapCenter, map]);
+
+  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
+    if (!e.latLng) return;
+    const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+    setSelectedPosition(pos);
     setIsConfirmed(false);
-    onLocationConfirm(lat, lng, false);
+    onLocationConfirm(pos.lat, pos.lng, false);
   }, [onLocationConfirm]);
 
   const handlePlaceSelect = (place: PhotonPlace) => {
-    // Update address and city
     onAddressChange(place.formattedAddress);
-    if (place.city) {
-      onCityChange(place.city);
-    }
-    
-    // Update map position
-    setSelectedPosition([place.latitude, place.longitude]);
-    setMapCenter([place.latitude, place.longitude]);
+    if (place.city) onCityChange(place.city);
+    const pos = { lat: place.latitude, lng: place.longitude };
+    setSelectedPosition(pos);
+    setMapCenter(pos);
     setIsConfirmed(false);
     onLocationConfirm(place.latitude, place.longitude, false);
   };
@@ -108,7 +82,7 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
   const handleConfirmLocation = () => {
     if (selectedPosition) {
       setIsConfirmed(true);
-      onLocationConfirm(selectedPosition[0], selectedPosition[1], true);
+      onLocationConfirm(selectedPosition.lat, selectedPosition.lng, true);
     }
   };
 
@@ -130,7 +104,6 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Location Autocomplete */}
         <div className="space-y-2">
           <Label>Search Address</Label>
           <LocationAutocomplete
@@ -144,7 +117,6 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
           )}
         </div>
 
-        {/* City and Zip Code */}
         <div className="grid grid-cols-2 gap-4">
           {city && (
             <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg text-sm">
@@ -169,53 +141,37 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
           </div>
         </div>
 
-        {/* Map */}
         <div className="relative rounded-lg overflow-hidden border border-border">
-          <MapContainer
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
             center={mapCenter}
             zoom={13}
-            style={{ height: "300px", width: "100%" }}
-            scrollWheelZoom={true}
+            onClick={handleMapClick}
+            onLoad={setMap}
+            options={{ streetViewControl: false, mapTypeControl: false }}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <MapClickHandler onLocationSelect={handleMapClick} />
-            <MapCenterUpdater center={mapCenter} />
             {selectedPosition && <Marker position={selectedPosition} />}
-          </MapContainer>
+          </GoogleMap>
           <div className="absolute bottom-2 left-2 bg-background/90 backdrop-blur-sm rounded px-2 py-1 text-xs text-muted-foreground">
             Click on map to adjust location
           </div>
         </div>
 
-        {/* Selected Location Info */}
         {selectedPosition && (
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="text-sm">
-                  Selected: {selectedPosition[0].toFixed(6)}, {selectedPosition[1].toFixed(6)}
+                  Selected: {selectedPosition.lat.toFixed(6)}, {selectedPosition.lng.toFixed(6)}
                 </span>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleClearLocation}
-              >
+              <Button type="button" variant="ghost" size="sm" onClick={handleClearLocation}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
-
             {!isConfirmed ? (
-              <Button
-                type="button"
-                onClick={handleConfirmLocation}
-                className="w-full"
-              >
+              <Button type="button" onClick={handleConfirmLocation} className="w-full">
                 <Check className="h-4 w-4 mr-2" />
                 Confirm This Location
               </Button>
