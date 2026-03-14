@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Map, Placemark, YMaps } from "@pbe/react-yandex-maps";
+import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { MapPin, Users, Sun, Moon, Zap, Navigation, List, Map as MapIcon, Filter, ChevronRight, Plus, Check, Star, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +13,6 @@ import SEOHead from "@/components/seo/SEOHead";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import FieldRatingDialog from "@/components/fields/FieldRatingDialog";
-
-const YANDEX_MAPS_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
 
 const SPORT_COLORS: Record<string, string> = {
   Football: "#22c55e",
@@ -48,6 +46,8 @@ const NearbyFieldsPage: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [ratingField, setRatingField] = useState<{ id: string; name: string } | null>(null);
+  const [selectedMarker, setSelectedMarker] = useState<any>(null);
+  const [selectedMarkerType, setSelectedMarkerType] = useState<"field" | "venue" | null>(null);
 
   const handleLocate = () => {
     setIsLocating(true);
@@ -58,7 +58,6 @@ const NearbyFieldsPage: React.FC = () => {
         toast.success("Location found!");
       },
       () => {
-        // Default to Yerevan center
         setUserLocation({ lat: 40.1872, lng: 44.5152 });
         setIsLocating(false);
         toast.info("Using Yerevan center as default location");
@@ -107,8 +106,8 @@ const NearbyFieldsPage: React.FC = () => {
   }, [venues, sportFilter, userLocation]);
 
   const mapCenter = userLocation
-    ? [userLocation.lat, userLocation.lng]
-    : [40.1872, 44.5152];
+    ? { lat: userLocation.lat, lng: userLocation.lng }
+    : { lat: 40.1872, lng: 44.5152 };
 
   return (
     <Layout>
@@ -172,74 +171,87 @@ const NearbyFieldsPage: React.FC = () => {
 
         {view === "map" ? (
           <div className="h-[calc(100vh-180px)]">
-            <YMaps query={{ apikey: YANDEX_MAPS_API_KEY, lang: "en_US" }}>
-              <Map
-                defaultState={{ center: mapCenter as [number, number], zoom: 13 }}
-                width="100%"
-                height="100%"
-                state={{ center: mapCenter as [number, number], zoom: 13 }}
-              >
-                {/* User location */}
-                {userLocation && (
-                  <Placemark
-                    geometry={[userLocation.lat, userLocation.lng]}
-                    options={{
-                      preset: "islands#geolocationIcon",
-                    }}
-                  />
-                )}
+            <GoogleMap
+              mapContainerStyle={{ width: "100%", height: "100%" }}
+              center={mapCenter}
+              zoom={13}
+            >
+              {/* User location */}
+              {userLocation && (
+                <Marker
+                  position={{ lat: userLocation.lat, lng: userLocation.lng }}
+                  icon={{
+                    url: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="#4285F4" stroke="white" stroke-width="2"/></svg>')}`,
+                    scaledSize: new google.maps.Size(20, 20),
+                  }}
+                />
+              )}
 
-                {/* Public fields - green */}
-                {filteredFields.map(field => (
-                  <Placemark
-                    key={field.id}
-                    geometry={[field.latitude, field.longitude]}
-                    options={{
-                      iconColor: getSportColor(field.sports),
-                      preset: "islands#dotIcon",
-                    }}
-                    properties={{
-                      balloonContentHeader: `<strong>🏟️ ${field.name}</strong> <span style="color:green">FREE</span>`,
-                      balloonContentBody: `
-                        <div style="max-width:250px">
-                          <p>${field.sports.join(", ")} • ${field.surface_type || "N/A"}</p>
-                          <p>${field.has_lighting ? "💡 Lit" : "🌙 No lights"} • ⭐ ${field.condition_rating}/5</p>
-                          ${field.busyness_score && field.busyness_score !== "unknown" ? `<p style="font-weight:bold">${field.busyness_score === "likely_free" ? "🟢 Likely Free" : field.busyness_score === "moderate" ? "🟡 Moderate" : "🔴 Busy"}</p>` : ""}
-                          ${field.peak_hours ? `<p style="font-size:12px">📊 Peak: ${field.peak_hours}</p>` : ""}
-                          ${field.active_checkins > 0 ? `<p style="color:green">🟢 ${field.active_checkins} players here now</p>` : '<p style="color:gray">⚪ No one here right now</p>'}
-                          ${field.address ? `<p style="font-size:12px;color:gray">${field.address}</p>` : ""}
-                        </div>
-                      `,
-                    }}
-                    modules={["geoObject.addon.balloon"]}
-                  />
-                ))}
+              {/* Public fields - colored by sport */}
+              {filteredFields.map(field => (
+                <Marker
+                  key={field.id}
+                  position={{ lat: field.latitude, lng: field.longitude }}
+                  onClick={() => { setSelectedMarker(field); setSelectedMarkerType("field"); }}
+                  icon={{
+                    url: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="${getSportColor(field.sports)}" stroke="white" stroke-width="2"/><text x="14" y="18" text-anchor="middle" fill="white" font-size="14">⚽</text></svg>`)}`,
+                    scaledSize: new google.maps.Size(28, 28),
+                  }}
+                />
+              ))}
 
-                {/* Promoted venues - blue with star */}
-                {promotedVenues.map(venue => (
-                  <Placemark
-                    key={`venue-${venue.id}`}
-                    geometry={[venue.latitude!, venue.longitude!]}
-                    options={{
-                      iconColor: "#2563eb",
-                      preset: "islands#blueStarIcon",
-                    }}
-                    properties={{
-                      balloonContentHeader: `<strong>⭐ ${venue.name}</strong> <span style="color:#2563eb">BOOKABLE</span>`,
-                      balloonContentBody: `
-                        <div style="max-width:250px">
-                          <p>${venue.sports?.join(", ")} • ₽${venue.price_per_hour}/hr</p>
-                          <p>⭐ ${venue.rating || 0} (${venue.review_count || 0} reviews)</p>
-                          <p>${venue.address || venue.city}</p>
-                          <a href="/venue/${venue.id}" style="color:#2563eb;font-weight:bold">Book Now →</a>
-                        </div>
-                      `,
-                    }}
-                    modules={["geoObject.addon.balloon"]}
-                  />
-                ))}
-              </Map>
-            </YMaps>
+              {/* Promoted venues - blue */}
+              {promotedVenues.map(venue => (
+                <Marker
+                  key={`venue-${venue.id}`}
+                  position={{ lat: venue.latitude!, lng: venue.longitude! }}
+                  onClick={() => { setSelectedMarker(venue); setSelectedMarkerType("venue"); }}
+                  icon={{
+                    url: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="#2563eb" stroke="white" stroke-width="2"/><text x="16" y="21" text-anchor="middle" fill="white" font-size="16">⭐</text></svg>')}`,
+                    scaledSize: new google.maps.Size(32, 32),
+                  }}
+                />
+              ))}
+
+              {/* Info windows */}
+              {selectedMarker && selectedMarkerType === "field" && (
+                <InfoWindow
+                  position={{ lat: selectedMarker.latitude, lng: selectedMarker.longitude }}
+                  onCloseClick={() => setSelectedMarker(null)}
+                >
+                  <div style={{ maxWidth: 250, padding: 4 }}>
+                    <h3 style={{ fontWeight: 600, marginBottom: 4 }}>🏟️ {selectedMarker.name} <span style={{ color: "green", fontSize: 12 }}>FREE</span></h3>
+                    <p style={{ fontSize: 12, margin: "2px 0" }}>{selectedMarker.sports.join(", ")} • {selectedMarker.surface_type || "N/A"}</p>
+                    <p style={{ fontSize: 12 }}>{selectedMarker.has_lighting ? "💡 Lit" : "🌙 No lights"} • ⭐ {selectedMarker.condition_rating}/5</p>
+                    {selectedMarker.busyness_score && selectedMarker.busyness_score !== "unknown" && (
+                      <p style={{ fontWeight: 600, fontSize: 12 }}>
+                        {selectedMarker.busyness_score === "likely_free" ? "🟢 Likely Free" : selectedMarker.busyness_score === "moderate" ? "🟡 Moderate" : "🔴 Busy"}
+                      </p>
+                    )}
+                    {selectedMarker.peak_hours && <p style={{ fontSize: 11 }}>📊 Peak: {selectedMarker.peak_hours}</p>}
+                    {selectedMarker.active_checkins > 0 && (
+                      <p style={{ color: "green", fontSize: 12 }}>🟢 {selectedMarker.active_checkins} players here now</p>
+                    )}
+                    {selectedMarker.address && <p style={{ fontSize: 11, color: "gray" }}>{selectedMarker.address}</p>}
+                  </div>
+                </InfoWindow>
+              )}
+
+              {selectedMarker && selectedMarkerType === "venue" && (
+                <InfoWindow
+                  position={{ lat: selectedMarker.latitude!, lng: selectedMarker.longitude! }}
+                  onCloseClick={() => setSelectedMarker(null)}
+                >
+                  <div style={{ maxWidth: 250, padding: 4 }}>
+                    <h3 style={{ fontWeight: 600, marginBottom: 4 }}>⭐ {selectedMarker.name} <span style={{ color: "#2563eb", fontSize: 12 }}>BOOKABLE</span></h3>
+                    <p style={{ fontSize: 12 }}>{selectedMarker.sports?.join(", ")} • ֏{selectedMarker.price_per_hour}/hr</p>
+                    <p style={{ fontSize: 12 }}>⭐ {selectedMarker.rating || 0} ({selectedMarker.review_count || 0} reviews)</p>
+                    <p style={{ fontSize: 11, color: "gray" }}>{selectedMarker.address || selectedMarker.city}</p>
+                    <a href={`/venue/${selectedMarker.id}`} style={{ display: "block", textAlign: "center", padding: 6, background: "#2563eb", color: "white", borderRadius: 6, textDecoration: "none", marginTop: 6, fontSize: 13 }}>Book Now →</a>
+                  </div>
+                </InfoWindow>
+              )}
+            </GoogleMap>
           </div>
         ) : (
           <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
@@ -264,7 +276,7 @@ const NearbyFieldsPage: React.FC = () => {
                             <Badge variant="secondary" className="text-xs">Bookable</Badge>
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {venue.sports?.join(", ")} • ₽{venue.price_per_hour}/hr • ⭐ {venue.rating || 0}
+                            {venue.sports?.join(", ")} • ֏{venue.price_per_hour}/hr • ⭐ {venue.rating || 0}
                           </div>
                         </div>
                       </div>

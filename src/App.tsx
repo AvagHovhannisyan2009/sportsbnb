@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CurrencyProvider } from "@/hooks/useCurrency";
-import { YandexMapsProvider } from "@/components/maps/YandexMapsProvider";
+import { GoogleMapsProvider } from "@/components/maps/GoogleMapsProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import Layout from "./components/layout/Layout";
@@ -91,7 +91,7 @@ const App = () => {
     <>
       {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
       <QueryClientProvider client={queryClient}>
-        <YandexMapsProvider>
+        <GoogleMapsProvider>
         <AuthProvider>
           <CurrencyProvider>
             <TooltipProvider>
@@ -185,7 +185,7 @@ const App = () => {
             </TooltipProvider>
           </CurrencyProvider>
         </AuthProvider>
-        </YandexMapsProvider>
+        </GoogleMapsProvider>
       </QueryClientProvider>
     </>
   );
