@@ -71,6 +71,7 @@ const CalendarCallbackPage = lazy(() => import("./pages/owner/CalendarCallbackPa
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
 const VenueMapPage = lazy(() => import("./pages/VenueMapPage"));
 const OwnerAnalyticsPage = lazy(() => import("./pages/owner/OwnerAnalyticsPage"));
+const NearbyFieldsPage = lazy(() => import("./pages/NearbyFieldsPage"));
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,7 @@ const App = () => {
                     <Route path="/venues" element={<DiscoverPage />} />
                     <Route path="/venues/map" element={<VenueMapPage />} />
                     <Route path="/discover" element={<Navigate to="/venues" replace />} />
+                    <Route path="/nearby" element={<NearbyFieldsPage />} />
                     {/* Games */}
                     <Route path="/games" element={<GamesPage />} />
                     <Route path="/community" element={<CommunityPage />} />
