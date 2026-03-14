@@ -293,8 +293,25 @@ const NearbyFieldsPage: React.FC = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-foreground">{field.name}</div>
-                          <div className="text-sm text-muted-foreground mt-0.5">
-                            {field.sports.join(", ")} • {field.surface_type || "Unknown surface"}
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-sm text-muted-foreground">
+                              {field.sports.join(", ")} • {field.surface_type || "Unknown surface"}
+                            </span>
+                            {field.busyness_score && field.busyness_score !== "unknown" && (
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-xs",
+                                  field.busyness_score === "likely_free" && "border-green-500/30 text-green-600 bg-green-500/5",
+                                  field.busyness_score === "moderate" && "border-amber-500/30 text-amber-600 bg-amber-500/5",
+                                  field.busyness_score === "busy" && "border-red-500/30 text-red-600 bg-red-500/5"
+                                )}
+                              >
+                                {field.busyness_score === "likely_free" ? "🟢 Likely Free" :
+                                 field.busyness_score === "moderate" ? "🟡 Moderate" :
+                                 "🔴 Busy"}
+                              </Badge>
+                            )}
                           </div>
                           <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
                             {field.has_lighting && (
@@ -305,6 +322,20 @@ const NearbyFieldsPage: React.FC = () => {
                               <span>{field.distance < 1 ? `${Math.round(field.distance * 1000)}m` : `${field.distance.toFixed(1)}km`} away</span>
                             )}
                           </div>
+                          {(field.peak_hours || field.best_time) && (
+                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                              {field.peak_hours && (
+                                <span className="flex items-center gap-0.5">
+                                  <TrendingUp className="h-3 w-3" /> Peak: {field.peak_hours}
+                                </span>
+                              )}
+                              {field.best_time && (
+                                <span className="flex items-center gap-0.5">
+                                  <Clock className="h-3 w-3" /> Best: {field.best_time}
+                                </span>
+                              )}
+                            </div>
+                          )}
                           {field.active_checkins > 0 && (
                             <div className="flex items-center gap-1 mt-1.5 text-xs text-green-600">
                               <Users className="h-3 w-3" />
