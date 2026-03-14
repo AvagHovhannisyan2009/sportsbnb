@@ -70,6 +70,8 @@ import {
 } from "@/hooks/useAdmin";
 import { format } from "date-fns";
 
+const FieldSubmissionsTab = lazy(() => import("@/components/admin/FieldSubmissionsTab"));
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   
