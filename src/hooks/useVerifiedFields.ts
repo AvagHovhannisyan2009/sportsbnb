@@ -50,6 +50,29 @@ export const useVerifiedFields = () => {
     fetchFields();
   }, [fetchFields]);
 
+  // Realtime subscription - auto-refresh when new fields are added
+  useEffect(() => {
+    const channel = supabase
+      .channel('verified-fields-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'verified_fields',
+        },
+        () => {
+          // Re-fetch all fields when any change occurs
+          fetchFields();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchFields]);
+
   const checkIn = async (fieldId: string, playerCount: number = 1) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {

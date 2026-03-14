@@ -63,9 +63,9 @@ const useApproveCandidate = () => {
 const useRunDiscovery = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (tileKey?: string) => {
+    mutationFn: async (params?: { tile_key?: string; region?: string }) => {
       const { data, error } = await supabase.functions.invoke("discover-fields", {
-        body: tileKey ? { tile_key: tileKey } : {},
+        body: { ...params, force: true },
       });
       if (error) throw error;
       return data;
@@ -74,7 +74,7 @@ const useRunDiscovery = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-candidate-fields"] });
       queryClient.invalidateQueries({ queryKey: ["verified-fields"] });
       toast.success(
-        `Discovery complete: ${data.candidates_added} found, ${data.auto_approved} auto-approved, ${data.flagged_for_review} flagged, ${data.rejected_by_ai} rejected by AI`
+        `Discovery complete: ${data.candidates_added} found, ${data.auto_approved} auto-approved, ${data.flagged_for_review} flagged, ${data.rejected_by_ai} rejected by AI (${data.tiles_scanned} tiles scanned)`
       );
     },
     onError: (e) => toast.error(`Discovery failed: ${e.message}`),
@@ -224,21 +224,35 @@ const CandidateFieldsTab: React.FC = () => {
         <CardContent>
           <div className="flex gap-2 flex-wrap">
             <Button
-              onClick={() => runDiscovery.mutate(undefined)}
+              onClick={() => runDiscovery.mutate({})}
               disabled={runDiscovery.isPending}
             >
               {runDiscovery.isPending ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Scanning & Verifying...</>
               ) : (
-                <><Scan className="h-4 w-4 mr-2" /> Run Full Discovery</>
+                <><Scan className="h-4 w-4 mr-2" /> Run Full Discovery (All Armenia)</>
               )}
             </Button>
             <Button
               variant="outline"
-              onClick={() => runDiscovery.mutate("yerevan-center")}
+              onClick={() => runDiscovery.mutate({ region: "yer" })}
               disabled={runDiscovery.isPending}
             >
-              Scan Yerevan Center Only
+              Scan Yerevan Only
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => runDiscovery.mutate({ region: "gyumri" })}
+              disabled={runDiscovery.isPending}
+            >
+              Scan Gyumri
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => runDiscovery.mutate({ region: "vanadzor" })}
+              disabled={runDiscovery.isPending}
+            >
+              Scan Vanadzor
             </Button>
           </div>
           {runDiscovery.isPending && (
