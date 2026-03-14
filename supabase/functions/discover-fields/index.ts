@@ -21,19 +21,9 @@ const ARMENIA_TILES = [
   { key: "hrazdan", lat: 40.5028, lng: 44.7656, radius: 2000 },
 ];
 
-// Google Places types that map to sports facilities
-const SPORTS_PLACE_TYPES = [
-  "stadium",
-  "sports_complex",
-  "sports_club",
-  "athletic_field",
-  "fitness_center",
-  "gym",
-  "swimming_pool",
-];
-
-// Text search queries to find sports-specific facilities
+// Expanded search queries - now includes public/residential area fields
 const SEARCH_QUERIES = [
+  // Commercial / professional venues
   "football field",
   "basketball court",
   "tennis court",
@@ -42,6 +32,19 @@ const SEARCH_QUERIES = [
   "stadium",
   "soccer field",
   "volleyball court",
+  // Public / residential area fields
+  "outdoor basketball court",
+  "public sports ground",
+  "neighborhood sports field",
+  "park basketball court",
+  "park football field",
+  "open air gym",
+  "street workout park",
+  "public playground sports",
+  "mini football pitch",
+  "futsal court",
+  "running track",
+  "athletics field",
 ];
 
 function detectSportType(place: any): string {
@@ -49,31 +52,139 @@ function detectSportType(place: any): string {
   const types = (place.types || []).join(" ").toLowerCase();
   const combined = `${name} ${types}`;
 
-  if (combined.includes("football") || combined.includes("soccer") || combined.includes("ֆուdelays")) return "football";
+  if (combined.includes("football") || combined.includes("soccer") || combined.includes("futsal")) return "football";
   if (combined.includes("basketball")) return "basketball";
   if (combined.includes("tennis")) return "tennis";
   if (combined.includes("volleyball")) return "volleyball";
   if (combined.includes("swimming") || combined.includes("pool") || combined.includes("aqua")) return "swimming";
   if (combined.includes("running") || combined.includes("track") || combined.includes("athletics")) return "running";
+  if (combined.includes("workout") || combined.includes("gym") || combined.includes("fitness")) return "fitness";
   if (combined.includes("stadium")) return "football";
   return "multi-sport";
 }
 
 function calculateConfidence(place: any): number {
-  let score = 0.6; // base
-
-  // Has user ratings → more likely real
+  let score = 0.6;
   if (place.rating && place.rating > 0) score += 0.1;
   if (place.userRatingCount && place.userRatingCount > 5) score += 0.1;
   if (place.userRatingCount && place.userRatingCount > 20) score += 0.05;
-
-  // Has address → more verified
   if (place.formattedAddress) score += 0.05;
-
-  // Currently open info available
   if (place.currentOpeningHours || place.regularOpeningHours) score += 0.05;
-
   return Math.min(score, 1.0);
+}
+
+// AI verification using Gemini to double-check each candidate
+async function aiVerifyCandidate(
+  place: any,
+  detectedSport: string,
+  searchQuery: string,
+  lovableApiKey: string
+): Promise<{ isReal: boolean; isSuspicious: boolean; suggestedName: string; sportType: string; reason: string }> {
+  try {
+    const placeName = place.displayName?.text || "Unknown";
+    const placeAddress = place.formattedAddress || "No address";
+    const placeTypes = (place.types || []).join(", ");
+    const placeRating = place.rating || "N/A";
+    const reviewCount = place.userRatingCount || 0;
+
+    const prompt = `You are a sports facility verification expert. Analyze this Google Places result and determine if it is ACTUALLY a sports facility (field, court, pool, gym, etc.) or a false positive (hotel, restaurant, shopping mall, residential building, etc.).
+
+Place details:
+- Name: "${placeName}"
+- Address: "${placeAddress}"
+- Google Place types: [${placeTypes}]
+- Rating: ${placeRating} (${reviewCount} reviews)
+- Found via search query: "${searchQuery}"
+- Detected sport: "${detectedSport}"
+
+IMPORTANT: Public sports fields in residential areas, parks, and neighborhoods ARE valid. Hotels, restaurants, malls, and non-sports businesses are NOT valid even if they have "sport" in their name.
+
+Respond in EXACTLY this JSON format (no extra text):
+{
+  "is_real_sports_facility": true/false,
+  "is_suspicious": true/false,
+  "suggested_name": "A clear, concise name for this facility (e.g. 'Abovyan Park Basketball Court')",
+  "corrected_sport_type": "football|basketball|tennis|volleyball|swimming|running|fitness|multi-sport",
+  "reason": "Brief explanation of your verdict"
+}
+
+Rules:
+- is_real_sports_facility: true ONLY if this is genuinely a place where people play sports
+- is_suspicious: true if you're unsure or the data seems contradictory (flag for human review)
+- suggested_name: Create a proper facility name even if the Google name is generic. Include the sport type and location/neighborhood if possible.
+- corrected_sport_type: The actual sport, correcting any misdetection`;
+
+    const response = await fetch("https://aeyqnrwmqmvsfendqypd.supabase.co/functions/v1/ai-chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${lovableApiKey}`,
+      },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: prompt }],
+        model: "google/gemini-2.5-flash",
+      }),
+    });
+
+    // Fallback: call Gemini directly via Lovable AI proxy
+    const aiResponse = await fetch("https://api.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${lovableApiKey}`,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.1,
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      console.error("AI verification failed, defaulting to manual review:", await aiResponse.text());
+      return {
+        isReal: true,
+        isSuspicious: true,
+        suggestedName: place.displayName?.text || `${detectedSport} facility`,
+        sportType: detectedSport,
+        reason: "AI verification unavailable - flagged for manual review",
+      };
+    }
+
+    const aiResult = await aiResponse.json();
+    const content = aiResult.choices?.[0]?.message?.content || "";
+
+    // Parse JSON from AI response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error("Could not parse AI response:", content);
+      return {
+        isReal: true,
+        isSuspicious: true,
+        suggestedName: place.displayName?.text || `${detectedSport} facility`,
+        sportType: detectedSport,
+        reason: "AI response unparseable - flagged for manual review",
+      };
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    return {
+      isReal: parsed.is_real_sports_facility === true,
+      isSuspicious: parsed.is_suspicious === true,
+      suggestedName: parsed.suggested_name || place.displayName?.text || `${detectedSport} facility`,
+      sportType: parsed.corrected_sport_type || detectedSport,
+      reason: parsed.reason || "",
+    };
+  } catch (err) {
+    console.error("AI verification error:", err);
+    return {
+      isReal: true,
+      isSuspicious: true,
+      suggestedName: place.displayName?.text || `${detectedSport} facility`,
+      sportType: detectedSport,
+      reason: "AI verification error - flagged for manual review",
+    };
+  }
 }
 
 serve(async (req) => {
@@ -85,6 +196,7 @@ serve(async (req) => {
     const GOOGLE_MAPS_API_KEY = Deno.env.get("GOOGLE_MAPS_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!GOOGLE_MAPS_API_KEY) throw new Error("GOOGLE_MAPS_API_KEY not configured");
 
@@ -104,6 +216,9 @@ serve(async (req) => {
     }
 
     let totalCandidates = 0;
+    let autoApproved = 0;
+    let flaggedForReview = 0;
+    let rejected = 0;
 
     for (const tile of tiles) {
       // Check if this tile was already scanned recently (within 7 days)
@@ -119,12 +234,8 @@ serve(async (req) => {
         continue;
       }
 
-      // Use Google Places API (New) - Nearby Search
-      const placesUrl = "https://places.googleapis.com/v1/places:searchNearby";
-
       for (const query of SEARCH_QUERIES) {
         try {
-          // Use Text Search for more specific results
           const textSearchUrl = "https://places.googleapis.com/v1/places:searchText";
           const searchResponse = await fetch(textSearchUrl, {
             method: "POST",
@@ -147,8 +258,7 @@ serve(async (req) => {
           });
 
           if (!searchResponse.ok) {
-            const errText = await searchResponse.text();
-            console.error(`Places API error for "${query}" in ${tile.key}:`, searchResponse.status, errText);
+            console.error(`Places API error for "${query}" in ${tile.key}:`, searchResponse.status);
             continue;
           }
 
@@ -160,13 +270,12 @@ serve(async (req) => {
 
             const lat = place.location.latitude;
             const lng = place.location.longitude;
-            const sportType = detectSportType(place);
+            const detectedSport = detectSportType(place);
             const confidence = calculateConfidence(place);
 
-            // Skip low confidence
             if (confidence < 0.6) continue;
 
-            // Deduplicate against existing candidates (within ~100m)
+            // Spatial deduplication - candidate_fields
             const { data: nearby } = await supabase
               .from("candidate_fields")
               .select("id")
@@ -178,7 +287,7 @@ serve(async (req) => {
 
             if (nearby && nearby.length > 0) continue;
 
-            // Also check verified_fields to avoid duplicating already-verified places
+            // Spatial deduplication - verified_fields
             const { data: verifiedNearby } = await supabase
               .from("verified_fields")
               .select("id")
@@ -190,28 +299,113 @@ serve(async (req) => {
 
             if (verifiedNearby && verifiedNearby.length > 0) continue;
 
-            const { error } = await supabase.from("candidate_fields").insert({
-              latitude: lat,
-              longitude: lng,
-              detected_sport_type: sportType,
-              confidence_score: confidence,
-              detection_source: "google_places",
-              tile_key: tile.key,
-              status: "pending",
-              raw_metadata: {
-                name: place.displayName?.text || null,
-                address: place.formattedAddress || null,
-                rating: place.rating || null,
-                user_rating_count: place.userRatingCount || null,
-                google_types: place.types || [],
-                search_query: query,
-              },
-            });
+            // --- AI Double-Check ---
+            let aiResult = {
+              isReal: true,
+              isSuspicious: true,
+              suggestedName: place.displayName?.text || `${detectedSport} facility`,
+              sportType: detectedSport,
+              reason: "No AI verification available",
+            };
 
-            if (error) {
-              console.error("Insert error:", error);
+            if (LOVABLE_API_KEY) {
+              aiResult = await aiVerifyCandidate(place, detectedSport, query, LOVABLE_API_KEY);
+            }
+
+            // If AI says it's NOT a real sports facility, reject silently
+            if (!aiResult.isReal) {
+              console.log(`AI rejected: "${place.displayName?.text}" - ${aiResult.reason}`);
+              rejected++;
+              continue;
+            }
+
+            // Determine status based on AI verdict
+            let status: string;
+            if (aiResult.isSuspicious) {
+              status = "needs_review"; // Admin will see these flagged
+              flaggedForReview++;
             } else {
-              totalCandidates++;
+              status = "auto_approved"; // AI confident, auto-approve
+              autoApproved++;
+            }
+
+            // Insert into candidate_fields with AI metadata
+            const { data: insertedCandidate, error: insertError } = await supabase
+              .from("candidate_fields")
+              .insert({
+                latitude: lat,
+                longitude: lng,
+                detected_sport_type: aiResult.sportType,
+                confidence_score: confidence,
+                detection_source: "google_places",
+                tile_key: tile.key,
+                status,
+                raw_metadata: {
+                  name: place.displayName?.text || null,
+                  address: place.formattedAddress || null,
+                  rating: place.rating || null,
+                  user_rating_count: place.userRatingCount || null,
+                  google_types: place.types || [],
+                  search_query: query,
+                  ai_suggested_name: aiResult.suggestedName,
+                  ai_sport_type: aiResult.sportType,
+                  ai_reason: aiResult.reason,
+                  ai_verified: true,
+                },
+              })
+              .select("id")
+              .single();
+
+            if (insertError) {
+              console.error("Insert error:", insertError);
+              continue;
+            }
+
+            totalCandidates++;
+
+            // If auto-approved, also insert into verified_fields immediately
+            if (status === "auto_approved" && insertedCandidate) {
+              const { error: verifiedError } = await supabase.from("verified_fields").insert({
+                candidate_id: insertedCandidate.id,
+                name: aiResult.suggestedName,
+                latitude: lat,
+                longitude: lng,
+                sport_type: aiResult.sportType,
+                city: tile.key.startsWith("yerevan") ? "Yerevan" :
+                  tile.key === "gyumri" ? "Gyumri" :
+                  tile.key === "vanadzor" ? "Vanadzor" :
+                  tile.key === "abovyan" ? "Abovyan" :
+                  tile.key === "etchmiadzin" ? "Etchmiadzin" :
+                  tile.key === "hrazdan" ? "Hrazdan" : "Armenia",
+                address: place.formattedAddress || null,
+                is_public: true,
+                verification_status: "verified",
+              });
+
+              if (verifiedError) {
+                console.error("Verified insert error:", verifiedError);
+              }
+            }
+
+            // If suspicious, notify admin via notification
+            if (status === "needs_review") {
+              // Find admin users
+              const { data: admins } = await supabase
+                .from("user_roles")
+                .select("user_id")
+                .eq("role", "admin");
+
+              if (admins && admins.length > 0) {
+                const notifications = admins.map((admin) => ({
+                  user_id: admin.user_id,
+                  type: "discovery",
+                  title: "🔍 Suspicious field detected",
+                  message: `AI flagged "${aiResult.suggestedName}" for review: ${aiResult.reason}`,
+                  link: "/admin?tab=discovery",
+                }));
+
+                await supabase.from("notifications").insert(notifications);
+              }
             }
           }
         } catch (queryErr) {
@@ -224,6 +418,9 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         candidates_added: totalCandidates,
+        auto_approved: autoApproved,
+        flagged_for_review: flaggedForReview,
+        rejected_by_ai: rejected,
         tiles_scanned: tiles.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
