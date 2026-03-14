@@ -185,7 +185,7 @@ const App = () => {
             </TooltipProvider>
           </CurrencyProvider>
         </AuthProvider>
-        </YandexMapsProvider>
+        </GoogleMapsProvider>
       </QueryClientProvider>
     </>
   );
