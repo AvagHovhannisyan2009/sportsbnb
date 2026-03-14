@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { usePublicFields } from "@/hooks/usePublicFields";
 import { useVenues } from "@/hooks/useVenues";
 import Layout from "@/components/layout/Layout";
-import { SEOHead } from "@/components/seo/SEOHead";
+import SEOHead from "@/components/seo/SEOHead";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
