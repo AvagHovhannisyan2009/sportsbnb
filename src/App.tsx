@@ -104,6 +104,7 @@ const App = () => {
                     <Route path="/venues" element={<DiscoverPage />} />
                     <Route path="/venues/map" element={<VenueMapPage />} />
                     <Route path="/discover" element={<Navigate to="/venues" replace />} />
+                    <Route path="/nearby" element={<NearbyFieldsPage />} />
                     {/* Games */}
                     <Route path="/games" element={<GamesPage />} />
                     <Route path="/community" element={<CommunityPage />} />
