@@ -192,6 +192,7 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const tileKey = body.tile_key || null;
+    const force = body.force === true;
     const tiles = tileKey
       ? ARMENIA_TILES.filter((t) => t.key === tileKey)
       : ARMENIA_TILES;
