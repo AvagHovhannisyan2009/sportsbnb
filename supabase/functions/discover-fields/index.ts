@@ -114,19 +114,7 @@ Rules:
 - suggested_name: Create a proper facility name even if the Google name is generic. Include the sport type and location/neighborhood if possible.
 - corrected_sport_type: The actual sport, correcting any misdetection`;
 
-    const response = await fetch("https://aeyqnrwmqmvsfendqypd.supabase.co/functions/v1/ai-chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${lovableApiKey}`,
-      },
-      body: JSON.stringify({
-        messages: [{ role: "user", content: prompt }],
-        model: "google/gemini-2.5-flash",
-      }),
-    });
-
-    // Call Gemini via Lovable AI gateway
+    // Call Gemini via Lovable AI gateway for verification
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
