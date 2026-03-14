@@ -47,6 +47,7 @@ const NearbyFieldsPage: React.FC = () => {
   const [sportFilter, setSportFilter] = useState<string>("all");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [ratingField, setRatingField] = useState<{ id: string; name: string } | null>(null);
 
   const handleLocate = () => {
     setIsLocating(true);
