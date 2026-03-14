@@ -198,6 +198,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="venues">Venues</TabsTrigger>
               <TabsTrigger value="bookings">Bookings</TabsTrigger>
               <TabsTrigger value="games">Games</TabsTrigger>
+              <TabsTrigger value="fields">Fields</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
