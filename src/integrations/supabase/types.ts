@@ -822,6 +822,8 @@ export type Database = {
         Row: {
           active_checkins: number | null
           address: string | null
+          best_time: string | null
+          busyness_score: string | null
           city: string
           condition_rating: number | null
           created_at: string
@@ -836,6 +838,7 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
+          peak_hours: string | null
           photo_url: string | null
           sports: string[]
           submitted_by: string | null
@@ -845,6 +848,8 @@ export type Database = {
         Insert: {
           active_checkins?: number | null
           address?: string | null
+          best_time?: string | null
+          busyness_score?: string | null
           city?: string
           condition_rating?: number | null
           created_at?: string
@@ -859,6 +864,7 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
+          peak_hours?: string | null
           photo_url?: string | null
           sports?: string[]
           submitted_by?: string | null
@@ -868,6 +874,8 @@ export type Database = {
         Update: {
           active_checkins?: number | null
           address?: string | null
+          best_time?: string | null
+          busyness_score?: string | null
           city?: string
           condition_rating?: number | null
           created_at?: string
@@ -882,6 +890,7 @@ export type Database = {
           latitude?: number
           longitude?: number
           name?: string
+          peak_hours?: string | null
           photo_url?: string | null
           sports?: string[]
           submitted_by?: string | null
