@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-const YANDEX_MAPS_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
+const YANDEX_GEOSUGGEST_API_KEY = "d2ab23f0-55b3-4d22-b0c3-29c88fd7ce70";
+const YANDEX_GEOCODER_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
 
 interface SearchSuggestion {
   id: string;
@@ -36,7 +37,6 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -57,90 +57,78 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
     const allSuggestions: SearchSuggestion[] = [];
 
     try {
-      // Search sports (local matching)
+      // Sport matching (local)
       const sportTypes = ["Football", "Basketball", "Tennis", "Swimming", "Volleyball", "Badminton", "Rugby", "Gym", "Cricket", "Golf", "Running", "Cycling"];
-      const matchingSports = sportTypes.filter(sport => 
-        sport.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 2);
-      
-      matchingSports.forEach(sport => {
+      sportTypes
+        .filter(sport => sport.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 2)
+        .forEach(sport => {
+          allSuggestions.push({
+            id: `sport-${sport}`,
+            type: "sport",
+            title: sport,
+            subtitle: "Sport category",
+            data: { sport },
+          });
+        });
+
+      // DB searches + Geosuggest in parallel
+      const [venuesRes, gamesRes, geosuggestRes] = await Promise.all([
+        supabase
+          .from("venues")
+          .select("id, name, city, address")
+          .eq("is_active", true)
+          .or(`name.ilike.%${query}%,city.ilike.%${query}%,address.ilike.%${query}%`)
+          .limit(3),
+        supabase
+          .from("games")
+          .select("id, title, sport, location")
+          .eq("status", "open")
+          .gte("game_date", new Date().toISOString().split("T")[0])
+          .or(`title.ilike.%${query}%,sport.ilike.%${query}%,location.ilike.%${query}%`)
+          .limit(3),
+        fetch(
+          `https://suggest-maps.yandex.ru/v1/suggest?${new URLSearchParams({
+            apikey: YANDEX_GEOSUGGEST_API_KEY,
+            text: query,
+            lang: "en",
+            results: "4",
+            ll: "44.5152,40.1872",
+            spn: "2,2",
+            ull: "44.5152,40.1872",
+            print_address: "1",
+            attrs: "uri",
+          })}`
+        ).then(r => r.json()).catch(() => ({ results: [] })),
+      ]);
+
+      venuesRes.data?.forEach(venue => {
         allSuggestions.push({
-          id: `sport-${sport}`,
-          type: "sport",
-          title: sport,
-          subtitle: "Sport category",
-          data: { sport },
+          id: `venue-${venue.id}`,
+          type: "venue",
+          title: venue.name,
+          subtitle: venue.address || venue.city,
+          data: venue,
         });
       });
 
-      // Search venues in database
-      const { data: venues } = await supabase
-        .from("venues")
-        .select("id, name, city, address")
-        .eq("is_active", true)
-        .or(`name.ilike.%${query}%,city.ilike.%${query}%,address.ilike.%${query}%`)
-        .limit(3);
-
-      if (venues) {
-        venues.forEach(venue => {
-          allSuggestions.push({
-            id: `venue-${venue.id}`,
-            type: "venue",
-            title: venue.name,
-            subtitle: venue.address || venue.city,
-            data: venue,
-          });
+      gamesRes.data?.forEach(game => {
+        allSuggestions.push({
+          id: `game-${game.id}`,
+          type: "game",
+          title: game.title,
+          subtitle: `${game.sport} • ${game.location}`,
+          data: game,
         });
-      }
+      });
 
-      // Search games in database
-      const { data: games } = await supabase
-        .from("games")
-        .select("id, title, sport, location")
-        .eq("status", "open")
-        .gte("game_date", new Date().toISOString().split("T")[0])
-        .or(`title.ilike.%${query}%,sport.ilike.%${query}%,location.ilike.%${query}%`)
-        .limit(3);
-
-      if (games) {
-        games.forEach(game => {
-          allSuggestions.push({
-            id: `game-${game.id}`,
-            type: "game",
-            title: game.title,
-            subtitle: `${game.sport} • ${game.location}`,
-            data: game,
-          });
-        });
-      }
-
-      // Search locations via Yandex Geocoder API — biased toward Armenia
-      const geocodeResponse = await fetch(
-        `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_MAPS_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=3&lang=en_US&ll=44.5152,40.1872&spn=4,4&rspn=1`
-      );
-      const geocodeData = await geocodeResponse.json();
-
-      const geoObjects = geocodeData?.response?.GeoObjectCollection?.featureMember || [];
-      geoObjects.forEach((item: any, index: number) => {
-        const geoObject = item.GeoObject;
-        const name = geoObject.name || "Location";
-        const fullAddress = geoObject.metaDataProperty?.GeocoderMetaData?.text || name;
-        const components = geoObject.metaDataProperty?.GeocoderMetaData?.Address?.Components || [];
-        const city = components.find((c: any) => c.kind === "locality")?.name;
-        const country = components.find((c: any) => c.kind === "country")?.name;
-        const subtitle = [city, country].filter(Boolean).join(", ");
-        const [lng, lat] = (geoObject.Point?.pos || "0 0").split(" ").map(Number);
-        
+      (geosuggestRes?.results || []).forEach((item: any, index: number) => {
         allSuggestions.push({
           id: `location-${index}`,
           type: "location",
-          title: name,
-          subtitle,
-          data: {
-            latitude: lat,
-            longitude: lng,
-            address: fullAddress,
-          },
+          title: item.title?.text || "Location",
+          subtitle: item.subtitle?.text,
+          data: { uri: item.uri, fullText: item.subtitle?.text ? `${item.title.text}, ${item.subtitle.text}` : item.title.text },
         });
       });
 
@@ -154,20 +142,31 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
     }
   }, []);
 
+  const resolveLocationCoords = async (data: any): Promise<{ lat: number; lng: number; address: string } | null> => {
+    try {
+      const geocodeParam = data.uri
+        ? `uri=${encodeURIComponent(data.uri)}`
+        : `geocode=${encodeURIComponent(data.fullText)}`;
+      const url = `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_GEOCODER_API_KEY}&${geocodeParam}&format=json&results=1&lang=en_US`;
+      const res = await fetch(url);
+      const json = await res.json();
+      const geo = json?.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
+      if (!geo?.Point?.pos) return null;
+      const [lng, lat] = geo.Point.pos.split(" ").map(Number);
+      return { lat, lng, address: geo.metaDataProperty?.GeocoderMetaData?.text || data.fullText };
+    } catch {
+      return null;
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      searchAll(newValue);
-    }, 300);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => searchAll(newValue), 250);
   };
 
-  const handleSelect = (suggestion: SearchSuggestion) => {
+  const handleSelect = async (suggestion: SearchSuggestion) => {
     setInputValue("");
     setSuggestions([]);
     setIsOpen(false);
@@ -182,23 +181,22 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
       case "sport":
         navigate(`/venues?sport=${encodeURIComponent(suggestion.data.sport)}`);
         break;
-      case "location":
-        if (onLocationSelect) {
-          onLocationSelect(
-            suggestion.data.latitude,
-            suggestion.data.longitude,
-            suggestion.data.address
-          );
-        } else {
-          navigate(`/venues?lat=${suggestion.data.latitude}&lng=${suggestion.data.longitude}`);
+      case "location": {
+        const coords = await resolveLocationCoords(suggestion.data);
+        if (coords) {
+          if (onLocationSelect) {
+            onLocationSelect(coords.lat, coords.lng, coords.address);
+          } else {
+            navigate(`/venues?lat=${coords.lat}&lng=${coords.lng}`);
+          }
         }
         break;
+      }
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) return;
-
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -222,14 +220,10 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
 
   const getIcon = (type: SearchSuggestion["type"]) => {
     switch (type) {
-      case "venue":
-        return <Building className="h-4 w-4 text-primary" />;
-      case "game":
-        return <Gamepad2 className="h-4 w-4 text-green-500" />;
-      case "sport":
-        return <Tag className="h-4 w-4 text-orange-500" />;
-      case "location":
-        return <MapPin className="h-4 w-4 text-muted-foreground" />;
+      case "venue": return <Building className="h-4 w-4 text-primary" />;
+      case "game": return <Gamepad2 className="h-4 w-4 text-green-500" />;
+      case "sport": return <Tag className="h-4 w-4 text-orange-500" />;
+      case "location": return <MapPin className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -242,7 +236,6 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
     }
   };
 
-  // Group suggestions by type
   const groupedSuggestions = suggestions.reduce((acc, s) => {
     if (!acc[s.type]) acc[s.type] = [];
     acc[s.type].push(s);
@@ -269,11 +262,7 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
         {!isLoading && inputValue && (
           <button
             type="button"
-            onClick={() => {
-              setInputValue("");
-              setSuggestions([]);
-              setIsOpen(false);
-            }}
+            onClick={() => { setInputValue(""); setSuggestions([]); setIsOpen(false); }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-5 w-5" />
@@ -281,7 +270,6 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
         )}
       </div>
 
-      {/* Suggestions dropdown */}
       {isOpen && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-popover border border-border rounded-xl shadow-lg overflow-hidden">
           <div className="max-h-80 overflow-auto">
@@ -291,7 +279,7 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
                   {getTypeLabel(type as SearchSuggestion["type"])}s
                 </div>
                 <ul>
-                  {items.map((suggestion, idx) => {
+                  {items.map((suggestion) => {
                     const globalIndex = suggestions.indexOf(suggestion);
                     return (
                       <li
