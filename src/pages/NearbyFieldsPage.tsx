@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Map, Placemark, YMaps } from "@pbe/react-yandex-maps";
-import { MapPin, Users, Sun, Moon, Zap, Navigation, List, Map as MapIcon, Filter, ChevronRight, Plus, Check } from "lucide-react";
+import { MapPin, Users, Sun, Moon, Zap, Navigation, List, Map as MapIcon, Filter, ChevronRight, Plus, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
