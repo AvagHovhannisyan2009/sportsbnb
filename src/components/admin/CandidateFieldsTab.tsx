@@ -224,21 +224,35 @@ const CandidateFieldsTab: React.FC = () => {
         <CardContent>
           <div className="flex gap-2 flex-wrap">
             <Button
-              onClick={() => runDiscovery.mutate(undefined)}
+              onClick={() => runDiscovery.mutate({})}
               disabled={runDiscovery.isPending}
             >
               {runDiscovery.isPending ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Scanning & Verifying...</>
               ) : (
-                <><Scan className="h-4 w-4 mr-2" /> Run Full Discovery</>
+                <><Scan className="h-4 w-4 mr-2" /> Run Full Discovery (All Armenia)</>
               )}
             </Button>
             <Button
               variant="outline"
-              onClick={() => runDiscovery.mutate("yerevan-center")}
+              onClick={() => runDiscovery.mutate({ region: "yer" })}
               disabled={runDiscovery.isPending}
             >
-              Scan Yerevan Center Only
+              Scan Yerevan Only
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => runDiscovery.mutate({ region: "gyumri" })}
+              disabled={runDiscovery.isPending}
+            >
+              Scan Gyumri
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => runDiscovery.mutate({ region: "vanadzor" })}
+              disabled={runDiscovery.isPending}
+            >
+              Scan Vanadzor
             </Button>
           </div>
           {runDiscovery.isPending && (
