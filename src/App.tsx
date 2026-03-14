@@ -91,7 +91,7 @@ const App = () => {
     <>
       {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
       <QueryClientProvider client={queryClient}>
-        <YandexMapsProvider>
+        <GoogleMapsProvider>
         <AuthProvider>
           <CurrencyProvider>
             <TooltipProvider>
