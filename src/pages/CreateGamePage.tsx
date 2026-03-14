@@ -79,7 +79,7 @@ const CreateGamePage = () => {
     }
   };
 
-  const handleLocationSelect = (place: PhotonPlace) => {
+  const handleLocationSelect = (place: LocationPlace) => {
     setFormData(prev => ({
       ...prev,
       location: place.formattedAddress,

@@ -65,7 +65,7 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
     onLocationConfirm(coords[0], coords[1], false);
   }, [onLocationConfirm]);
 
-  const handlePlaceSelect = (place: PhotonPlace) => {
+  const handlePlaceSelect = (place: LocationPlace) => {
     onAddressChange(place.formattedAddress);
     if (place.city) onCityChange(place.city);
     const pos: [number, number] = [place.latitude, place.longitude];

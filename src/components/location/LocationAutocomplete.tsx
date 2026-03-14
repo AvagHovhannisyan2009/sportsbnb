@@ -3,7 +3,9 @@ import { MapPin, Loader2, X, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export interface PhotonPlace {
+const YANDEX_MAPS_API_KEY = "0182c04c-963d-409f-a83d-26b2fb34547e";
+
+export interface LocationPlace {
   name: string;
   city?: string;
   country?: string;
@@ -13,26 +15,14 @@ export interface PhotonPlace {
   type?: string;
 }
 
-interface PhotonResult {
-  properties: {
-    name?: string;
-    street?: string;
-    housenumber?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    osm_key?: string;
-    osm_value?: string;
-    type?: string;
-  };
-  geometry: {
-    coordinates: [number, number]; // [lng, lat]
-  };
+interface YandexSuggestItem {
+  displayName: string;
+  value: string;
 }
 
 interface LocationAutocompleteProps {
   value: string;
-  onSelect: (place: PhotonPlace) => void;
+  onSelect: (place: LocationPlace) => void;
   onClear?: () => void;
   placeholder?: string;
   className?: string;
@@ -54,7 +44,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   defaultLongitude,
 }) => {
   const [inputValue, setInputValue] = useState(value);
-  const [suggestions, setSuggestions] = useState<PhotonPlace[]>([]);
+  const [suggestions, setSuggestions] = useState<{ displayName: string; value: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -62,39 +52,19 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Sync external value changes
   useEffect(() => {
     setInputValue(value);
   }, [value]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const formatAddress = (result: PhotonResult): string => {
-    const props = result.properties;
-    const parts: string[] = [];
-
-    if (props.name) parts.push(props.name);
-    if (props.street) {
-      const streetPart = props.housenumber 
-        ? `${props.street} ${props.housenumber}` 
-        : props.street;
-      if (!parts.includes(streetPart)) parts.push(streetPart);
-    }
-    if (props.city && !parts.includes(props.city)) parts.push(props.city);
-    if (props.country && !parts.includes(props.country)) parts.push(props.country);
-
-    return parts.join(", ") || "Unknown location";
-  };
 
   const searchLocations = useCallback(async (query: string) => {
     if (query.length < 3) {
@@ -105,32 +75,34 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     setIsLoading(true);
 
     try {
-      // Build Photon API URL with optional location bias
-      let url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`;
+      // Use Yandex Geocoder API for suggestions
+      const bbox = defaultLatitude && defaultLongitude
+        ? `&bbox=${defaultLongitude - 1},${defaultLatitude - 1}~${defaultLongitude + 1},${defaultLatitude + 1}&rspn=1`
+        : "";
       
-      // Add location bias if we have coordinates
-      if (defaultLatitude && defaultLongitude) {
-        url += `&lat=${defaultLatitude}&lon=${defaultLongitude}`;
-      }
-
+      const url = `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_MAPS_API_KEY}&geocode=${encodeURIComponent(query)}&format=json&results=5&lang=en_US${bbox}`;
+      
       const response = await fetch(url);
       const data = await response.json();
 
-      const places: PhotonPlace[] = (data.features || []).map((feature: PhotonResult) => ({
-        name: feature.properties.name || feature.properties.street || "Location",
-        city: feature.properties.city,
-        country: feature.properties.country,
-        formattedAddress: formatAddress(feature),
-        latitude: feature.geometry.coordinates[1],
-        longitude: feature.geometry.coordinates[0],
-        type: feature.properties.osm_value || feature.properties.type,
-      }));
+      const geoObjects = data?.response?.GeoObjectCollection?.featureMember || [];
+      
+      const items = geoObjects.map((item: any) => {
+        const geoObject = item.GeoObject;
+        return {
+          displayName: geoObject.name || geoObject.metaDataProperty?.GeocoderMetaData?.text || "Location",
+          value: geoObject.metaDataProperty?.GeocoderMetaData?.text || geoObject.name || "Location",
+          pos: geoObject.Point?.pos,
+          kind: geoObject.metaDataProperty?.GeocoderMetaData?.kind,
+          addressComponents: geoObject.metaDataProperty?.GeocoderMetaData?.Address?.Components || [],
+        };
+      });
 
-      setSuggestions(places);
-      setIsOpen(places.length > 0);
+      setSuggestions(items);
+      setIsOpen(items.length > 0);
       setSelectedIndex(-1);
     } catch (error) {
-      console.error("Photon search error:", error);
+      console.error("Yandex geocode error:", error);
       setSuggestions([]);
     } finally {
       setIsLoading(false);
@@ -141,7 +113,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     const newValue = e.target.value;
     setInputValue(newValue);
 
-    // Debounce the search
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
@@ -151,11 +122,32 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     }, 300);
   };
 
-  const handleSelect = (place: PhotonPlace) => {
-    setInputValue(place.formattedAddress);
+  const handleSelect = async (item: any) => {
+    setInputValue(item.value);
     setSuggestions([]);
     setIsOpen(false);
-    onSelect(place);
+
+    // Parse coordinates from pos (format: "lng lat")
+    if (item.pos) {
+      const [lng, lat] = item.pos.split(" ").map(Number);
+      
+      // Extract city and country from address components
+      const components = item.addressComponents || [];
+      const city = components.find((c: any) => c.kind === "locality")?.name;
+      const country = components.find((c: any) => c.kind === "country")?.name;
+
+      const place: LocationPlace = {
+        name: item.displayName,
+        city,
+        country,
+        formattedAddress: item.value,
+        latitude: lat,
+        longitude: lng,
+        type: item.kind,
+      };
+
+      onSelect(place);
+    }
   };
 
   const handleClear = () => {
@@ -188,11 +180,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         setIsOpen(false);
         break;
     }
-  };
-
-  const getTypeIcon = (type?: string) => {
-    // Could be extended with different icons for different place types
-    return <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />;
   };
 
   return (
@@ -235,33 +222,30 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       {isOpen && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
           <ul className="max-h-60 overflow-auto py-1">
-            {suggestions.map((place, index) => (
+            {suggestions.map((item: any, index: number) => (
               <li
-                key={`${place.latitude}-${place.longitude}-${index}`}
+                key={`${item.value}-${index}`}
                 className={cn(
                   "px-3 py-2 cursor-pointer flex items-start gap-3 transition-colors",
                   index === selectedIndex
                     ? "bg-accent text-accent-foreground"
                     : "hover:bg-muted"
                 )}
-                onClick={() => handleSelect(place)}
+                onClick={() => handleSelect(item)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
-                {getTypeIcon(place.type)}
+                <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{place.name}</div>
+                  <div className="font-medium text-sm truncate">{item.displayName}</div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {place.city && place.country
-                      ? `${place.city}, ${place.country}`
-                      : place.formattedAddress
-                    }
+                    {item.value}
                   </div>
                 </div>
               </li>
             ))}
           </ul>
           <div className="px-3 py-1.5 text-xs text-muted-foreground border-t border-border bg-muted/30">
-            Powered by OpenStreetMap
+            Powered by Yandex Maps
           </div>
         </div>
       )}
