@@ -126,8 +126,8 @@ Rules:
       }),
     });
 
-    // Fallback: call Gemini directly via Lovable AI proxy
-    const aiResponse = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    // Call Gemini via Lovable AI gateway
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
