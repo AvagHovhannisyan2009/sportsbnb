@@ -21,7 +21,7 @@ import { useUserTeams } from "@/hooks/useTeams";
 import { sportTypes, timeSlots } from "@/data/constants";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
-import { LocationAutocomplete, PhotonPlace } from "@/components/location/LocationAutocomplete";
+import { LocationAutocomplete, LocationPlace } from "@/components/location/LocationAutocomplete";
 
 const CreateGamePage = () => {
   const navigate = useNavigate();
