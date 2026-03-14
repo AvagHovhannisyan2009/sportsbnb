@@ -586,6 +586,13 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Fields Tab */}
+            <TabsContent value="fields">
+              <Suspense fallback={<div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+                <FieldSubmissionsTab />
+              </Suspense>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
