@@ -218,7 +218,7 @@ serve(async (req) => {
         .gte("detection_timestamp", new Date(Date.now() - 7 * 86400000).toISOString())
         .limit(1);
 
-      if (existing && existing.length > 0) {
+      if (!force && existing && existing.length > 0) {
         console.log(`Tile ${tile.key} already scanned recently, skipping`);
         continue;
       }
