@@ -86,19 +86,16 @@ export const SmartSearch: React.FC<SmartSearchProps> = ({
           .gte("game_date", new Date().toISOString().split("T")[0])
           .or(`title.ilike.%${query}%,sport.ilike.%${query}%,location.ilike.%${query}%`)
           .limit(3),
-        fetch(
-          `https://suggest-maps.yandex.ru/v1/suggest?${new URLSearchParams({
-            apikey: YANDEX_GEOSUGGEST_API_KEY,
+        supabase.functions.invoke("geosuggest", {
+          body: {
             text: query,
             lang: "en",
-            results: "4",
+            results: 4,
             ll: "44.5152,40.1872",
             spn: "2,2",
             ull: "44.5152,40.1872",
-            print_address: "1",
-            attrs: "uri",
-          })}`
-        ).then(r => r.json()).catch(() => ({ results: [] })),
+          },
+        }).then(({ data, error }) => error ? { results: [] } : data).catch(() => ({ results: [] })),
       ]);
 
       venuesRes.data?.forEach(venue => {

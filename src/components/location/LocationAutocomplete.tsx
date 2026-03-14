@@ -81,20 +81,18 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       const centerLng = defaultLongitude ?? 44.5152;
       const centerLat = defaultLatitude ?? 40.1872;
 
-      const params = new URLSearchParams({
-        apikey: YANDEX_GEOSUGGEST_API_KEY,
-        text: query,
-        lang: "en",
-        results: "7",
-        ll: `${centerLng},${centerLat}`,
-        spn: "2,2",
-        print_address: "1",
-        attrs: "uri",
-        ull: `${centerLng},${centerLat}`,
+      const { data: fnData, error: fnError } = await supabase.functions.invoke("geosuggest", {
+        body: {
+          text: query,
+          lang: "en",
+          results: 7,
+          ll: `${centerLng},${centerLat}`,
+          spn: "2,2",
+          ull: `${centerLng},${centerLat}`,
+        },
       });
 
-      const response = await fetch(`https://suggest-maps.yandex.ru/v1/suggest?${params}`);
-      const data = await response.json();
+      const data = fnError ? { results: [] } : fnData;
 
       const items: GeosuggestResult[] = data?.results || [];
       setSuggestions(items);
