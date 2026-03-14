@@ -1,14 +1,18 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CheckCircle, XCircle, MapPin, Scan, Eye, AlertTriangle, Sparkles } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, MapPin, Scan, Eye, AlertTriangle, Sparkles, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import DiscoveryControls from "./discovery/DiscoveryControls";
+import CandidateCard from "./discovery/CandidateCard";
+import { getConfidenceBadge, getStatusBadge } from "./discovery/badges";
 
 const useCandidateFields = () => {
   return useQuery({
@@ -60,31 +64,9 @@ const useApproveCandidate = () => {
   });
 };
 
-const useRunDiscovery = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (params?: { tile_key?: string; region?: string }) => {
-      const { data, error } = await supabase.functions.invoke("discover-fields", {
-        body: { ...params, force: true },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-candidate-fields"] });
-      queryClient.invalidateQueries({ queryKey: ["verified-fields"] });
-      toast.success(
-        `Discovery complete: ${data.candidates_added} found, ${data.auto_approved} auto-approved, ${data.flagged_for_review} flagged, ${data.rejected_by_ai} rejected by AI (${data.tiles_scanned} tiles scanned)`
-      );
-    },
-    onError: (e) => toast.error(`Discovery failed: ${e.message}`),
-  });
-};
-
 const CandidateFieldsTab: React.FC = () => {
-  const { data: candidates, isLoading, refetch } = useCandidateFields();
+  const { data: candidates, isLoading } = useCandidateFields();
   const approveCandidate = useApproveCandidate();
-  const runDiscovery = useRunDiscovery();
   const [approveNames, setApproveNames] = useState<Record<string, string>>({});
 
   const needsReview = candidates?.filter(c => c.status === "needs_review") || [];
@@ -102,103 +84,6 @@ const CandidateFieldsTab: React.FC = () => {
     approveCandidate.mutate({ candidate, approved: true, name: name.trim() });
   };
 
-  const getConfidenceBadge = (score: number) => {
-    if (score >= 0.85) return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">{(score * 100).toFixed(0)}%</Badge>;
-    if (score >= 0.7) return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">{(score * 100).toFixed(0)}%</Badge>;
-    return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">{(score * 100).toFixed(0)}%</Badge>;
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "auto_approved":
-        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20"><Sparkles className="h-3 w-3 mr-1" />Auto-Approved</Badge>;
-      case "needs_review":
-        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20"><AlertTriangle className="h-3 w-3 mr-1" />Needs Review</Badge>;
-      case "approved":
-        return <Badge className="bg-green-500/10 text-green-600">Approved</Badge>;
-      case "rejected":
-        return <Badge className="bg-red-500/10 text-red-600">Rejected</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const renderCandidateCard = (candidate: any, showActions: boolean) => {
-    const meta = candidate.raw_metadata as any;
-    return (
-      <div key={candidate.id} className="rounded-lg border border-border p-4 space-y-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="font-semibold text-foreground capitalize">{candidate.detected_sport_type}</span>
-              {getConfidenceBadge(Number(candidate.confidence_score))}
-              {getStatusBadge(candidate.status)}
-            </div>
-            {meta?.ai_suggested_name && (
-              <p className="text-sm font-medium text-foreground">
-                🏟️ {meta.ai_suggested_name}
-              </p>
-            )}
-            {meta?.name && meta.name !== meta?.ai_suggested_name && (
-              <p className="text-xs text-muted-foreground">
-                Google: {meta.name}
-              </p>
-            )}
-            <p className="text-sm text-muted-foreground">
-              📍 {meta?.address || `${candidate.latitude.toFixed(4)}, ${candidate.longitude.toFixed(4)}`}
-            </p>
-            {meta?.rating && (
-              <p className="text-xs text-muted-foreground mt-1">
-                ⭐ {meta.rating} ({meta.user_rating_count || 0} reviews)
-              </p>
-            )}
-            {meta?.ai_reason && (
-              <p className="text-xs text-muted-foreground mt-1 italic">
-                🤖 AI: {meta.ai_reason}
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Detected: {format(new Date(candidate.detection_timestamp), "MMM d, yyyy HH:mm")}
-            </p>
-          </div>
-        </div>
-        {showActions && (
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder={meta?.ai_suggested_name || "Enter field name..."}
-              value={approveNames[candidate.id] || ""}
-              onChange={e => setApproveNames(prev => ({ ...prev, [candidate.id]: e.target.value }))}
-              className="flex-1"
-            />
-            <Button
-              size="sm"
-              onClick={() => handleApprove(candidate)}
-              disabled={approveCandidate.isPending}
-            >
-              <CheckCircle className="h-4 w-4 mr-1" /> Approve
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => approveCandidate.mutate({ candidate, approved: false })}
-              disabled={approveCandidate.isPending}
-            >
-              <XCircle className="h-4 w-4 mr-1" /> Reject
-            </Button>
-          </div>
-        )}
-        <a
-          href={`https://www.google.com/maps/@${candidate.latitude},${candidate.longitude},18z`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-primary hover:underline flex items-center gap-1"
-        >
-          <Eye className="h-3 w-3" /> View on Google Maps
-        </a>
-      </div>
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
@@ -209,61 +94,9 @@ const CandidateFieldsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Discovery controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Scan className="h-5 w-5 text-primary" />
-            AI Field Discovery
-          </CardTitle>
-          <CardDescription>
-            Scans Google Maps for sports fields (including public courts in residential areas), 
-            then AI verifies each result. Verified fields are auto-approved; suspicious ones are flagged for your review.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              onClick={() => runDiscovery.mutate({})}
-              disabled={runDiscovery.isPending}
-            >
-              {runDiscovery.isPending ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Scanning & Verifying...</>
-              ) : (
-                <><Scan className="h-4 w-4 mr-2" /> Run Full Discovery (All Armenia)</>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => runDiscovery.mutate({ region: "yer" })}
-              disabled={runDiscovery.isPending}
-            >
-              Scan Yerevan Only
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => runDiscovery.mutate({ region: "gyumri" })}
-              disabled={runDiscovery.isPending}
-            >
-              Scan Gyumri
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => runDiscovery.mutate({ region: "vanadzor" })}
-              disabled={runDiscovery.isPending}
-            >
-              Scan Vanadzor
-            </Button>
-          </div>
-          {runDiscovery.isPending && (
-            <p className="text-xs text-muted-foreground mt-2">
-              This may take a few minutes — scanning tiles, then AI-verifying each candidate...
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <DiscoveryControls />
 
-      {/* Flagged for review (suspicious) */}
+      {/* Flagged for review */}
       {needsReview.length > 0 && (
         <Card className="border-amber-500/30">
           <CardHeader>
@@ -275,13 +108,24 @@ const CandidateFieldsTab: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {needsReview.map(c => renderCandidateCard(c, true))}
+              {needsReview.map(c => (
+                <CandidateCard
+                  key={c.id}
+                  candidate={c}
+                  showActions
+                  approveNames={approveNames}
+                  setApproveNames={setApproveNames}
+                  onApprove={handleApprove}
+                  onReject={(candidate) => approveCandidate.mutate({ candidate, approved: false })}
+                  isPending={approveCandidate.isPending}
+                />
+              ))}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Legacy pending (before AI verification existed) */}
+      {/* Legacy pending */}
       {pending.length > 0 && (
         <Card>
           <CardHeader>
@@ -293,7 +137,18 @@ const CandidateFieldsTab: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {pending.map(c => renderCandidateCard(c, true))}
+              {pending.map(c => (
+                <CandidateCard
+                  key={c.id}
+                  candidate={c}
+                  showActions
+                  approveNames={approveNames}
+                  setApproveNames={setApproveNames}
+                  onApprove={handleApprove}
+                  onReject={(candidate) => approveCandidate.mutate({ candidate, approved: false })}
+                  isPending={approveCandidate.isPending}
+                />
+              ))}
             </div>
           </CardContent>
         </Card>
