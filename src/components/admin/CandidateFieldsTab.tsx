@@ -176,13 +176,18 @@ const CandidateFieldsTab: React.FC = () => {
                         {getConfidenceBadge(Number(candidate.confidence_score))}
                         <Badge variant="outline" className="text-xs">{candidate.detection_source}</Badge>
                       </div>
+                      {(candidate.raw_metadata as any)?.name && (
+                        <p className="text-sm font-medium text-foreground">
+                          {(candidate.raw_metadata as any).name}
+                        </p>
+                      )}
                       <p className="text-sm text-muted-foreground">
-                        📍 {candidate.latitude.toFixed(4)}, {candidate.longitude.toFixed(4)}
+                        📍 {(candidate.raw_metadata as any)?.address || `${candidate.latitude.toFixed(4)}, ${candidate.longitude.toFixed(4)}`}
                         {candidate.tile_key && ` • Tile: ${candidate.tile_key}`}
                       </p>
-                      {(candidate.raw_metadata as any)?.reasoning && (
-                        <p className="text-xs text-muted-foreground mt-1 italic">
-                          "{(candidate.raw_metadata as any).reasoning}"
+                      {(candidate.raw_metadata as any)?.rating && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ⭐ {(candidate.raw_metadata as any).rating} ({(candidate.raw_metadata as any).user_rating_count || 0} reviews)
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">
