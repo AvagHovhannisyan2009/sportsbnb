@@ -63,9 +63,9 @@ const useApproveCandidate = () => {
 const useRunDiscovery = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (tileKey?: string) => {
+    mutationFn: async (params?: { tile_key?: string; region?: string }) => {
       const { data, error } = await supabase.functions.invoke("discover-fields", {
-        body: tileKey ? { tile_key: tileKey } : {},
+        body: { ...params, force: true },
       });
       if (error) throw error;
       return data;
@@ -74,7 +74,7 @@ const useRunDiscovery = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-candidate-fields"] });
       queryClient.invalidateQueries({ queryKey: ["verified-fields"] });
       toast.success(
-        `Discovery complete: ${data.candidates_added} found, ${data.auto_approved} auto-approved, ${data.flagged_for_review} flagged, ${data.rejected_by_ai} rejected by AI`
+        `Discovery complete: ${data.candidates_added} found, ${data.auto_approved} auto-approved, ${data.flagged_for_review} flagged, ${data.rejected_by_ai} rejected by AI (${data.tiles_scanned} tiles scanned)`
       );
     },
     onError: (e) => toast.error(`Discovery failed: ${e.message}`),
