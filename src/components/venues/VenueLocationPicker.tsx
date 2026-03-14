@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { GoogleMap, Marker } from "@react-google-maps/api";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Map, Placemark } from "@pbe/react-yandex-maps";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,8 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Check, X } from "lucide-react";
 import { LocationAutocomplete, PhotonPlace } from "@/components/location/LocationAutocomplete";
-
-const mapContainerStyle = { height: "300px", width: "100%" };
 
 interface VenueLocationPickerProps {
   address: string;
@@ -37,42 +35,40 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
   locationConfirmed = false,
   validationErrors = {},
 }) => {
-  const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(
-    latitude && longitude ? { lat: latitude, lng: longitude } : null
+  const [selectedPosition, setSelectedPosition] = useState<[number, number] | null>(
+    latitude && longitude ? [latitude, longitude] : null
   );
-  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(
-    latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 40.7128, lng: -74.006 }
+  const [mapCenter, setMapCenter] = useState<[number, number]>(
+    latitude && longitude ? [latitude, longitude] : [40.1872, 44.5152]
   );
   const [isConfirmed, setIsConfirmed] = useState(locationConfirmed);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const mapRef = useRef<any>(null);
 
   useEffect(() => {
     if (latitude && longitude) {
-      const pos = { lat: latitude, lng: longitude };
-      setSelectedPosition(pos);
-      setMapCenter(pos);
+      setSelectedPosition([latitude, longitude]);
+      setMapCenter([latitude, longitude]);
     }
     setIsConfirmed(locationConfirmed);
   }, [latitude, longitude, locationConfirmed]);
 
   useEffect(() => {
-    if (map) {
-      map.panTo(mapCenter);
+    if (mapRef.current) {
+      mapRef.current.setCenter(mapCenter, mapRef.current.getZoom(), { duration: 300 });
     }
-  }, [mapCenter, map]);
+  }, [mapCenter]);
 
-  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
-    if (!e.latLng) return;
-    const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-    setSelectedPosition(pos);
+  const handleMapClick = useCallback((e: any) => {
+    const coords = e.get("coords") as [number, number];
+    setSelectedPosition(coords);
     setIsConfirmed(false);
-    onLocationConfirm(pos.lat, pos.lng, false);
+    onLocationConfirm(coords[0], coords[1], false);
   }, [onLocationConfirm]);
 
   const handlePlaceSelect = (place: PhotonPlace) => {
     onAddressChange(place.formattedAddress);
     if (place.city) onCityChange(place.city);
-    const pos = { lat: place.latitude, lng: place.longitude };
+    const pos: [number, number] = [place.latitude, place.longitude];
     setSelectedPosition(pos);
     setMapCenter(pos);
     setIsConfirmed(false);
@@ -82,7 +78,7 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
   const handleConfirmLocation = () => {
     if (selectedPosition) {
       setIsConfirmed(true);
-      onLocationConfirm(selectedPosition.lat, selectedPosition.lng, true);
+      onLocationConfirm(selectedPosition[0], selectedPosition[1], true);
     }
   };
 
@@ -142,16 +138,15 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
         </div>
 
         <div className="relative rounded-lg overflow-hidden border border-border">
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            center={mapCenter}
-            zoom={13}
+          <Map
+            defaultState={{ center: mapCenter, zoom: 13 }}
+            width="100%"
+            height="300px"
+            instanceRef={(ref) => { mapRef.current = ref; }}
             onClick={handleMapClick}
-            onLoad={setMap}
-            options={{ streetViewControl: false, mapTypeControl: false }}
           >
-            {selectedPosition && <Marker position={selectedPosition} />}
-          </GoogleMap>
+            {selectedPosition && <Placemark geometry={selectedPosition} />}
+          </Map>
           <div className="absolute bottom-2 left-2 bg-background/90 backdrop-blur-sm rounded px-2 py-1 text-xs text-muted-foreground">
             Click on map to adjust location
           </div>
@@ -163,7 +158,7 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="text-sm">
-                  Selected: {selectedPosition.lat.toFixed(6)}, {selectedPosition.lng.toFixed(6)}
+                  Selected: {selectedPosition[0].toFixed(6)}, {selectedPosition[1].toFixed(6)}
                 </span>
               </div>
               <Button type="button" variant="ghost" size="sm" onClick={handleClearLocation}>
