@@ -1,0 +1,79 @@
+import React from "react";
+import { CheckCircle, XCircle, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
+import { getConfidenceBadge, getStatusBadge } from "./badges";
+
+interface CandidateCardProps {
+  candidate: any;
+  showActions: boolean;
+  approveNames: Record<string, string>;
+  setApproveNames: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  onApprove: (candidate: any) => void;
+  onReject: (candidate: any) => void;
+  isPending: boolean;
+}
+
+const CandidateCard: React.FC<CandidateCardProps> = ({
+  candidate, showActions, approveNames, setApproveNames, onApprove, onReject, isPending
+}) => {
+  const meta = candidate.raw_metadata as any;
+  return (
+    <div className="rounded-lg border border-border p-4 space-y-3">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="font-semibold text-foreground capitalize">{candidate.detected_sport_type}</span>
+            {getConfidenceBadge(Number(candidate.confidence_score))}
+            {getStatusBadge(candidate.status)}
+          </div>
+          {meta?.ai_suggested_name && (
+            <p className="text-sm font-medium text-foreground">🏟️ {meta.ai_suggested_name}</p>
+          )}
+          {meta?.name && meta.name !== meta?.ai_suggested_name && (
+            <p className="text-xs text-muted-foreground">Google: {meta.name}</p>
+          )}
+          <p className="text-sm text-muted-foreground">
+            📍 {meta?.address || `${candidate.latitude.toFixed(4)}, ${candidate.longitude.toFixed(4)}`}
+          </p>
+          {meta?.rating && (
+            <p className="text-xs text-muted-foreground mt-1">⭐ {meta.rating} ({meta.user_rating_count || 0} reviews)</p>
+          )}
+          {meta?.ai_reason && (
+            <p className="text-xs text-muted-foreground mt-1 italic">🤖 AI: {meta.ai_reason}</p>
+          )}
+          <p className="text-xs text-muted-foreground mt-1">
+            Detected: {format(new Date(candidate.detection_timestamp), "MMM d, yyyy HH:mm")}
+          </p>
+        </div>
+      </div>
+      {showActions && (
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder={meta?.ai_suggested_name || "Enter field name..."}
+            value={approveNames[candidate.id] || ""}
+            onChange={e => setApproveNames(prev => ({ ...prev, [candidate.id]: e.target.value }))}
+            className="flex-1"
+          />
+          <Button size="sm" onClick={() => onApprove(candidate)} disabled={isPending}>
+            <CheckCircle className="h-4 w-4 mr-1" /> Approve
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => onReject(candidate)} disabled={isPending}>
+            <XCircle className="h-4 w-4 mr-1" /> Reject
+          </Button>
+        </div>
+      )}
+      <a
+        href={`https://www.google.com/maps/@${candidate.latitude},${candidate.longitude},18z`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-xs text-primary hover:underline flex items-center gap-1"
+      >
+        <Eye className="h-3 w-3" /> View on Google Maps
+      </a>
+    </div>
+  );
+};
+
+export default CandidateCard;
