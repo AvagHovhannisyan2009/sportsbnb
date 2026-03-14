@@ -20,6 +20,9 @@ export interface PublicField {
   photo_url: string | null;
   active_checkins: number;
   last_checkin_at: string | null;
+  busyness_score: string | null;
+  peak_hours: string | null;
+  best_time: string | null;
 }
 
 export const usePublicFields = () => {
