@@ -4,18 +4,21 @@ const YANDEX_GEOSUGGEST_API_KEY = "d2ab23f0-55b3-4d22-b0c3-29c88fd7ce70";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { text, lang, results, ll, spn, ull } = await req.json();
+    const rawBody = await req.text();
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const urlParams = new URL(req.url).searchParams;
 
-    if (!text || text.length < 2) {
+    const text = String(payload.text ?? urlParams.get("text") ?? "").trim();
+    if (text.length < 2) {
       return new Response(JSON.stringify({ results: [] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -24,25 +27,36 @@ serve(async (req) => {
     const params = new URLSearchParams({
       apikey: YANDEX_GEOSUGGEST_API_KEY,
       text,
-      lang: lang || "en",
-      results: String(results || 7),
-      ll: ll || "44.5152,40.1872",
-      spn: spn || "2,2",
-      ull: ull || "44.5152,40.1872",
+      lang: String(payload.lang ?? urlParams.get("lang") ?? "en"),
+      results: String(payload.results ?? urlParams.get("results") ?? 7),
+      ll: String(payload.ll ?? urlParams.get("ll") ?? "44.5152,40.1872"),
+      spn: String(payload.spn ?? urlParams.get("spn") ?? "2,2"),
+      ull: String(payload.ull ?? urlParams.get("ull") ?? "44.5152,40.1872"),
       print_address: "1",
       attrs: "uri",
     });
 
     const response = await fetch(`https://suggest-maps.yandex.ru/v1/suggest?${params}`);
-    const data = await response.json();
+    const raw = await response.text();
 
-    return new Response(JSON.stringify(data), {
+    let data: { results?: unknown[] } = { results: [] };
+    try {
+      data = raw ? JSON.parse(raw) : { results: [] };
+    } catch {
+      data = { results: [] };
+    }
+
+    return new Response(JSON.stringify({
+      results: Array.isArray(data.results) ? data.results : [],
+      upstreamStatus: response.status,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Geosuggest proxy error:", error);
-    return new Response(JSON.stringify({ error: error.message, results: [] }), {
-      status: 500,
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Geosuggest proxy error:", message);
+    return new Response(JSON.stringify({ error: message, results: [] }), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
