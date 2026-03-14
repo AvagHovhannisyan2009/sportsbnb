@@ -306,6 +306,57 @@ export type Database = {
           },
         ]
       }
+      candidate_fields: {
+        Row: {
+          confidence_score: number
+          created_at: string
+          detected_sport_type: string
+          detection_source: string
+          detection_timestamp: string
+          id: string
+          latitude: number
+          longitude: number
+          raw_metadata: Json | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tile_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          confidence_score?: number
+          created_at?: string
+          detected_sport_type?: string
+          detection_source?: string
+          detection_timestamp?: string
+          id?: string
+          latitude: number
+          longitude: number
+          raw_metadata?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tile_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string
+          detected_sport_type?: string
+          detection_source?: string
+          detection_timestamp?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          raw_metadata?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tile_key?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_members: {
         Row: {
           id: string
@@ -417,6 +468,7 @@ export type Database = {
           id: string
           player_count: number | null
           user_id: string
+          verified_field_id: string | null
         }
         Insert: {
           checked_in_at?: string
@@ -425,6 +477,7 @@ export type Database = {
           id?: string
           player_count?: number | null
           user_id: string
+          verified_field_id?: string | null
         }
         Update: {
           checked_in_at?: string
@@ -433,6 +486,7 @@ export type Database = {
           id?: string
           player_count?: number | null
           user_id?: string
+          verified_field_id?: string | null
         }
         Relationships: [
           {
@@ -440,6 +494,13 @@ export type Database = {
             columns: ["field_id"]
             isOneToOne: false
             referencedRelation: "public_fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "field_checkins_verified_field_id_fkey"
+            columns: ["verified_field_id"]
+            isOneToOne: false
+            referencedRelation: "verified_fields"
             referencedColumns: ["id"]
           },
         ]
@@ -1622,6 +1683,95 @@ export type Database = {
           zip_code?: string | null
         }
         Relationships: []
+      }
+      verified_fields: {
+        Row: {
+          active_checkins: number | null
+          address: string | null
+          best_time: string | null
+          busyness_score: string | null
+          candidate_id: string | null
+          city: string
+          condition_rating: number | null
+          created_at: string
+          description: string | null
+          has_lighting: boolean | null
+          id: string
+          is_public: boolean
+          last_checkin_at: string | null
+          latitude: number
+          longitude: number
+          name: string
+          peak_hours: string | null
+          photo_url: string | null
+          sport_type: string
+          surface_type: string | null
+          updated_at: string
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          active_checkins?: number | null
+          address?: string | null
+          best_time?: string | null
+          busyness_score?: string | null
+          candidate_id?: string | null
+          city?: string
+          condition_rating?: number | null
+          created_at?: string
+          description?: string | null
+          has_lighting?: boolean | null
+          id?: string
+          is_public?: boolean
+          last_checkin_at?: string | null
+          latitude: number
+          longitude: number
+          name: string
+          peak_hours?: string | null
+          photo_url?: string | null
+          sport_type: string
+          surface_type?: string | null
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          active_checkins?: number | null
+          address?: string | null
+          best_time?: string | null
+          busyness_score?: string | null
+          candidate_id?: string | null
+          city?: string
+          condition_rating?: number | null
+          created_at?: string
+          description?: string | null
+          has_lighting?: boolean | null
+          id?: string
+          is_public?: boolean
+          last_checkin_at?: string | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          peak_hours?: string | null
+          photo_url?: string | null
+          sport_type?: string
+          surface_type?: string | null
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verified_fields_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_fields"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
