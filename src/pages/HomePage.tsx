@@ -669,7 +669,7 @@ const HomePage = () => {
               Your next game<br />is one click away.
             </motion.h2>
             <motion.p variants={fadeUp} transition={sectionTransition} className="text-base md:text-xl text-primary-foreground/60 mb-8 md:mb-12 max-w-md mx-auto">
-              Join 40,000+ players and 500+ venues already on Sportsbnb. Free to start, no credit card required.
+              Join players and venues already on Sportsbnb. Free to start, no credit card required.
             </motion.p>
             <motion.div variants={fadeUp} transition={sectionTransition} className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-20 md:mb-0">
               {!isLoading && !user ? (
