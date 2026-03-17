@@ -138,10 +138,11 @@ const HomePage = () => {
           .from("profiles_public")
           .select("user_id, full_name")
           .in("user_id", profileIds);
-        const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p.full_name] as const));
+        const profileMap: Record<string, string> = {};
+        (profiles ?? []).forEach((p) => { if (p.user_id) profileMap[p.user_id] = p.full_name || "Player"; });
         setTestimonials(
           data.map((r) => ({
-            name: profileMap.get(r.user_id) || "Player",
+            name: profileMap[r.user_id] || "Player",
             text: r.comment!,
             rating: r.rating,
           }))
