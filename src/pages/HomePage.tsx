@@ -146,7 +146,7 @@ const HomePage = () => {
                 ))}
               </div>
               <span className="text-xs md:text-sm font-medium text-primary-foreground/90">
-                Trusted by 40,000+ players
+                Trusted by players across Armenia
               </span>
             </motion.div>
 
