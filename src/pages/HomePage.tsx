@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import {
   GitCompare, UserCircle, BrainCircuit, Swords, Activity, Lock, Play,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
 import SEOHead, { createWebsiteJsonLd } from "@/components/seo/SEOHead";
@@ -39,12 +41,37 @@ const sectionTransition = { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const }
 const HomePage = () => {
   const { user, isLoading } = useAuth();
 
-  const stats = [
-    { value: "500+", label: "Venues Listed" },
-    { value: "15K+", label: "Games Played" },
-    { value: "40K+", label: "Active Players" },
-    { value: "4.8★", label: "Average Rating" },
-  ];
+  const [stats, setStats] = useState([
+    { value: "—", label: "Venues Listed" },
+    { value: "—", label: "Games Created" },
+    { value: "—", label: "Teams Formed" },
+    { value: "—", label: "Average Rating" },
+  ]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [venuesRes, gamesRes, teamsRes, ratingsRes] = await Promise.all([
+        supabase.from("venues").select("id", { count: "exact", head: true }).eq("is_active", true),
+        supabase.from("games").select("id", { count: "exact", head: true }),
+        supabase.from("teams").select("id", { count: "exact", head: true }),
+        supabase.from("venues").select("rating").eq("is_active", true).gt("rating", 0),
+      ]);
+      const venueCount = venuesRes.count ?? 0;
+      const gameCount = gamesRes.count ?? 0;
+      const teamCount = teamsRes.count ?? 0;
+      const ratings = ratingsRes.data ?? [];
+      const avgRating = ratings.length > 0
+        ? (ratings.reduce((sum, v) => sum + Number(v.rating), 0) / ratings.length).toFixed(1)
+        : "—";
+      setStats([
+        { value: venueCount.toString(), label: "Venues Listed" },
+        { value: gameCount.toString(), label: "Games Created" },
+        { value: teamCount.toString(), label: "Teams Formed" },
+        { value: avgRating !== "—" ? `${avgRating}★` : "—", label: "Average Rating" },
+      ]);
+    };
+    fetchStats();
+  }, []);
 
   const howItWorks = [
     { icon: Search, title: "Find Your Venue", description: "Browse verified facilities with real-time availability and transparent pricing.", step: "01" },
@@ -53,9 +80,9 @@ const HomePage = () => {
   ];
 
   const forOwners = [
-    { icon: Building, title: "List Your Venue", description: "Reach thousands of active players searching for facilities in your area." },
+    { icon: Building, title: "List Your Venue", description: "Reach active players searching for facilities in your area." },
     { icon: BarChart3, title: "Smart Dashboard", description: "One place for schedule, pricing, analytics, and customer management." },
-    { icon: TrendingUp, title: "Grow Revenue", description: "Fill empty time slots automatically. Venues see 40% more bookings on average." },
+    { icon: TrendingUp, title: "Grow Revenue", description: "Fill empty time slots automatically and increase your bookings." },
   ];
 
   const benefits = [
@@ -67,18 +94,63 @@ const HomePage = () => {
     { icon: Bot, title: "AI Recommendations", desc: "Smart suggestions based on your sport and location." },
   ];
 
-  const featuredVenues = [
-    { name: "Football", image: venueFootball, count: "120+ venues" },
-    { name: "Tennis", image: venueTennis, count: "85+ venues" },
-    { name: "Basketball", image: venueBasketball, count: "95+ venues" },
-    { name: "Swimming", image: venueSwimming, count: "60+ venues" },
-  ];
+  const [featuredVenues, setFeaturedVenues] = useState([
+    { name: "Football", image: venueFootball, count: "—" },
+    { name: "Tennis", image: venueTennis, count: "—" },
+    { name: "Basketball", image: venueBasketball, count: "—" },
+    { name: "Swimming", image: venueSwimming, count: "—" },
+  ]);
 
-  const testimonials = [
-    { name: "Arman K.", role: "Football Player", text: "Found my regular team through Sportsbnb. We play every Tuesday now — booking takes 30 seconds.", rating: 5 },
-    { name: "Lusine M.", role: "Venue Owner", text: "Our bookings increased by 45% in the first month. The dashboard is incredibly easy to use.", rating: 5 },
-    { name: "Davit S.", role: "Basketball Player", text: "Best sports platform I've used. The AI matchmaking found me players at my exact skill level.", rating: 5 },
-  ];
+  useEffect(() => {
+    const fetchCategoryCounts = async () => {
+      const sports = ["Football", "Tennis", "Basketball", "Swimming"];
+      const images = [venueFootball, venueTennis, venueBasketball, venueSwimming];
+      const results = await Promise.all(
+        sports.map((sport) =>
+          supabase.from("venues").select("id", { count: "exact", head: true }).eq("is_active", true).contains("sports", [sport])
+        )
+      );
+      setFeaturedVenues(
+        sports.map((sport, i) => ({
+          name: sport,
+          image: images[i],
+          count: `${results[i].count ?? 0} venues`,
+        }))
+      );
+    };
+    fetchCategoryCounts();
+  }, []);
+
+  const [testimonials, setTestimonials] = useState<{name: string; text: string; rating: number}[]>([]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const { data } = await supabase
+        .from("reviews")
+        .select("comment, rating, user_id")
+        .gte("rating", 4)
+        .not("comment", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (data && data.length > 0) {
+        const profileIds = data.map((r) => r.user_id);
+        const { data: profiles } = await supabase
+          .from("profiles_public")
+          .select("user_id, full_name")
+          .in("user_id", profileIds);
+        const profileMap: Record<string, string> = {};
+        (profiles ?? []).forEach((p) => { if (p.user_id) profileMap[p.user_id] = p.full_name || "Player"; });
+        setTestimonials(
+          data.map((r) => ({
+            name: profileMap[r.user_id] || "Player",
+            text: r.comment!,
+            rating: r.rating,
+          }))
+        );
+      }
+    };
+    fetchReviews();
+  }, []);
 
   const featureRows = [
     [
@@ -153,7 +225,7 @@ const HomePage = () => {
                 ))}
               </div>
               <span className="text-xs md:text-sm font-medium text-primary-foreground/90">
-                Trusted by 40,000+ players
+                Trusted by players across Armenia
               </span>
             </motion.div>
 
@@ -453,6 +525,7 @@ const HomePage = () => {
       </section>
 
       {/* ── Testimonials ── */}
+      {testimonials.length > 0 && (
       <section className="py-20 md:py-36 bg-background">
         <div className="container">
           <motion.div
@@ -481,7 +554,6 @@ const HomePage = () => {
                   <p className="text-sm md:text-base text-foreground leading-relaxed mb-6">"{t.text}"</p>
                   <div>
                     <p className="font-semibold text-foreground text-sm">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
                   </div>
                 </div>
               ))}
@@ -489,6 +561,7 @@ const HomePage = () => {
           </motion.div>
         </div>
       </section>
+      )}
 
       {/* ── Platform Features ── */}
       <section className="py-20 md:py-32 bg-muted/20 overflow-hidden">
@@ -675,7 +748,7 @@ const HomePage = () => {
               Your next game<br />is one click away.
             </motion.h2>
             <motion.p variants={fadeUp} transition={sectionTransition} className="text-base md:text-xl text-primary-foreground/60 mb-8 md:mb-12 max-w-md mx-auto">
-              Join 40,000+ players and 500+ venues already on Sportsbnb. Free to start, no credit card required.
+              Join players and venues already on Sportsbnb. Free to start, no credit card required.
             </motion.p>
             <motion.div variants={fadeUp} transition={sectionTransition} className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-20 md:mb-0">
               {!isLoading && !user ? (
