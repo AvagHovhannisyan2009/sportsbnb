@@ -73,6 +73,84 @@ const HomePage = () => {
     fetchStats();
   }, []);
 
+  const howItWorks = [
+    { icon: Search, title: "Find Your Venue", description: "Browse verified facilities with real-time availability and transparent pricing.", step: "01" },
+    { icon: Calendar, title: "Book Instantly", description: "Reserve your slot in seconds with secure payment — no phone calls needed.", step: "02" },
+    { icon: Users, title: "Play Together", description: "Join open games, create teams, and grow your sports network effortlessly.", step: "03" },
+  ];
+
+  const forOwners = [
+    { icon: Building, title: "List Your Venue", description: "Reach active players searching for facilities in your area." },
+    { icon: BarChart3, title: "Smart Dashboard", description: "One place for schedule, pricing, analytics, and customer management." },
+    { icon: TrendingUp, title: "Grow Revenue", description: "Fill empty time slots automatically and increase your bookings." },
+  ];
+
+  const benefits = [
+    { icon: Zap, title: "Instant Confirmation", desc: "Book and get confirmed in under 10 seconds." },
+    { icon: Shield, title: "Secure Payments", desc: "PCI-compliant processing with refund protection." },
+    { icon: Star, title: "Verified Venues", desc: "Every facility reviewed and quality-checked." },
+    { icon: Users, title: "Find Teammates", desc: "AI-powered matchmaking for your skill level." },
+    { icon: Calendar, title: "Real-Time Availability", desc: "See open slots updated live, never double-booked." },
+    { icon: Bot, title: "AI Recommendations", desc: "Smart suggestions based on your sport and location." },
+  ];
+
+  const [featuredVenues, setFeaturedVenues] = useState([
+    { name: "Football", image: venueFootball, count: "—" },
+    { name: "Tennis", image: venueTennis, count: "—" },
+    { name: "Basketball", image: venueBasketball, count: "—" },
+    { name: "Swimming", image: venueSwimming, count: "—" },
+  ]);
+
+  useEffect(() => {
+    const fetchCategoryCounts = async () => {
+      const sports = ["Football", "Tennis", "Basketball", "Swimming"];
+      const images = [venueFootball, venueTennis, venueBasketball, venueSwimming];
+      const results = await Promise.all(
+        sports.map((sport) =>
+          supabase.from("venues").select("id", { count: "exact", head: true }).eq("is_active", true).contains("sports", [sport])
+        )
+      );
+      setFeaturedVenues(
+        sports.map((sport, i) => ({
+          name: sport,
+          image: images[i],
+          count: `${results[i].count ?? 0} venues`,
+        }))
+      );
+    };
+    fetchCategoryCounts();
+  }, []);
+
+  const [testimonials, setTestimonials] = useState<{name: string; text: string; rating: number}[]>([]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const { data } = await supabase
+        .from("reviews")
+        .select("comment, rating, user_id")
+        .gte("rating", 4)
+        .not("comment", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (data && data.length > 0) {
+        const profileIds = data.map((r) => r.user_id);
+        const { data: profiles } = await supabase
+          .from("profiles_public")
+          .select("user_id, full_name")
+          .in("user_id", profileIds);
+        const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p.full_name]));
+        setTestimonials(
+          data.map((r) => ({
+            name: profileMap.get(r.user_id) || "Player",
+            text: r.comment!,
+            rating: r.rating,
+          }))
+        );
+      }
+    };
+    fetchReviews();
+  }, []);
+
   const featureRows = [
     [
       { icon: Search, label: "Smart Search" }, { icon: Calendar, label: "Instant Booking" },
