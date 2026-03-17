@@ -446,6 +446,7 @@ const HomePage = () => {
       </section>
 
       {/* ── Testimonials ── */}
+      {testimonials.length > 0 && (
       <section className="py-20 md:py-36 bg-background">
         <div className="container">
           <motion.div
@@ -474,7 +475,6 @@ const HomePage = () => {
                   <p className="text-sm md:text-base text-foreground leading-relaxed mb-6">"{t.text}"</p>
                   <div>
                     <p className="font-semibold text-foreground text-sm">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
                   </div>
                 </div>
               ))}
@@ -482,6 +482,7 @@ const HomePage = () => {
           </motion.div>
         </div>
       </section>
+      )}
 
       {/* ── Platform Features ── */}
       <section className="py-20 md:py-32 bg-muted/20 overflow-hidden">
