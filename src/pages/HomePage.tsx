@@ -138,7 +138,7 @@ const HomePage = () => {
           .from("profiles_public")
           .select("user_id, full_name")
           .in("user_id", profileIds);
-        const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p.full_name]));
+        const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p.full_name] as const));
         setTestimonials(
           data.map((r) => ({
             name: profileMap.get(r.user_id) || "Player",
