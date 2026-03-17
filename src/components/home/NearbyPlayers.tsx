@@ -1,50 +1,77 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Loader2, Filter } from "lucide-react";
+import { MapPin, Users, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const SPORTS = ["All", "Football", "Tennis", "Basketball", "Swimming"] as const;
 
-const allFakePlayers = [
-  // Football players (13)
-  { name: "Arman K.", sport: "Football", distance: 0.2, initials: "AK", level: "Intermediate" },
-  { name: "Tigran H.", sport: "Football", distance: 0.4, initials: "TH", level: "Advanced" },
-  { name: "Gagik P.", sport: "Football", distance: 0.6, initials: "GP", level: "Beginner" },
-  { name: "Narek B.", sport: "Football", distance: 0.8, initials: "NB", level: "Intermediate" },
-  { name: "Suren A.", sport: "Football", distance: 1.0, initials: "SA", level: "Advanced" },
-  { name: "Hovhannes L.", sport: "Football", distance: 1.2, initials: "HL", level: "Intermediate" },
-  { name: "Vardan D.", sport: "Football", distance: 1.4, initials: "VD", level: "Beginner" },
-  // Tennis players
-  { name: "Lusine M.", sport: "Tennis", distance: 0.4, initials: "LM", level: "Advanced" },
-  { name: "Mariam V.", sport: "Tennis", distance: 0.8, initials: "MV", level: "Beginner" },
-  { name: "Nare H.", sport: "Tennis", distance: 0.6, initials: "NH", level: "Intermediate" },
-  // Basketball players
-  { name: "Davit S.", sport: "Basketball", distance: 0.5, initials: "DS", level: "Beginner" },
-  { name: "Hayk R.", sport: "Basketball", distance: 0.9, initials: "HR", level: "Intermediate" },
-  { name: "Erik N.", sport: "Basketball", distance: 0.3, initials: "EN", level: "Advanced" },
-  // Swimming players
-  { name: "Ani G.", sport: "Swimming", distance: 0.6, initials: "AG", level: "Intermediate" },
-  { name: "Lilit P.", sport: "Swimming", distance: 0.7, initials: "LP", level: "Advanced" },
-];
+interface NearbyPlayer {
+  name: string;
+  sport: string;
+  initials: string;
+  level: string;
+  city: string;
+}
 
 const NearbyPlayers = () => {
   const [state, setState] = useState<"idle" | "loading" | "loaded">("idle");
   const [selectedSport, setSelectedSport] = useState<string>("All");
-  const [filteredPlayers, setFilteredPlayers] = useState(allFakePlayers);
+  const [players, setPlayers] = useState<NearbyPlayer[]>([]);
+
+  const fetchPlayers = async (sport: string) => {
+    setState("loading");
+    try {
+      let query = supabase
+        .from("profiles_public")
+        .select("full_name, preferred_sports, skill_level, city")
+        .eq("user_type", "player")
+        .eq("onboarding_completed", true)
+        .limit(20);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const mapped: NearbyPlayer[] = (data || [])
+        .filter((p) => {
+          if (sport === "All") return true;
+          return p.preferred_sports?.some(
+            (s: string) => s.toLowerCase() === sport.toLowerCase()
+          );
+        })
+        .map((p) => {
+          const name = p.full_name || "Player";
+          const initials = name
+            .split(" ")
+            .map((w: string) => w[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2);
+          const sportLabel =
+            sport !== "All"
+              ? sport
+              : p.preferred_sports?.[0] || "Multi-sport";
+          return {
+            name,
+            sport: sportLabel,
+            initials,
+            level: p.skill_level || "Beginner",
+            city: p.city || "",
+          };
+        });
+
+      setPlayers(mapped);
+    } catch {
+      setPlayers([]);
+    }
+    setState("loaded");
+  };
 
   const handleFind = (sport?: string) => {
     const sportToUse = sport ?? selectedSport;
-    setState("loading");
-    const delay = 1000 + Math.random() * 1000;
-    setTimeout(() => {
-      const players = sportToUse === "All"
-        ? allFakePlayers
-        : allFakePlayers.filter((p) => p.sport === sportToUse);
-      setFilteredPlayers(players);
-      setState("loaded");
-    }, delay);
+    fetchPlayers(sportToUse);
   };
 
   const handleSportChange = (sport: string) => {
@@ -53,8 +80,6 @@ const NearbyPlayers = () => {
       handleFind(sport);
     }
   };
-
-  const maxDistance = selectedSport === "All" ? 1 : 1.5;
 
   return (
     <div className="text-center">
@@ -89,7 +114,7 @@ const NearbyPlayers = () => {
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
             <span className="text-sm font-medium">
-              Searching for {selectedSport === "All" ? "players" : selectedSport + " players"} within {maxDistance} km...
+              Searching for {selectedSport === "All" ? "players" : selectedSport + " players"}...
             </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-5xl mx-auto">
@@ -120,31 +145,39 @@ const NearbyPlayers = () => {
               </Badge>
             ))}
           </div>
-          <p className="text-sm font-semibold text-primary tracking-wide uppercase">
-            {filteredPlayers.length} {selectedSport === "All" ? "players" : selectedSport + " players"} found within {maxDistance} km
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            {filteredPlayers.map((player, idx) => (
-              <div
-                key={player.name + idx}
-                className="flex items-center gap-4 bg-card border border-border/50 rounded-2xl p-4 hover:shadow-md transition-shadow"
-              >
-                <Avatar className="h-12 w-12">
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                    {player.initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-left min-w-0">
-                  <p className="font-semibold text-foreground truncate">{player.name}</p>
-                  <p className="text-sm text-muted-foreground">{player.sport} · {player.level}</p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                    <MapPin className="h-3 w-3" />
-                    {player.distance} km
+          {players.length > 0 ? (
+            <>
+              <p className="text-sm font-semibold text-primary tracking-wide uppercase">
+                {players.length} {selectedSport === "All" ? "players" : selectedSport + " players"} found
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-5xl mx-auto">
+                {players.map((player, idx) => (
+                  <div
+                    key={player.name + idx}
+                    className="flex items-center gap-4 bg-card border border-border/50 rounded-2xl p-4 hover:shadow-md transition-shadow"
+                  >
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                        {player.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-left min-w-0">
+                      <p className="font-semibold text-foreground truncate">{player.name}</p>
+                      <p className="text-sm text-muted-foreground">{player.sport} · {player.level}</p>
+                      {player.city && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                          <MapPin className="h-3 w-3" />
+                          {player.city}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">No players found. Be the first to join!</p>
+          )}
           <Button
             variant="ghost"
             size="sm"
