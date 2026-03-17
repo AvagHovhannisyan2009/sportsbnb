@@ -41,46 +41,37 @@ const sectionTransition = { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const }
 const HomePage = () => {
   const { user, isLoading } = useAuth();
 
-  const stats = [
-    { value: "500+", label: "Venues Listed" },
-    { value: "15K+", label: "Games Played" },
-    { value: "40K+", label: "Active Players" },
-    { value: "4.8★", label: "Average Rating" },
-  ];
+  const [stats, setStats] = useState([
+    { value: "—", label: "Venues Listed" },
+    { value: "—", label: "Games Created" },
+    { value: "—", label: "Teams Formed" },
+    { value: "—", label: "Average Rating" },
+  ]);
 
-  const howItWorks = [
-    { icon: Search, title: "Find Your Venue", description: "Browse verified facilities with real-time availability and transparent pricing.", step: "01" },
-    { icon: Calendar, title: "Book Instantly", description: "Reserve your slot in seconds with secure payment — no phone calls needed.", step: "02" },
-    { icon: Users, title: "Play Together", description: "Join open games, create teams, and grow your sports network effortlessly.", step: "03" },
-  ];
-
-  const forOwners = [
-    { icon: Building, title: "List Your Venue", description: "Reach thousands of active players searching for facilities in your area." },
-    { icon: BarChart3, title: "Smart Dashboard", description: "One place for schedule, pricing, analytics, and customer management." },
-    { icon: TrendingUp, title: "Grow Revenue", description: "Fill empty time slots automatically. Venues see 40% more bookings on average." },
-  ];
-
-  const benefits = [
-    { icon: Zap, title: "Instant Confirmation", desc: "Book and get confirmed in under 10 seconds." },
-    { icon: Shield, title: "Secure Payments", desc: "PCI-compliant processing with refund protection." },
-    { icon: Star, title: "Verified Venues", desc: "Every facility reviewed and quality-checked." },
-    { icon: Users, title: "Find Teammates", desc: "AI-powered matchmaking for your skill level." },
-    { icon: Calendar, title: "Real-Time Availability", desc: "See open slots updated live, never double-booked." },
-    { icon: Bot, title: "AI Recommendations", desc: "Smart suggestions based on your sport and location." },
-  ];
-
-  const featuredVenues = [
-    { name: "Football", image: venueFootball, count: "120+ venues" },
-    { name: "Tennis", image: venueTennis, count: "85+ venues" },
-    { name: "Basketball", image: venueBasketball, count: "95+ venues" },
-    { name: "Swimming", image: venueSwimming, count: "60+ venues" },
-  ];
-
-  const testimonials = [
-    { name: "Arman K.", role: "Football Player", text: "Found my regular team through Sportsbnb. We play every Tuesday now — booking takes 30 seconds.", rating: 5 },
-    { name: "Lusine M.", role: "Venue Owner", text: "Our bookings increased by 45% in the first month. The dashboard is incredibly easy to use.", rating: 5 },
-    { name: "Davit S.", role: "Basketball Player", text: "Best sports platform I've used. The AI matchmaking found me players at my exact skill level.", rating: 5 },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [venuesRes, gamesRes, teamsRes, ratingsRes] = await Promise.all([
+        supabase.from("venues").select("id", { count: "exact", head: true }).eq("is_active", true),
+        supabase.from("games").select("id", { count: "exact", head: true }),
+        supabase.from("teams").select("id", { count: "exact", head: true }),
+        supabase.from("venues").select("rating").eq("is_active", true).gt("rating", 0),
+      ]);
+      const venueCount = venuesRes.count ?? 0;
+      const gameCount = gamesRes.count ?? 0;
+      const teamCount = teamsRes.count ?? 0;
+      const ratings = ratingsRes.data ?? [];
+      const avgRating = ratings.length > 0
+        ? (ratings.reduce((sum, v) => sum + Number(v.rating), 0) / ratings.length).toFixed(1)
+        : "—";
+      setStats([
+        { value: venueCount.toString(), label: "Venues Listed" },
+        { value: gameCount.toString(), label: "Games Created" },
+        { value: teamCount.toString(), label: "Teams Formed" },
+        { value: avgRating !== "—" ? `${avgRating}★` : "—", label: "Average Rating" },
+      ]);
+    };
+    fetchStats();
+  }, []);
 
   const featureRows = [
     [
