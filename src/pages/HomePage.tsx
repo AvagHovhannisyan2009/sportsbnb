@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import {
   GitCompare, UserCircle, BrainCircuit, Swords, Activity, Lock, Play,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
 import SEOHead, { createWebsiteJsonLd } from "@/components/seo/SEOHead";
