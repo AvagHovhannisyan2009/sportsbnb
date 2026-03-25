@@ -506,7 +506,7 @@ const HomePage = () => {
                   </Button>
                 </Link>
                 <Link to="/for-owners">
-                  <Button size="lg" variant="outline" className="h-14 px-10 text-base rounded-full border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10">
+                  <Button size="lg" variant="heroOutline" className="h-14 px-10 text-base rounded-full">
                     Learn more
                   </Button>
                 </Link>
