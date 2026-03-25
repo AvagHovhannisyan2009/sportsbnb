@@ -227,7 +227,7 @@ const HomePage = () => {
                 ))}
               </div>
               <span className="text-xs md:text-sm font-medium text-primary-foreground/90">
-                {isUS ? "Now live in Armenia & California" : isArmenia ? "Trusted by players across Armenia" : "Trusted by players worldwide"}
+                Trusted by players worldwide
               </span>
             </motion.div>
 
