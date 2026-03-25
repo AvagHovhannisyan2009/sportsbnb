@@ -49,6 +49,7 @@ const BookingDialog = ({
 }: BookingDialogProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isUS } = useRegion();
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<SelectedEquipment[]>([]);
   
