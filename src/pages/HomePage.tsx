@@ -10,6 +10,7 @@ import {
   GitCompare, UserCircle, BrainCircuit, Swords, Activity, Lock, Play,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useRegion } from "@/hooks/useRegion";
 import { supabase } from "@/integrations/supabase/client";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
@@ -23,6 +24,7 @@ import venueSwimming from "@/assets/venue-swimming.jpg";
 import founderAvag from "@/assets/founder-avag.jpg";
 import founderGor from "@/assets/founder-gor.jpg";
 import founderIrina from "@/assets/founder-irina.jpg";
+import founderVaruzhan from "@/assets/founder-varuzhan.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
