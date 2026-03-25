@@ -479,7 +479,7 @@ const HomePage = () => {
                 Grow your business.
               </h2>
               <p className="text-base md:text-lg text-secondary-foreground/60 mb-8 md:mb-12 leading-relaxed max-w-lg">
-                Join hundreds of facility owners who manage bookings, reach new customers, and maximize revenue — all from a single dashboard.
+                Join facility owners in Armenia and California who manage bookings, reach new customers, and maximize revenue — all from a single dashboard.
               </p>
 
               <div className="space-y-5 md:space-y-6 mb-8 md:mb-12">
