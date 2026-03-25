@@ -46,6 +46,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   defaultLatitude,
   defaultLongitude,
 }) => {
+  const { defaultCenter } = useRegion();
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
