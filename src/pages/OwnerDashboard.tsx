@@ -358,7 +358,7 @@ const OwnerDashboard = () => {
                             </div>
                             <div className="flex items-center justify-between">
                               <div className="text-sm">
-                                <span className="font-medium text-foreground">֏{venue.price_per_hour.toLocaleString()}</span>
+                                <span className="font-medium text-foreground">{formatPrice(venue.price_per_hour)}</span>
                                 <span className="text-muted-foreground">/hr</span>
                               </div>
                               <Link to={`/venue/${venue.id}/edit`}>

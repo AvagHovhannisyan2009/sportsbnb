@@ -429,7 +429,7 @@ const PlayerDashboard = () => {
                                 </div>
                                 <div className="mt-1 flex items-center justify-between">
                                   <span className="text-sm font-medium text-foreground">
-                                    ֏{booking.total_price.toLocaleString()}
+                                    {formatPrice(booking.total_price)}
                                   </span>
                                   <Badge variant="secondary" className="text-xs">Completed</Badge>
                                 </div>
