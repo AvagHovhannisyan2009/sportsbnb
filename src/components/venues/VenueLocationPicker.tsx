@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Check, X } from "lucide-react";
 import { LocationAutocomplete, LocationPlace } from "@/components/location/LocationAutocomplete";
+import { useRegion } from "@/hooks/useRegion";
 
 interface VenueLocationPickerProps {
   address: string;
