@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useVerifiedFields, VerifiedField } from "@/hooks/useVerifiedFields";
 import { useVenues } from "@/hooks/useVenues";
+import { useRegion } from "@/hooks/useRegion";
 import Layout from "@/components/layout/Layout";
 import SEOHead from "@/components/seo/SEOHead";
 import { toast } from "sonner";
