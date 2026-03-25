@@ -634,6 +634,7 @@ const AddVenuePage = () => {
                 </Button>
               </div>
             </form>
+          )}
           </div>
       </div>
     </Layout>
