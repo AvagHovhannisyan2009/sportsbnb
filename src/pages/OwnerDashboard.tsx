@@ -12,6 +12,7 @@ import { useOwnerVenues, getVenueImage } from "@/hooks/useVenues";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { StripeConnectBanner } from "@/components/stripe/StripeConnectBanner";
 import { useOwnerAnalytics } from "@/hooks/useOwnerAnalytics";
+import { formatPrice } from "@/lib/pricing";
 import { format, parseISO, isToday, isTomorrow } from "date-fns";
 
 const OwnerDashboard = () => {
