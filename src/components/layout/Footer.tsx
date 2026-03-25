@@ -29,7 +29,7 @@ const Footer = () => {
               <span className="text-lg font-semibold text-foreground">Sportsbnb</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Book sports facilities and find games. Making sports more accessible, one booking at a time.
+              Book sports facilities and find games in Armenia and California. Making sports more accessible, one booking at a time.
             </p>
           </div>
 
