@@ -299,21 +299,28 @@ const AddVenuePage = () => {
             </div>
           </div>
 
-          {/* Stripe Connect Banner */}
-          <div className="mb-6">
-            <StripeConnectBanner />
-          </div>
+          {/* Stripe Connect Gate */}
+          {!canListVenues && !isCheckingStatus && (
+            <Card className="mb-6">
+              <CardContent className="py-8 text-center space-y-4">
+                <CreditCard className="h-12 w-12 mx-auto text-amber-500" />
+                <h2 className="text-xl font-semibold text-foreground">Set Up Payments First</h2>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Before listing a venue, you need to link your bank account so you can receive payouts from bookings. It only takes a minute.
+                </p>
+                <div className="max-w-md mx-auto">
+                  <StripeConnectBanner variant="inline" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <form onSubmit={(e) => handleSubmit(e, !canListVenues)} className="space-y-6">
-            {/* Draft Notice if no bank account */}
-            {!canListVenues && (
-              <Alert className="border-amber-500/50 bg-amber-500/10">
-                <FileEdit className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-700 dark:text-amber-400">
-                  <strong>Draft Mode:</strong> Since you haven't linked your bank account yet, your venue will be saved as a draft and won't be visible to players. Link your bank account to publish it.
-                </AlertDescription>
-              </Alert>
-            )}
+          {/* Stripe Connect Banner (when already set up) */}
+          {canListVenues && (
+            <div className="mb-6">
+              <StripeConnectBanner />
+            </div>
+          )}
 
               {/* Requirements Notice */}
             <Alert>
