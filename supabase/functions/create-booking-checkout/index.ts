@@ -101,14 +101,17 @@ serve(async (req) => {
       ownerReceives: ownerAmountCents 
     });
 
-    // Create checkout session with destination charge (90% to owner)
+    // Determine checkout currency (default to usd for US users, amd for Armenia)
+    const checkoutCurrency = currency === "USD" ? "usd" : "amd";
+
+    // Create checkout session with destination charge
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
           price_data: {
-            currency: "amd",
+            currency: checkoutCurrency,
             product_data: {
               name: `Venue Booking: ${venueName}`,
               description: `${dateLabel} at ${bookingTime} - ${venueLocation}`,

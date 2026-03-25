@@ -87,14 +87,14 @@ const Footer = () => {
             © {new Date().getFullYear()} Sportsbnb. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="https://instagram.com/sportsbnb" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Instagram
+            </a>
+            <a href="https://twitter.com/sportsbnb" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Twitter
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="https://linkedin.com/company/sportsbnb" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               LinkedIn
-            </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Instagram
             </a>
           </div>
         </div>
