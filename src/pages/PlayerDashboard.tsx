@@ -257,9 +257,9 @@ const PlayerDashboard = () => {
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          This will cancel your booking at {booking.venue_name} and issue a full refund of ֏{booking.total_price.toLocaleString()}. This action cannot be undone.
-                                        </AlertDialogDescription>
+                                         <AlertDialogDescription>
+                                          This will cancel your booking at {booking.venue_name} and issue a full refund of {formatPrice(booking.total_price)}. This action cannot be undone.
+                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>Keep Booking</AlertDialogCancel>
