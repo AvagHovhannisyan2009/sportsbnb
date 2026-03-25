@@ -118,7 +118,7 @@ const PlayerDashboard = () => {
       if (error) throw error;
 
       if (data?.success) {
-        toast.success(`Booking cancelled. ֏${data.amount.toLocaleString()} refunded.`);
+        toast.success(`Booking cancelled. ${formatPrice(data.amount)} refunded.`);
         setBookings(bookings.filter((b) => b.id !== bookingId));
       }
     } catch (error) {
