@@ -74,7 +74,7 @@ const OwnerDashboard = () => {
   const stats = [
     { 
       label: "Total Revenue", 
-      value: analytics ? `֏${analytics.totalRevenue.toLocaleString()}` : "֏0", 
+      value: analytics ? formatPrice(analytics.totalRevenue) : formatPrice(0),
       change: analytics?.totalRevenue > 0 ? "+12%" : "—", 
       icon: DollarSign 
     },
