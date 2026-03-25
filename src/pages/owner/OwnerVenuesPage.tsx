@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, Plus, MapPin, Star, Settings, Calendar, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
+import { Loader2, Plus, MapPin, Star, Settings, Calendar, MoreHorizontal, Edit, Trash2, Eye, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +14,15 @@ import { OwnerLayout } from "@/components/owner/OwnerLayout";
 import { EmptyState } from "@/components/owner/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerVenues, getVenueImage } from "@/hooks/useVenues";
+import { useStripeConnect } from "@/hooks/useStripeConnect";
+import { StripeConnectBanner } from "@/components/stripe/StripeConnectBanner";
 import { Building2 } from "lucide-react";
 
 const OwnerVenuesPage = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading } = useAuth();
   const { data: myVenues = [], isLoading: venuesLoading } = useOwnerVenues(user?.id);
+  const { canListVenues, isCheckingStatus } = useStripeConnect();
 
   useEffect(() => {
     if (!authLoading && !user) {
