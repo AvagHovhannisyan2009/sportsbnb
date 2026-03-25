@@ -227,7 +227,7 @@ const HomePage = () => {
                 ))}
               </div>
               <span className="text-xs md:text-sm font-medium text-primary-foreground/90">
-                {isUS ? "Now live in Armenia & California" : isArmenia ? "Trusted by players across Armenia" : "Trusted by players worldwide"}
+                Trusted by players worldwide
               </span>
             </motion.div>
 
@@ -248,9 +248,7 @@ const HomePage = () => {
               transition={sectionTransition}
               className="text-base md:text-xl lg:text-2xl text-primary-foreground/60 leading-relaxed max-w-2xl mx-auto mb-8 md:mb-12 px-4"
             >
-              The all-in-one platform for grassroots sports — venue booking, team management, 
-              and game matchmaking.{" "}
-              {isUS ? "Now serving Los Angeles and Armenia." : isArmenia ? "Built for Armenia, expanding globally." : "Available worldwide."}
+              Book sports facilities. Find games. Play more.
             </motion.p>
 
             <motion.div
@@ -478,7 +476,7 @@ const HomePage = () => {
                 Grow your business.
               </h2>
               <p className="text-base md:text-lg text-secondary-foreground/60 mb-8 md:mb-12 leading-relaxed max-w-lg">
-                Join facility owners in Armenia and California who manage bookings, reach new customers, and maximize revenue — all from a single dashboard.
+                Join facility owners who manage bookings, reach new customers, and maximize revenue — all from a single dashboard.
               </p>
 
               <div className="space-y-5 md:space-y-6 mb-8 md:mb-12">
