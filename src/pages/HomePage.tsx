@@ -704,6 +704,7 @@ const HomePage = () => {
                 { img: founderAvag, alt: "Avag Hovhannisyan", name: "Avag Hovhannisyan", role: "Founder & CEO", bio: "Driving the vision to connect players with venues seamlessly. Passionate about making sport accessible." },
                 { img: founderGor, alt: "Gor Meliksetyan", name: "Gor Meliksetyan", role: "Co-Founder & CTO", bio: "Building the technology that powers thousands of bookings. Turns complex problems into simple experiences." },
                 { img: founderIrina, alt: "Irina Grigoryan", name: "Irina Grigoryan", role: "Co-Founder & CPO", bio: "Shaping the product and community experience. Every feature starts with the player in mind." },
+                { img: founderVaruzhan, alt: "Varuzhan", name: "Varuzhan", role: "Partner — US Operations", bio: "Leading Sportsbnb's expansion into California. Connecting LA's sports community with the platform." },
               ].map((founder) => (
                 <div key={founder.name} className="bg-card border border-border/40 rounded-2xl md:rounded-3xl p-6 md:p-8 group hover:border-primary/30 transition-colors">
                   <div className="flex items-center gap-4 mb-5">
