@@ -32,10 +32,15 @@ export const getOwnerPrice = (customerPrice: number): number => {
 };
 
 /**
- * Format price for display with Armenian Dram symbol
+ * Format price for display with appropriate currency symbol
+ * Detects region from localStorage or defaults to USD
  * @param price - The price to format
  * @returns Formatted price string
  */
 export const formatPrice = (price: number): string => {
-  return `֏${price.toLocaleString()}`;
+  const region = typeof window !== "undefined" ? localStorage.getItem("sportsbnb_region") : null;
+  if (region === "AM") {
+    return `֏${price.toLocaleString()}`;
+  }
+  return `$${price.toLocaleString()}`;
 };
