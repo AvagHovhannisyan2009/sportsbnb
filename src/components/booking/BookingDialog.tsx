@@ -16,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useRegion } from "@/hooks/useRegion";
 import { getCustomerPrice, formatPrice } from "@/lib/pricing";
 import { useVenueEquipment, VenueEquipment } from "@/hooks/useVenueEquipment";
 
