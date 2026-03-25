@@ -2,12 +2,15 @@ import { Link } from "react-router-dom";
 import SEOHead from "@/components/seo/SEOHead";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Target, Users, Globe, ArrowRight } from "lucide-react";
+import { Target, Users, Globe, ArrowRight, Eye, Heart, Shield, Sparkles } from "lucide-react";
+import founderAvag from "@/assets/founder-avag.jpg";
+import founderGor from "@/assets/founder-gor.jpg";
+import founderIrina from "@/assets/founder-irina.jpg";
 
 const AboutPage = () => {
   const values = [
     {
-      icon: Target,
+      icon: Globe,
       title: "Accessibility",
       description: "We believe everyone should have easy access to sports facilities, regardless of where they live.",
     },
@@ -17,9 +20,35 @@ const AboutPage = () => {
       description: "Sports bring people together. We're building tools to help you find teammates and make new friends.",
     },
     {
-      icon: Globe,
+      icon: Sparkles,
       title: "Simplicity",
       description: "Booking a court should be as easy as booking a restaurant. No phone calls, no hassle.",
+    },
+    {
+      icon: Shield,
+      title: "Trust",
+      description: "Verified venues, secure payments, and transparent pricing you can count on.",
+    },
+  ];
+
+  const founders = [
+    {
+      img: founderAvag,
+      name: "Avag Hovhannisyan",
+      role: "Founder & CEO",
+      bio: "Driving the vision to connect players with venues seamlessly. Passionate about making sport accessible to everyone.",
+    },
+    {
+      img: founderGor,
+      name: "Gor Meliksetyan",
+      role: "Co-Founder & CTO",
+      bio: "Building the technology that powers thousands of bookings. Turns complex problems into simple experiences.",
+    },
+    {
+      img: founderIrina,
+      name: "Irina Grigoryan",
+      role: "Co-Founder & CPO",
+      bio: "Shaping the product and community experience. Every feature starts with the player in mind.",
     },
   ];
 
@@ -47,68 +76,79 @@ const AboutPage = () => {
           </div>
         </section>
 
-        {/* Mission */}
+        {/* Mission & Vision */}
         <section className="py-16 md:py-24 bg-card">
           <div className="container">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <span className="text-sm font-medium text-primary mb-2 block">OUR MISSION</span>
-                <h2 className="text-3xl font-bold text-foreground mb-6">
-                  Connecting people through sports
-                </h2>
-                <p className="text-muted-foreground leading-relaxed mb-6">
-                  Sports facilities across the world operate with outdated booking systems. 
-                  Courts sit empty while players struggle to find available venues. 
-                  Games are cancelled because teams can't find enough players.
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              <div className="bg-background border border-border/40 rounded-2xl p-8 md:p-10">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
+                  <Target className="h-6 w-6" />
+                </div>
+                <h2 className="text-2xl font-bold text-foreground mb-4">Our Mission</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  To make it easy for anyone to find, organize, and join sports activity — removing 
+                  the friction that prevents active people from playing regularly.
                 </p>
-                <p className="text-muted-foreground leading-relaxed mb-6">
-                  We're solving this by creating a modern platform that connects players with 
-                  venues and with each other. Real-time availability, instant booking, and 
-                  the ability to find teammates—all in one place.
-                </p>
-                <Link to="/signup">
-                  <Button size="lg">
-                    Join Sportsbnb
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
               </div>
-              <div className="bg-secondary rounded-2xl p-8">
-                <div className="text-center">
-                  <div className="text-5xl font-bold text-secondary-foreground mb-2">500+</div>
-                  <div className="text-secondary-foreground/70 mb-8">Venues on the platform</div>
+              <div className="bg-background border border-border/40 rounded-2xl p-8 md:p-10">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
+                  <Eye className="h-6 w-6" />
                 </div>
-                <div className="grid grid-cols-2 gap-6 text-center">
-                  <div>
-                    <div className="text-3xl font-bold text-secondary-foreground mb-1">10K+</div>
-                    <div className="text-sm text-secondary-foreground/70">Active players</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-secondary-foreground mb-1">50K+</div>
-                    <div className="text-sm text-secondary-foreground/70">Bookings made</div>
-                  </div>
-                </div>
+                <h2 className="text-2xl font-bold text-foreground mb-4">Our Vision</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  A world where finding a game is as easy as opening an app — one trusted place 
+                  to discover, connect, and stay active.
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Values */}
+        {/* Founders */}
         <section className="py-16 md:py-24">
+          <div className="container">
+            <div className="text-center mb-12">
+              <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3">
+                Meet The Team
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Built by people who love the game
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              {founders.map((founder) => (
+                <div key={founder.name} className="bg-card border border-border/40 rounded-2xl p-6 md:p-8 text-center group hover:border-primary/30 transition-colors">
+                  <img
+                    src={founder.img}
+                    alt={founder.name}
+                    className="w-20 h-20 object-cover rounded-full border-2 border-primary/15 mx-auto mb-4"
+                    loading="lazy"
+                  />
+                  <h3 className="text-base font-semibold text-foreground">{founder.name}</h3>
+                  <p className="text-primary font-medium text-sm mb-3">{founder.role}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{founder.bio}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Values */}
+        <section className="py-16 md:py-24 bg-muted/20">
           <div className="container">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground mb-4">What we believe in</h2>
             </div>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
               {values.map((value) => {
                 const Icon = value.icon;
                 return (
-                  <div key={value.title} className="text-center">
+                  <div key={value.title} className="bg-card rounded-2xl p-6 md:p-8 text-center border border-border/40">
                     <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 text-primary mb-4">
                       <Icon className="h-7 w-7" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">{value.title}</h3>
-                    <p className="text-muted-foreground">{value.description}</p>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{value.title}</h3>
+                    <p className="text-sm text-muted-foreground">{value.description}</p>
                   </div>
                 );
               })}
@@ -124,7 +164,7 @@ const AboutPage = () => {
                 Ready to find your game?
               </h2>
               <p className="text-lg text-secondary-foreground/70 mb-8">
-                Join thousands of players and venue owners on Sportsbnb.
+                Join players and venue owners on Sportsbnb.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup">
