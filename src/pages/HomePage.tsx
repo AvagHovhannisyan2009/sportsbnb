@@ -24,7 +24,6 @@ import venueSwimming from "@/assets/venue-swimming.jpg";
 import founderAvag from "@/assets/founder-avag.jpg";
 import founderGor from "@/assets/founder-gor.jpg";
 import founderIrina from "@/assets/founder-irina.jpg";
-import founderVaruzhan from "@/assets/founder-varuzhan.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
@@ -223,7 +222,7 @@ const HomePage = () => {
               className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-sm px-4 py-2 mb-6 md:mb-8"
             >
               <div className="flex -space-x-2">
-                {[founderAvag, founderGor, founderIrina, founderVaruzhan].map((img, i) => (
+                {[founderAvag, founderGor, founderIrina].map((img, i) => (
                   <img key={i} src={img} alt="" className="w-6 h-6 rounded-full border-2 border-black/50 object-cover" />
                 ))}
               </div>
@@ -635,93 +634,6 @@ const HomePage = () => {
                   A world where finding a game is as easy as opening an app — one trusted place to discover, connect, and stay active.
                 </p>
               </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── Values ── */}
-      <section className="py-20 md:py-36 bg-muted/20">
-        <div className="container">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={staggerContainer}
-          >
-            <motion.div variants={fadeUp} transition={sectionTransition} className="text-center mb-12 md:mb-20">
-              <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3 md:mb-4">
-                What We Stand For
-              </p>
-              <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold text-foreground tracking-tighter">
-                Our Values
-              </h2>
-            </motion.div>
-
-            <motion.div variants={fadeUp} transition={sectionTransition} className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 max-w-5xl mx-auto">
-              {[
-                { icon: Globe, title: "Accessibility", desc: "Sport should be for everyone, everywhere." },
-                { icon: Heart, title: "Community", desc: "Sport brings people together." },
-                { icon: Sparkles, title: "Simplicity", desc: "Book in seconds, not hours." },
-                { icon: Shield, title: "Trust", desc: "Verified venues, secure payments." },
-              ].map((value) => {
-                const Icon = value.icon;
-                return (
-                  <div key={value.title} className="bg-card rounded-2xl md:rounded-3xl p-6 md:p-10 text-center border border-border/40">
-                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4 md:mb-6">
-                      <Icon className="h-7 w-7 md:h-8 md:w-8" strokeWidth={1.5} />
-                    </div>
-                    <h3 className="text-base md:text-xl font-semibold text-foreground mb-2">{value.title}</h3>
-                    <p className="text-sm md:text-base text-muted-foreground">{value.desc}</p>
-                  </div>
-                );
-              })}
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── Founders ── */}
-      <section className="py-20 md:py-36 bg-background overflow-hidden">
-        <div className="container">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={staggerContainer}
-          >
-            <motion.div variants={fadeUp} transition={sectionTransition} className="text-center mb-12 md:mb-20">
-              <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3 md:mb-4">
-                Meet The Team
-              </p>
-              <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tighter mb-4 md:mb-6">
-                Built by people who<br className="hidden md:block" /> love the game.
-              </h2>
-            </motion.div>
-
-            <motion.div variants={fadeUp} transition={sectionTransition} className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto">
-              {[
-                { img: founderAvag, alt: "Avag Hovhannisyan", name: "Avag Hovhannisyan", role: "Founder & CEO", bio: "Driving the vision to connect players with venues seamlessly. Passionate about making sport accessible." },
-                { img: founderGor, alt: "Gor Meliksetyan", name: "Gor Meliksetyan", role: "Co-Founder & CTO", bio: "Building the technology that powers thousands of bookings. Turns complex problems into simple experiences." },
-                { img: founderIrina, alt: "Irina Grigoryan", name: "Irina Grigoryan", role: "Co-Founder & CPO", bio: "Shaping the product and community experience. Every feature starts with the player in mind." },
-                { img: founderVaruzhan, alt: "Varuzhan", name: "Varuzhan", role: "Partner — US Operations", bio: "Leading Sportsbnb's expansion into California. Connecting LA's sports community with the platform." },
-              ].map((founder) => (
-                <div key={founder.name} className="bg-card border border-border/40 rounded-2xl md:rounded-3xl p-6 md:p-8 group hover:border-primary/30 transition-colors">
-                  <div className="flex items-center gap-4 mb-5">
-                    <img
-                      src={founder.img}
-                      alt={founder.alt}
-                      className="w-14 h-14 md:w-16 md:h-16 object-cover rounded-full border-2 border-primary/15"
-                      loading="lazy"
-                    />
-                    <div>
-                      <h3 className="text-sm md:text-base font-semibold text-foreground tracking-tight">{founder.name}</h3>
-                      <p className="text-primary font-medium text-xs md:text-sm">{founder.role}</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{founder.bio}</p>
-                </div>
-              ))}
             </motion.div>
           </motion.div>
         </div>
