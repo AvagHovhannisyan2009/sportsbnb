@@ -39,8 +39,9 @@ export const VenueLocationPicker: React.FC<VenueLocationPickerProps> = ({
   const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(
     latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
+  const { defaultCenter: regionDefault } = useRegion();
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(
-    latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 40.1872, lng: 44.5152 }
+    latitude && longitude ? { lat: latitude, lng: longitude } : regionDefault
   );
   const [isConfirmed, setIsConfirmed] = useState(locationConfirmed);
   const mapRef = useRef<google.maps.Map | null>(null);
