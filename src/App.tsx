@@ -186,6 +186,7 @@ const App = () => {
               </BrowserRouter>
             </TooltipProvider>
           </CurrencyProvider>
+          </RegionProvider>
         </AuthProvider>
         </GoogleMapsProvider>
       </QueryClientProvider>
