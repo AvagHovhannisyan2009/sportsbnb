@@ -152,7 +152,7 @@ const OwnerDashboard = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Upcoming Reservations</CardTitle>
-                  <Link to="/owner-reservations" className="text-sm text-primary hover:underline">
+                  <Link to="/owner/bookings" className="text-sm text-primary hover:underline">
                     View all
                   </Link>
                 </CardHeader>
