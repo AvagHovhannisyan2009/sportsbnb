@@ -48,6 +48,24 @@ const OwnerVenuesPage = () => {
 
   return (
     <OwnerLayout title="My Venues" subtitle="Manage your venue listings and settings">
+      {/* Stripe Setup Required */}
+      {!canListVenues && !isCheckingStatus && (
+        <Card className="mb-6">
+          <CardContent className="py-8 text-center space-y-4">
+            <CreditCard className="h-12 w-12 mx-auto text-amber-500" />
+            <h2 className="text-xl font-semibold text-foreground">Set Up Payments to List Venues</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Link your bank account before adding venues. This ensures you can receive payouts from bookings.
+            </p>
+            <div className="max-w-md mx-auto">
+              <StripeConnectBanner variant="inline" />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {canListVenues && (
+      <>
       {/* Header Actions */}
       <div className="flex justify-between items-center mb-6">
         <div className="text-sm text-muted-foreground">
