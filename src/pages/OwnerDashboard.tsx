@@ -12,6 +12,7 @@ import { useOwnerVenues, getVenueImage } from "@/hooks/useVenues";
 import { useStripeConnect } from "@/hooks/useStripeConnect";
 import { StripeConnectBanner } from "@/components/stripe/StripeConnectBanner";
 import { useOwnerAnalytics } from "@/hooks/useOwnerAnalytics";
+import { formatPrice } from "@/lib/pricing";
 import { format, parseISO, isToday, isTomorrow } from "date-fns";
 
 const OwnerDashboard = () => {
@@ -73,7 +74,7 @@ const OwnerDashboard = () => {
   const stats = [
     { 
       label: "Total Revenue", 
-      value: analytics ? `֏${analytics.totalRevenue.toLocaleString()}` : "֏0", 
+      value: analytics ? formatPrice(analytics.totalRevenue) : formatPrice(0),
       change: analytics?.totalRevenue > 0 ? "+12%" : "—", 
       icon: DollarSign 
     },
@@ -151,7 +152,7 @@ const OwnerDashboard = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Upcoming Reservations</CardTitle>
-                  <Link to="/owner-reservations" className="text-sm text-primary hover:underline">
+                  <Link to="/owner/bookings" className="text-sm text-primary hover:underline">
                     View all
                   </Link>
                 </CardHeader>
@@ -187,7 +188,7 @@ const OwnerDashboard = () => {
                             </div>
                             <div className="text-right shrink-0">
                               <div className="font-semibold text-foreground">
-                                ֏{reservation.amount.toLocaleString()}
+                                {formatPrice(reservation.amount)}
                               </div>
                             </div>
                           </div>
@@ -311,7 +312,7 @@ const OwnerDashboard = () => {
                             </p>
                             <div className="flex items-center justify-between">
                               <div className="text-sm">
-                                <span className="font-medium text-foreground">֏{venue.price_per_hour.toLocaleString()}</span>
+                                <span className="font-medium text-foreground">{formatPrice(venue.price_per_hour)}</span>
                                 <span className="text-muted-foreground">/hr</span>
                               </div>
                               <Link to={`/venue/${venue.id}/edit`}>
@@ -357,7 +358,7 @@ const OwnerDashboard = () => {
                             </div>
                             <div className="flex items-center justify-between">
                               <div className="text-sm">
-                                <span className="font-medium text-foreground">֏{venue.price_per_hour.toLocaleString()}</span>
+                                <span className="font-medium text-foreground">{formatPrice(venue.price_per_hour)}</span>
                                 <span className="text-muted-foreground">/hr</span>
                               </div>
                               <Link to={`/venue/${venue.id}/edit`}>

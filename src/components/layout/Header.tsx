@@ -19,7 +19,7 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut, isLoading } = useAuth();
+  const { user, profile, signOut, isLoading } = useAuth();
   const { data: isAdmin } = useIsAdmin();
 
   const navLinks = [
@@ -141,7 +141,7 @@ const Header = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/profile">Profile</Link>
                   </DropdownMenuItem>
-                  {user.user_metadata?.user_type === "owner" && (
+                  {(user.user_metadata?.user_type === "owner" || profile?.user_type === "owner") && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>

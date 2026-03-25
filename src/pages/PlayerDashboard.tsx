@@ -118,7 +118,7 @@ const PlayerDashboard = () => {
       if (error) throw error;
 
       if (data?.success) {
-        toast.success(`Booking cancelled. ֏${data.amount.toLocaleString()} refunded.`);
+        toast.success(`Booking cancelled. ${formatPrice(data.amount)} refunded.`);
         setBookings(bookings.filter((b) => b.id !== bookingId));
       }
     } catch (error) {
@@ -257,9 +257,9 @@ const PlayerDashboard = () => {
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          This will cancel your booking at {booking.venue_name} and issue a full refund of ֏{booking.total_price.toLocaleString()}. This action cannot be undone.
-                                        </AlertDialogDescription>
+                                         <AlertDialogDescription>
+                                          This will cancel your booking at {booking.venue_name} and issue a full refund of {formatPrice(booking.total_price)}. This action cannot be undone.
+                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>Keep Booking</AlertDialogCancel>
@@ -286,7 +286,7 @@ const PlayerDashboard = () => {
                                   </div>
                                 </div>
                                 <div className="mt-1 text-sm font-medium text-foreground">
-                                  ֏{booking.total_price.toLocaleString()}
+                                  {formatPrice(booking.total_price)}
                                 </div>
                               </div>
                             </div>
@@ -429,7 +429,7 @@ const PlayerDashboard = () => {
                                 </div>
                                 <div className="mt-1 flex items-center justify-between">
                                   <span className="text-sm font-medium text-foreground">
-                                    ֏{booking.total_price.toLocaleString()}
+                                    {formatPrice(booking.total_price)}
                                   </span>
                                   <Badge variant="secondary" className="text-xs">Completed</Badge>
                                 </div>

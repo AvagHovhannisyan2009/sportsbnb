@@ -104,7 +104,7 @@ const BookingSuccessPage = () => {
           )}
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" onClick={() => navigate("/discover")} className="flex-1">
+            <Button variant="outline" onClick={() => navigate("/venues")} className="flex-1">
               Browse More Venues
             </Button>
             <Button onClick={() => navigate("/dashboard")} className="flex-1">

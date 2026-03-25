@@ -258,7 +258,7 @@ const LoginPage = () => {
             <div className="flex items-center gap-6 mt-8">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                <span className="text-white/70 text-sm">10,000+ players</span>
+                <span className="text-white/70 text-sm">Growing community</span>
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />

@@ -61,7 +61,7 @@ export const StripeConnectBanner = ({ variant = 'banner' }: StripeConnectBannerP
         <CheckCircle className="h-4 w-4 text-primary" />
         <AlertTitle className="text-primary">Payouts Enabled</AlertTitle>
         <AlertDescription className="text-muted-foreground">
-          Your bank account is linked. You'll receive 90% of each booking directly to your account.
+          Your bank account is linked. You'll receive 95% of each booking directly to your account.
         </AlertDescription>
       </Alert>
     );
