@@ -94,6 +94,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <GoogleMapsProvider>
         <AuthProvider>
+          <RegionProvider>
           <CurrencyProvider>
             <TooltipProvider>
               <Toaster />
