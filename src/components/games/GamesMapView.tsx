@@ -4,6 +4,7 @@ import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { format } from "date-fns";
 import type { Game } from "@/hooks/useGames";
 import { useState } from "react";
+import { useRegion } from "@/hooks/useRegion";
 
 interface GamesMapViewProps {
   games: Game[];
@@ -12,8 +13,7 @@ interface GamesMapViewProps {
 const GamesMapView: React.FC<GamesMapViewProps> = ({ games }) => {
   const gamesWithCoords = games.filter(g => g.latitude && g.longitude);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
-
-  const defaultCenter = { lat: 40.1872, lng: 44.5152 };
+  const { defaultCenter } = useRegion();
 
   const center = gamesWithCoords.length > 0
     ? { lat: gamesWithCoords[0].latitude!, lng: gamesWithCoords[0].longitude! }

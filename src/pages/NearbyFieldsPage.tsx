@@ -95,7 +95,7 @@ const NearbyFieldsPage: React.FC = () => {
     return result;
   }, [venues, sportFilter, userLocation]);
 
-  const mapCenter = userLocation || { lat: 40.1872, lng: 44.5152 };
+  const mapCenter = userLocation || defaultCenter;
 
   return (
     <Layout>
