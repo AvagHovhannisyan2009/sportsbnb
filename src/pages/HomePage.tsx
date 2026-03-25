@@ -223,12 +223,12 @@ const HomePage = () => {
               className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-sm px-4 py-2 mb-6 md:mb-8"
             >
               <div className="flex -space-x-2">
-                {[founderAvag, founderGor, founderIrina].map((img, i) => (
+                {[founderAvag, founderGor, founderIrina, founderVaruzhan].map((img, i) => (
                   <img key={i} src={img} alt="" className="w-6 h-6 rounded-full border-2 border-black/50 object-cover" />
                 ))}
               </div>
               <span className="text-xs md:text-sm font-medium text-primary-foreground/90">
-                Trusted by players across Armenia
+                {isUS ? "Now live in Armenia & California" : isArmenia ? "Trusted by players across Armenia" : "Trusted by players worldwide"}
               </span>
             </motion.div>
 
