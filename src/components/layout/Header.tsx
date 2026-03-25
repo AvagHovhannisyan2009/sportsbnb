@@ -141,7 +141,7 @@ const Header = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/profile">Profile</Link>
                   </DropdownMenuItem>
-                  {user.user_metadata?.user_type === "owner" && (
+                  {(user.user_metadata?.user_type === "owner" || profile?.user_type === "owner") && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
