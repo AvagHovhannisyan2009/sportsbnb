@@ -86,8 +86,8 @@ export const useStripeConnect = () => {
     isCheckingStatus,
     startOnboarding,
     checkConnectStatus,
-    // Simplified: just check if bank account is linked for payouts
     canReceivePayouts: connectStatus?.payoutsEnabled === true,
-    canListVenues: true, // Always allow listing venues - no Stripe requirement
+    canListVenues: connectStatus?.hasAccount === true,
+    hasStripeAccount: connectStatus?.hasAccount === true,
   };
 };
