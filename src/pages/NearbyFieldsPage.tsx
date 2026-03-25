@@ -39,6 +39,7 @@ const NearbyFieldsPage: React.FC = () => {
   const navigate = useNavigate();
   const { fields, isLoading, checkIn, fetchFields } = useVerifiedFields();
   const { data: venues } = useVenues();
+  const { defaultCenter, regionLabel } = useRegion();
   const [view, setView] = useState<"map" | "list">("map");
   const [sportFilter, setSportFilter] = useState<string>("all");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -52,8 +53,8 @@ const NearbyFieldsPage: React.FC = () => {
         toast.success("Location found!");
       },
       () => {
-        setUserLocation({ lat: 40.1872, lng: 44.5152 });
-        toast.info("Using Yerevan center as default location");
+        setUserLocation(defaultCenter);
+        toast.info(`Using ${regionLabel} as default location`);
       },
       { enableHighAccuracy: true, timeout: 5000 }
     );
