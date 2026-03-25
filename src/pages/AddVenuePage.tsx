@@ -322,6 +322,8 @@ const AddVenuePage = () => {
             </div>
           )}
 
+          {canListVenues && (
+          <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
               {/* Requirements Notice */}
             <Alert>
               <AlertTriangle className="h-4 w-4" />
