@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CurrencyProvider } from "@/hooks/useCurrency";
+import { RegionProvider } from "@/hooks/useRegion";
 import { GoogleMapsProvider } from "@/components/maps/GoogleMapsProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/admin/AdminRoute";
@@ -93,6 +94,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <GoogleMapsProvider>
         <AuthProvider>
+          <RegionProvider>
           <CurrencyProvider>
             <TooltipProvider>
               <Toaster />
@@ -184,6 +186,7 @@ const App = () => {
               </BrowserRouter>
             </TooltipProvider>
           </CurrencyProvider>
+          </RegionProvider>
         </AuthProvider>
         </GoogleMapsProvider>
       </QueryClientProvider>

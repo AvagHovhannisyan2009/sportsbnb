@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { MapPin, Loader2, X, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useRegion } from "@/hooks/useRegion";
 
 export interface LocationPlace {
   name: string;
@@ -45,6 +46,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   defaultLatitude,
   defaultLongitude,
 }) => {
+  const { defaultCenter } = useRegion();
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<Prediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,8 +100,8 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         return;
       }
 
-      const centerLat = defaultLatitude ?? 40.1872;
-      const centerLng = defaultLongitude ?? 44.5152;
+      const centerLat = defaultLatitude ?? defaultCenter.lat;
+      const centerLng = defaultLongitude ?? defaultCenter.lng;
 
       service.getPlacePredictions(
         {

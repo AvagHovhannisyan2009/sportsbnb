@@ -9,12 +9,14 @@ import { useVenues, getVenueImage } from "@/hooks/useVenues";
 import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { sportTypes } from "@/data/constants";
 import { formatPrice, getCustomerPrice } from "@/lib/pricing";
+import { useRegion } from "@/hooks/useRegion";
 
 const VenueMapPage = () => {
   const navigate = useNavigate();
   const { data: venues = [], isLoading } = useVenues();
   const [selectedSport, setSelectedSport] = useState<string>("");
   const [selectedVenue, setSelectedVenue] = useState<any>(null);
+  const { defaultCenter: regionCenter } = useRegion();
 
   const filteredVenues = venues.filter((v) => {
     if (!v.latitude || !v.longitude) return false;
@@ -24,7 +26,7 @@ const VenueMapPage = () => {
 
   const center = filteredVenues.length > 0
     ? { lat: filteredVenues[0].latitude!, lng: filteredVenues[0].longitude! }
-    : { lat: 40.1872, lng: 44.5152 };
+    : regionCenter;
 
   const onLoad = useCallback((map: google.maps.Map) => {
     if (filteredVenues.length > 1) {

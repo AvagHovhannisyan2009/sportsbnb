@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Search, Check, Loader2, X } from "lucide-react";
+import { useRegion } from "@/hooks/useRegion";
 
 interface LocationPickerProps {
   address: string;
@@ -30,11 +31,12 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   locationConfirmed = false,
   validationErrors = {},
 }) => {
+  const { defaultCenter: regionDefault } = useRegion();
   const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(
     latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(
-    latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 40.1872, lng: 44.5152 }
+    latitude && longitude ? { lat: latitude, lng: longitude } : regionDefault
   );
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);

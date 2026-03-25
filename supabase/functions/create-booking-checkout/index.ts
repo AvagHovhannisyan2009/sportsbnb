@@ -43,8 +43,8 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { venueId, venueName, venueLocation, price, bookingDate, bookingTime, dateLabel }: BookingRequest = await req.json();
-    logStep("Booking request received", { venueId, venueName, price, bookingDate, bookingTime });
+    const { venueId, venueName, venueLocation, price, bookingDate, bookingTime, dateLabel, currency }: BookingRequest & { currency?: string } = await req.json();
+    logStep("Booking request received", { venueId, venueName, price, bookingDate, bookingTime, currency });
 
     // Get venue owner's Stripe account
     const { data: venue, error: venueError } = await supabaseClient
@@ -101,14 +101,17 @@ serve(async (req) => {
       ownerReceives: ownerAmountCents 
     });
 
-    // Create checkout session with destination charge (90% to owner)
+    // Determine checkout currency (default to usd for US users, amd for Armenia)
+    const checkoutCurrency = currency === "USD" ? "usd" : "amd";
+
+    // Create checkout session with destination charge
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
           price_data: {
-            currency: "amd",
+            currency: checkoutCurrency,
             product_data: {
               name: `Venue Booking: ${venueName}`,
               description: `${dateLabel} at ${bookingTime} - ${venueLocation}`,

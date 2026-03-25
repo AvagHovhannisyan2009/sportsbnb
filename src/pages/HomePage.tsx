@@ -10,6 +10,7 @@ import {
   GitCompare, UserCircle, BrainCircuit, Swords, Activity, Lock, Play,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useRegion } from "@/hooks/useRegion";
 import { supabase } from "@/integrations/supabase/client";
 import HeroSearch from "@/components/home/HeroSearch";
 import NearbyPlayers from "@/components/home/NearbyPlayers";
@@ -23,6 +24,7 @@ import venueSwimming from "@/assets/venue-swimming.jpg";
 import founderAvag from "@/assets/founder-avag.jpg";
 import founderGor from "@/assets/founder-gor.jpg";
 import founderIrina from "@/assets/founder-irina.jpg";
+import founderVaruzhan from "@/assets/founder-varuzhan.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
@@ -40,6 +42,7 @@ const sectionTransition = { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const }
 
 const HomePage = () => {
   const { user, isLoading } = useAuth();
+  const { isArmenia, isUS, regionLabel } = useRegion();
 
   const [stats, setStats] = useState([
     { value: "—", label: "Venues Listed" },
@@ -220,12 +223,12 @@ const HomePage = () => {
               className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-sm px-4 py-2 mb-6 md:mb-8"
             >
               <div className="flex -space-x-2">
-                {[founderAvag, founderGor, founderIrina].map((img, i) => (
+                {[founderAvag, founderGor, founderIrina, founderVaruzhan].map((img, i) => (
                   <img key={i} src={img} alt="" className="w-6 h-6 rounded-full border-2 border-black/50 object-cover" />
                 ))}
               </div>
               <span className="text-xs md:text-sm font-medium text-primary-foreground/90">
-                Trusted by players across Armenia
+                {isUS ? "Now live in Armenia & California" : isArmenia ? "Trusted by players across Armenia" : "Trusted by players worldwide"}
               </span>
             </motion.div>
 
@@ -247,7 +250,8 @@ const HomePage = () => {
               className="text-base md:text-xl lg:text-2xl text-primary-foreground/60 leading-relaxed max-w-2xl mx-auto mb-8 md:mb-12 px-4"
             >
               The all-in-one platform for grassroots sports — venue booking, team management, 
-              and game matchmaking in a single app.
+              and game matchmaking.{" "}
+              {isUS ? "Now serving Los Angeles and Armenia." : isArmenia ? "Built for Armenia, expanding globally." : "Available worldwide."}
             </motion.p>
 
             <motion.div
@@ -475,7 +479,7 @@ const HomePage = () => {
                 Grow your business.
               </h2>
               <p className="text-base md:text-lg text-secondary-foreground/60 mb-8 md:mb-12 leading-relaxed max-w-lg">
-                Join hundreds of facility owners who manage bookings, reach new customers, and maximize revenue — all from a single dashboard.
+                Join facility owners in Armenia and California who manage bookings, reach new customers, and maximize revenue — all from a single dashboard.
               </p>
 
               <div className="space-y-5 md:space-y-6 mb-8 md:mb-12">
@@ -695,11 +699,12 @@ const HomePage = () => {
               </h2>
             </motion.div>
 
-            <motion.div variants={fadeUp} transition={sectionTransition} className="grid md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
+            <motion.div variants={fadeUp} transition={sectionTransition} className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto">
               {[
                 { img: founderAvag, alt: "Avag Hovhannisyan", name: "Avag Hovhannisyan", role: "Founder & CEO", bio: "Driving the vision to connect players with venues seamlessly. Passionate about making sport accessible." },
                 { img: founderGor, alt: "Gor Meliksetyan", name: "Gor Meliksetyan", role: "Co-Founder & CTO", bio: "Building the technology that powers thousands of bookings. Turns complex problems into simple experiences." },
                 { img: founderIrina, alt: "Irina Grigoryan", name: "Irina Grigoryan", role: "Co-Founder & CPO", bio: "Shaping the product and community experience. Every feature starts with the player in mind." },
+                { img: founderVaruzhan, alt: "Varuzhan", name: "Varuzhan", role: "Partner — US Operations", bio: "Leading Sportsbnb's expansion into California. Connecting LA's sports community with the platform." },
               ].map((founder) => (
                 <div key={founder.name} className="bg-card border border-border/40 rounded-2xl md:rounded-3xl p-6 md:p-8 group hover:border-primary/30 transition-colors">
                   <div className="flex items-center gap-4 mb-5">
