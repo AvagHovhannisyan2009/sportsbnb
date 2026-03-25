@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Search, Check, Loader2, X } from "lucide-react";
+import { useRegion } from "@/hooks/useRegion";
 
 interface LocationPickerProps {
   address: string;
