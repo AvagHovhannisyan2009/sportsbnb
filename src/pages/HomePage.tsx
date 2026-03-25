@@ -248,9 +248,7 @@ const HomePage = () => {
               transition={sectionTransition}
               className="text-base md:text-xl lg:text-2xl text-primary-foreground/60 leading-relaxed max-w-2xl mx-auto mb-8 md:mb-12 px-4"
             >
-              The all-in-one platform for grassroots sports — venue booking, team management, 
-              and game matchmaking.{" "}
-              {isUS ? "Now serving Los Angeles and Armenia." : isArmenia ? "Built for Armenia, expanding globally." : "Available worldwide."}
+              Book sports facilities. Find games. Play more.
             </motion.p>
 
             <motion.div
