@@ -100,8 +100,8 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         return;
       }
 
-      const centerLat = defaultLatitude ?? 40.1872;
-      const centerLng = defaultLongitude ?? 44.5152;
+      const centerLat = defaultLatitude ?? defaultCenter.lat;
+      const centerLng = defaultLongitude ?? defaultCenter.lng;
 
       service.getPlacePredictions(
         {
