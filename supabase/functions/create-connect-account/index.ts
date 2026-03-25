@@ -73,7 +73,13 @@ serve(async (req) => {
           : { card_payments: { requested: true }, transfers: { requested: true } },
         business_type: 'individual',
         business_profile: {
-          name: profile.business_name || undefined,
+          name: profile.business_name || profile.full_name || undefined,
+          mcc: '7941', // Sports clubs/fields
+        },
+        settings: {
+          payouts: {
+            schedule: { interval: 'daily' },
+          },
         },
       };
 

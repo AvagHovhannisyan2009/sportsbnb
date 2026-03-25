@@ -39,7 +39,6 @@ serve(async (req) => {
     if (!user) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id });
 
-    // Get user's profile
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('stripe_account_id, stripe_onboarding_completed')
@@ -64,45 +63,33 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const account = await stripe.accounts.retrieve(profile.stripe_account_id);
     
-    // Check identity verification status
-    const requirements = account.requirements;
-    const hasIdentityVerification = !requirements?.currently_due?.some(
-      (req: string) => req.includes('individual.verification') || req.includes('identity')
-    );
-    const pendingVerification = requirements?.pending_verification?.length > 0;
-    
     logStep("Stripe account retrieved", {
       accountId: account.id,
       payoutsEnabled: account.payouts_enabled,
       chargesEnabled: account.charges_enabled,
-      hasIdentityVerification,
-      pendingVerification,
-      currentlyDue: requirements?.currently_due,
+      currentlyDue: account.requirements?.currently_due,
+      eventuallyDue: account.requirements?.eventually_due,
     });
 
-    // Full verification requires: bank account linked + ID verified
-    const isFullyVerified = account.payouts_enabled && account.charges_enabled && hasIdentityVerification && !pendingVerification;
+    // Simplified: onboarding is "complete" once Stripe enables payouts or charges.
+    // Stripe handles collecting remaining info (tax, etc.) gradually via eventually_due.
+    // No need to block owners on identity verification — Stripe enforces deadlines itself.
+    const canReceivePayments = account.payouts_enabled || account.charges_enabled;
     
-    // Update profile if onboarding is complete
-    if (isFullyVerified && !profile.stripe_onboarding_completed) {
+    // Update profile if onboarding is now complete
+    if (canReceivePayments && !profile.stripe_onboarding_completed) {
       await supabaseClient
         .from('profiles')
         .update({ stripe_onboarding_completed: true })
         .eq('user_id', user.id);
       logStep("Profile updated with completed onboarding status");
-      
-      // Note: Venues are NOT auto-activated. They require manual admin approval before becoming visible.
-      logStep("Stripe verification complete - venues require admin approval to become visible");
     }
 
     return new Response(JSON.stringify({
       hasAccount: true,
-      onboardingComplete: account.payouts_enabled && account.charges_enabled,
+      onboardingComplete: canReceivePayments,
       payoutsEnabled: account.payouts_enabled,
       chargesEnabled: account.charges_enabled,
-      identityVerified: hasIdentityVerification && !pendingVerification,
-      pendingVerification,
-      fullyVerified: isFullyVerified,
       accountId: account.id,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
