@@ -157,6 +157,7 @@ const BookingDialog = ({
           dateLabel: selectedDateLabel,
           equipment: equipmentDetails,
           equipmentTotal: equipmentTotal,
+          currency: isUS ? "USD" : "AMD",
         },
       });
 
