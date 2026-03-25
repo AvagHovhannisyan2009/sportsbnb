@@ -43,8 +43,8 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { venueId, venueName, venueLocation, price, bookingDate, bookingTime, dateLabel }: BookingRequest = await req.json();
-    logStep("Booking request received", { venueId, venueName, price, bookingDate, bookingTime });
+    const { venueId, venueName, venueLocation, price, bookingDate, bookingTime, dateLabel, currency }: BookingRequest & { currency?: string } = await req.json();
+    logStep("Booking request received", { venueId, venueName, price, bookingDate, bookingTime, currency });
 
     // Get venue owner's Stripe account
     const { data: venue, error: venueError } = await supabaseClient
