@@ -286,7 +286,7 @@ const PlayerDashboard = () => {
                                   </div>
                                 </div>
                                 <div className="mt-1 text-sm font-medium text-foreground">
-                                  ֏{booking.total_price.toLocaleString()}
+                                  {formatPrice(booking.total_price)}
                                 </div>
                               </div>
                             </div>
