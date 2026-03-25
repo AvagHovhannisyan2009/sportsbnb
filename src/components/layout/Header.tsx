@@ -19,7 +19,7 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut, isLoading } = useAuth();
+  const { user, profile, signOut, isLoading } = useAuth();
   const { data: isAdmin } = useIsAdmin();
 
   const navLinks = [
