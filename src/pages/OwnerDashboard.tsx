@@ -188,7 +188,7 @@ const OwnerDashboard = () => {
                             </div>
                             <div className="text-right shrink-0">
                               <div className="font-semibold text-foreground">
-                                ֏{reservation.amount.toLocaleString()}
+                                {formatPrice(reservation.amount)}
                               </div>
                             </div>
                           </div>
