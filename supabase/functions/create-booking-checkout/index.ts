@@ -65,8 +65,8 @@ serve(async (req) => {
 
     if (profileError) throw new Error(`Failed to fetch owner profile: ${profileError.message}`);
     
-    // If owner doesn't have Stripe setup, reject the booking
-    if (!ownerProfile.stripe_account_id || !ownerProfile.stripe_onboarding_completed) {
+    // Only require a Stripe account ID — Stripe handles collecting remaining info gradually
+    if (!ownerProfile.stripe_account_id) {
       logStep("Owner has no Stripe account - cannot process payment");
       return new Response(JSON.stringify({ 
         error: "This venue has not set up payments yet. Please contact the venue owner." 
