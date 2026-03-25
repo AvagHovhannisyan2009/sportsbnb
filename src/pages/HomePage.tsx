@@ -42,6 +42,7 @@ const sectionTransition = { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const }
 
 const HomePage = () => {
   const { user, isLoading } = useAuth();
+  const { isArmenia, isUS, regionLabel } = useRegion();
 
   const [stats, setStats] = useState([
     { value: "—", label: "Venues Listed" },
