@@ -214,6 +214,8 @@ const OwnerVenuesPage = () => {
           )}
         </div>
       )}
+      </>
+      )}
     </OwnerLayout>
   );
 };
